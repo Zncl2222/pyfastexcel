@@ -3,9 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
-*.so
-
 # xlsx
 *.xlsx
 
@@ -169,8 +166,6 @@ cython_debug/
 # Binaries for programs and plugins
 *.exe
 *.exe~
-*.dll
-*.so
 *.dylib
 
 # Test binary, built with `go test -c`
