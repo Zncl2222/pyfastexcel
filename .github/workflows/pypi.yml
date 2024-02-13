@@ -40,6 +40,8 @@ jobs:
 
   release-job:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/checkout@v4
