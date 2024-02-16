@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 
+from datetime import datetime
 from typing import Any
 from openpyxl_style_writer import RowWriter, CustomStyle
 from pathlib import Path
@@ -30,9 +31,28 @@ class PyExcelizeDriver(RowWriter):
         'mediumDashed': 8,
         'mediumDashDot': 10,
     }
+    _FILE_PROPS = {
+        'Category': '',
+        'ContentStatus': '',
+        'Created': '',
+        'Creator': 'pyfastexcel',
+        'Description': '',
+        'Identifier': 'xlsx',
+        'Keywords': 'spreadsheet',
+        'LastModifiedBy': 'pyfastexcel',
+        'Modified': '',
+        'Revision': '0',
+        'Subject': '',
+        'Title': '',
+        'Language': 'en-Us',
+        'Version': '',
+    }
 
     def __init__(self):
-        self.pyexcelize_data = {'Sheet1': self._get_default_sheet()}
+        self.excel_data = {
+            'Sheet1': self._get_default_sheet(),
+        }
+        self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'
         self.style_name_map = {}
 
@@ -44,6 +64,22 @@ class PyExcelizeDriver(RowWriter):
             'Width': [],
         }
 
+    def _get_default_file_props(self) -> dict[str, str]:
+        now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        file_props = self._FILE_PROPS.copy()
+        file_props['Created'] = now
+        file_props['Modified'] = now
+        return file_props
+
+    def set_file_props(self, key: str, value: str) -> None:
+        if key not in self._FILE_PROPS:
+            raise ValueError(f'Invalid file property: {key}')
+        if not isinstance(value, str):
+            raise ValueError(f'Invalid value type: {value}')
+        if value is None:
+            return
+        self.file_props[key] = value
+
     def create_excel(self) -> bytes:
         self._create_style()
         self._create_single_header()
@@ -51,15 +87,15 @@ class PyExcelizeDriver(RowWriter):
         return self._read_lib_and_create_excel()
 
     def remove_sheet(self, sheet: str) -> None:
-        self.pyexcelize_data.pop(sheet)
+        self.excel_data.pop(sheet)
 
     def create_sheet(self, sheet_name: str) -> None:
-        self.pyexcelize_data[sheet_name] = self._get_defualt_sheet()
+        self.excel_data[sheet_name] = self._get_defualt_sheet()
 
     def switch_sheet(self, sheet_name: str) -> None:
         self.sheet = sheet_name
-        if self.pyexcelize_data.get(sheet_name) is None:
-            self.pyexcelize_data[sheet_name] = self._get_default_sheet()
+        if self.excel_data.get(sheet_name) is None:
+            self.excel_data[sheet_name] = self._get_default_sheet()
 
     def create_single_header(self) -> None:
         pass
@@ -78,10 +114,14 @@ class PyExcelizeDriver(RowWriter):
         return lib
 
     def _read_lib_and_create_excel(self, lib_path: str = None) -> bytes:
-        pyexcelize = self._read_lib(lib_path)
-        json_data = msgspec.json.encode(self.pyexcelize_data)
-        create_excel = pyexcelize.Export
-        free_pointer = pyexcelize.FreeCPointer
+        pyfastexcel = self._read_lib(lib_path)
+        results = {
+            'content': self.excel_data,
+            'file_props': self.file_props,
+        }
+        json_data = msgspec.json.encode(results)
+        create_excel = pyfastexcel.Export
+        free_pointer = pyfastexcel.FreeCPointer
         free_pointer.argtypes = [ctypes.c_void_p]
         create_excel.argtypes = [ctypes.c_char_p]
         create_excel.restype = ctypes.c_void_p
@@ -96,7 +136,7 @@ class PyExcelizeDriver(RowWriter):
         self.style_map = {}
         for key, val in style_collections.items():
             self._update_style_map(key, val)
-        self.pyexcelize_data['Style'] = self.style_map
+        self.excel_data['Style'] = self.style_map
 
     def _get_style_collections(self) -> dict[str, CustomStyle]:
         return {
@@ -234,13 +274,13 @@ class FastWriter(PyExcelizeDriver):
     def apply_to_header(self, idx: int = 0):
         original_len = len(self._row_list[idx])
         self._pop_none_from_row_list(idx)
-        self.pyexcelize_data[self.sheet]['Header'] = self._row_list[idx]
+        self.excel_data[self.sheet]['Header'] = self._row_list[idx]
         # Reset row_list for body creation
         self._row_list[idx] = [None] * original_len
 
     def create_row(self, idx):
         self._pop_none_from_row_list(idx)
-        self.pyexcelize_data[self.sheet]['Data'].append(self._row_list[idx])
+        self.excel_data[self.sheet]['Data'].append(self._row_list[idx])
 
 
 class NormalWriter(PyExcelizeDriver):
@@ -256,5 +296,5 @@ class NormalWriter(PyExcelizeDriver):
 
     def create_row(self, is_header: bool = False):
         key = 'Header' if is_header is True else 'Data'
-        self.pyexcelize_data[self.sheet][key].append(self._row_list)
+        self.excel_data[self.sheet][key].append(self._row_list)
         self._row_list = []

@@ -32,8 +32,8 @@ func WriteExcel(data string) string {
 
 	file := excelize.NewFile()
 	styleMap = CreateStyle(file, StyleStruct.Style)
-
-	writeContentBySheet(file, strJson)
+	setFileProps(file, strJson["file_props"].(map[string]interface{}))
+	writeContentBySheet(file, strJson["content"].(map[string]interface{}))
 
 	// Save data in buffer and encode binary data to base64
 	buffer, _ := file.WriteToBuffer()
@@ -41,6 +41,29 @@ func WriteExcel(data string) string {
 	encodedString := base64.StdEncoding.EncodeToString(byteResults)
 
 	return encodedString
+}
+
+func setFileProps(file *excelize.File, config map[string]interface{}) {
+	err := file.SetDocProps(&excelize.DocProperties{
+		Category:       config["Category"].(string),
+		ContentStatus:  config["ContentStatus"].(string),
+		Created:        config["Created"].(string),
+		Creator:        config["Creator"].(string),
+		Description:    config["Description"].(string),
+		Identifier:     config["Identifier"].(string),
+		Keywords:       config["Keywords"].(string),
+		LastModifiedBy: config["LastModifiedBy"].(string),
+		Modified:       config["Modified"].(string),
+		Revision:       config["Revision"].(string),
+		Subject:        config["Subject"].(string),
+		Title:          config["Title"].(string),
+		Language:       config["Language"].(string),
+		Version:        config["Version"].(string),
+	})
+
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func writeContentBySheet(file *excelize.File, data map[string]interface{}) {

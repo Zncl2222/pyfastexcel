@@ -97,6 +97,7 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
     def create_excel(self) -> bytes:
         self._set_header()
         self._create_style()
+        self.set_file_props('Creator', 'Hello')
         self._create_single_header()
         self._create_body()
         return self._read_lib_and_create_excel()
