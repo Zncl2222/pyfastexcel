@@ -1,0 +1,2 @@
+msgspec
+openpyxl_style_writer
