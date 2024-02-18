@@ -167,6 +167,8 @@ cython_debug/
 *.exe
 *.exe~
 *.dylib
+*.so
+*.dll
 
 # Test binary, built with `go test -c`
 *.test
