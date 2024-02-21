@@ -14,6 +14,20 @@ import (
 	"github.com/Zncl2222/pyfastexcel/pyfastexcel/core"
 )
 
+// Export takes a C char pointer containing JSON data for an Excel file and returns a base64 encoded string of the generated Excel file.
+//
+// Args:
+//
+//	data (*C.char): A C char pointer containing JSON data for the Excel file.
+//
+// Returns:
+//
+//	*C.char: A C char pointer containing the base64 encoded string of the generated Excel file.
+//
+// Notes:
+//   - This function does not directly interact with C code.
+//   - Remember to free the memory allocated for the returned pointer using `C.free`.
+//
 //export Export
 func Export(data *C.char) *C.char {
 	goStringData := C.GoString(data)
@@ -22,12 +36,19 @@ func Export(data *C.char) *C.char {
 	return encodedRes
 }
 
+// FreeCPointer frees the memory allocated for a C char pointer.
+//
+// Args:
+//
+//	cptr (*C.char): The C char pointer to be freed.
+//
 //export FreeCPointer
 func FreeCPointer(cptr *C.char) {
 	C.free(unsafe.Pointer(cptr))
 	fmt.Println("C Pointer Free Successfully !")
 }
 
+// testExport is a trick method to test cgo in golang standard test module
 func testExport(t *testing.T) {
 	// Mock input data
 	inputData := `{
