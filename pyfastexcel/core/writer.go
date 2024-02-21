@@ -21,6 +21,19 @@ type (
 	}
 )
 
+// WriteExcel takes a JSON string containing file properties, styles,
+// and content and returns a base64 encoded string of the generated Excel file.
+//
+// Args:
+//
+//	data (string): JSON data representing the Excel file information.
+//
+// Returns:
+//
+//	string: Base64 encoded string of the generated Excel file.
+//
+// Panics:
+//   - panics on errors during JSON unmarshalling or cell conversion.
 func WriteExcel(data string) string {
 	var StyleStruct StyleWrapper
 	byteJson := []byte(data)
@@ -43,6 +56,12 @@ func WriteExcel(data string) string {
 	return encodedString
 }
 
+// setFileProps sets document properties of the Excel file based on a map of key-value pairs.
+//
+// Args:
+//
+//	file (*excelize.File): The Excel file object.
+//	config (map[string]interface{}): Map containing key-value pairs for document properties.
 func setFileProps(file *excelize.File, config map[string]interface{}) {
 	err := file.SetDocProps(&excelize.DocProperties{
 		Category:       config["Category"].(string),
@@ -66,6 +85,12 @@ func setFileProps(file *excelize.File, config map[string]interface{}) {
 	}
 }
 
+// writeContentBySheet writes content to different sheets in the Excel file based on provided data.
+//
+// Args:
+//
+//	file (*excelize.File): The Excel file object.
+//	data (map[string]interface{}): Map containing data for each sheet.
 func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 	for sheet := range data {
 		if sheet == "Style" {
