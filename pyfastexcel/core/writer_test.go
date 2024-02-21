@@ -1,34 +1,11 @@
-package main
+package core
 
-// #include <stdlib.h>
 import (
-	"C"
-)
-import (
-	"fmt"
-	"unsafe"
-
 	"encoding/base64"
 	"testing"
-
-	"github.com/Zncl2222/pyfastexcel/pyfastexcel/core"
 )
 
-//export Export
-func Export(data *C.char) *C.char {
-	goStringData := C.GoString(data)
-	result := core.WriteExcel(goStringData)
-	encodedRes := C.CString(result)
-	return encodedRes
-}
-
-//export FreeCPointer
-func FreeCPointer(cptr *C.char) {
-	C.free(unsafe.Pointer(cptr))
-	fmt.Println("C Pointer Free Successfully !")
-}
-
-func testExport(t *testing.T) {
+func TestWriteExcel(t *testing.T) {
 	// Mock input data
 	inputData := `{
 		"Style": {
@@ -98,21 +75,8 @@ func testExport(t *testing.T) {
 			}
 		}
 	}`
-
-	// Convert input data to *C.char
-	cInputData := C.CString(inputData)
-
-	// Call the Export function
-	encodedExcel := Export(cInputData)
-
-	// Free the allocated memory for cInputData
-	FreeCPointer(cInputData)
-
-	// Convert the result back to a Go string
-	goEncodedExcel := C.GoString(encodedExcel)
-
-	// Decode the encoded Excel data
-	decodedExcel, err := base64.StdEncoding.DecodeString(goEncodedExcel)
+	encodedExcel := WriteExcel(inputData)
+	decodedExcel, err := base64.StdEncoding.DecodeString(encodedExcel)
 	if err != nil {
 		t.Fatalf("Failed to decode encoded Excel data: %v", err)
 	}
@@ -121,7 +85,4 @@ func testExport(t *testing.T) {
 	if len(decodedExcel) == 0 {
 		t.Error("Encoded Excel data is empty")
 	}
-}
-
-func main() {
 }
