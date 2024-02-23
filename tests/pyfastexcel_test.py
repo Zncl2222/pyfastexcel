@@ -1,10 +1,53 @@
 from __future__ import annotations
 
-import time
+import pytest
 
 from openpyxl_style_writer import CustomStyle
 from openpyxl.styles import Side
 from pyfastexcel.driver import FastWriter, NormalWriter
+
+
+font_params = {
+    'size': 11,
+    'bold': True,
+    'italic': True,
+    'color': 'FF000000',
+    'vertAlign': 'baseline',
+    'strike': True,
+    'name': 'Calibri',
+    'family': 1,
+    'underline': 'doubleAccounting',
+}
+
+fill_params = {
+    'fill_type': 'solid',
+    'start_color': 'FFFFFFFF',
+    'end_color': 'FF000000',
+}
+
+border_params = {
+    'left': Side(style='thin', color='FF000000'),
+    'right': Side(style='thick', color='FF000000'),
+    'top': Side(style='dotted', color='FF000000'),
+    'bottom': Side(style='dashDot', color='FF000000'),
+    'diagonal': Side(style='hair', color='FF000000'),
+    'diagonal_direction': 1,
+    'outline': Side(style='medium', color='FF000000'),
+    'vertical': Side(style='mediumDashed', color='FF000000'),
+    'horizontal': Side(style='slantDashDot', color='FF000000'),
+}
+
+ali_params = {
+    'horizontal': 'general',
+    'vertical': 'bottom',
+    'text_rotation': 12,
+    'wrap_text': True,
+    'shrink_to_fit': True,
+    'indent': 1,
+    'justifyLastLine': True,
+    'readingOrder': 1,
+    'relativeIndent': 1,
+}
 
 
 def prepare_example_data(rows: int = 1000, cols: int = 10) -> list[dict[str, str]]:
@@ -55,6 +98,15 @@ class StyleCollections:
         },
         number_format='0.00%',
     )
+    test_style = CustomStyle(
+        font_params=font_params,
+        fill_params=fill_params,
+        border_params=border_params,
+        ali_params=ali_params,
+        number_format='0.00%',
+        protect=True,
+    )
+    test_style.protection.hidden = True
 
 
 class PyExcelizeFastExample(FastWriter, StyleCollections):
@@ -128,22 +180,23 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
             self.create_row()
 
 
-if __name__ == '__main__':
-    data = prepare_example_data(653, 90)
-    fast_start_time = time.perf_counter()
-    excel_fast = PyExcelizeFastExample(data).create_excel()
-    fast_end_time = time.perf_counter()
-    print('PYExcelizeFastDriver time: ', fast_end_time - fast_start_time)
-    normal_start_time = time.perf_counter()
-    excel_normal = PyExcelizeNormalExample(data).create_excel()
-    notmal_end_time = time.perf_counter()
-    print('PYExcelizeNormalDriver time: ', notmal_end_time - normal_start_time)
+def test_pyexcelize_fast_example():
+    data = prepare_example_data(rows=25, cols=9)
+    excel_example = PyExcelizeFastExample(data)
+    excel_bytes = excel_example.create_excel()
+    assert isinstance(excel_bytes, bytes)
 
-    file_path = 'pyexample_fast.xlsx'
-    file_path2 = 'pyexample_normal.xlsx'
 
-    with open(file_path, 'wb') as file:
-        file.write(excel_fast)
+def test_set_file_props():
+    excel_example = PyExcelizeFastExample([])
+    with pytest.raises(ValueError):
+        excel_example.set_file_props('Test', 'Test')
 
-    with open(file_path2, 'wb') as file:
-        file.write(excel_normal)
+
+def test_pyexcelize_normal_example():
+    data = prepare_example_data(rows=3, cols=3)
+    excel_example = PyExcelizeNormalExample(data)
+    excel_example.create_sheet('Test')
+    excel_example.remove_sheet('Test')
+    excel_bytes = excel_example.create_excel()
+    assert isinstance(excel_bytes, bytes)
