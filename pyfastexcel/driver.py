@@ -95,12 +95,11 @@ class PyExcelizeDriver(RowWriter):
         pass
 
     def _read_lib(self, lib_path: str) -> str:
-        lib_path = f'{BASE_DIR}/pyfastexcel' if lib_path is None else lib_path
-        if lib_path.split('.')[-1] not in ('so', 'dll'):
+        if lib_path is None:
             if sys.platform.startswith('linux'):
-                lib_path += '.so'
+                lib_path = list(BASE_DIR.glob('**/*.so'))[0]
             elif sys.platform.startswith('win32'):
-                lib_path += '.dll'
+                lib_path = list(BASE_DIR.glob('**/*.dll'))[0]
         lib = ctypes.CDLL(lib_path, winmode=0)
         return lib
 
