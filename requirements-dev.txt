@@ -1,0 +1,7 @@
+msgspec
+openpyxl_style_writer
+pandas
+pre-commit
+pytest
+pytest-cov
+pytest-xdist

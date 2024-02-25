@@ -10,6 +10,9 @@ msgspec = "*"
 [dev-packages]
 pre-commit = "*"
 pandas = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
 
 [requires]
 python_version = "3.11"

@@ -1,0 +1,77 @@
+name: Python Unit Test
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-shared-library:
+    strategy:
+        matrix:
+        # Currently use ubuntu 20.04 to aviod GLIBC verion issue
+          runs-on: [ubuntu-20.04, windows-latest]
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+        - uses: actions/checkout@v4
+        - name: Set up Golang
+          uses: actions/setup-go@v5
+        - name: Build windows shared library
+          run: |
+            go env -w CGO_ENABLED="1"
+            make
+        - name: Set file name windows
+          if: matrix.runs-on == 'windows-latest'
+          shell: pwsh
+          run: |
+            echo "filename=pyfastexcel.dll" >> $env:GITHUB_ENV
+        - name: Set file name ubuntu
+          if: matrix.runs-on == 'ubuntu-latest'
+          run: echo "filename=pyfastexcel.so" >> "$GITHUB_ENV"
+        - uses: actions/upload-artifact@v4
+          with:
+            name: ${{ matrix.runs-on }}-shared-library
+            path: ./pyfastexcel/${{ env.filename }}
+
+  python_test:
+    name: py-unittest
+    needs: [build-shared-library]
+    strategy:
+      max-parallel: 5
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: actions/checkout@v4
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - run: |
+          mv ./pyfastexcel.so ./pyfastexcel
+          mv ./pyfastexcel.dll ./pyfastexcel
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sed -i '/^[^#]/s/==.*//' requirements-dev.txt
+          python -m pip install --upgrade pip
+          if [ -f requirements-dev.txt ];
+          then pip install -r requirements-dev.txt;
+          fi
+      - name: Run tests to generate coverage statistics
+        run: |
+          pytest --cov --cov-report=term --cov-report xml:py_coverage.xml
+      - name: Upload coverage reports to Codecov
+        if: ${{matrix.python-version}} == '3.11' && ${{matrix.runs-on}} == 'ubuntu-latest'
+        uses: codecov/codecov-action@v4.0.1
+        with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            slug: Zncl2222/pyfastexcel
+            file: py_coverage.xml
