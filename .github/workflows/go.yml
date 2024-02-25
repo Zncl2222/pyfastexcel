@@ -31,3 +31,9 @@ jobs:
          go test -race -coverprofile=coverage.out -covermode=atomic
          bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
               --force-coverage-parser go -r coverage.out
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: Zncl2222/pyfastexcel
