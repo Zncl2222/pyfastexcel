@@ -21,6 +21,7 @@ def prepare_example_data(rows: int = 1000, cols: int = 10) -> list[dict[str, str
 
 class StyleCollections:
     black_fill_style = CustomStyle(
+        font_name='Time News Roman',
         font_size='11',
         font_bold=True,
         font_color='F62B00',
