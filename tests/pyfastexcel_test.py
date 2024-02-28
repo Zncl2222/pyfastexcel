@@ -4,7 +4,7 @@ import pytest
 
 from openpyxl_style_writer import CustomStyle
 from openpyxl.styles import Side
-from pyfastexcel.driver import FastWriter, NormalWriter
+from pyfastexcel import FastWriter, NormalWriter
 
 
 font_params = {

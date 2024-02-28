@@ -4,7 +4,7 @@ import time
 
 from openpyxl_style_writer import CustomStyle
 from openpyxl.styles import Side
-from pyfastexcel.driver import FastWriter, NormalWriter
+from pyfastexcel import FastWriter, NormalWriter
 
 
 def prepare_example_data(rows: int = 1000, cols: int = 10) -> list[dict[str, str]]:
