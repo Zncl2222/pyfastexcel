@@ -52,7 +52,7 @@ func FreeCPointer(cptr *C.char) {
 func testExport(t *testing.T) {
 	// Mock input data
 	inputData := `{
-		"Style": {
+		"style": {
 			"style1": {
 				"Font": {
 					"Bold": true

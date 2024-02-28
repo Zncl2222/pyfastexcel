@@ -44,7 +44,7 @@ func WriteExcel(data string) string {
 	}
 
 	file := excelize.NewFile()
-	styleMap = CreateStyle(file, StyleStruct.Style)
+	styleMap = CreateStyle(file, strJson["style"].(map[string]interface{}))
 	setFileProps(file, strJson["file_props"].(map[string]interface{}))
 	writeContentBySheet(file, strJson["content"].(map[string]interface{}))
 

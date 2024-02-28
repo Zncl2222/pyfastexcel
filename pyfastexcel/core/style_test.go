@@ -9,8 +9,8 @@ import (
 
 func TestCreateStyle(t *testing.T) {
 	// Mock styleSettings map
-	styleSettings := map[string]map[string]interface{}{
-		"style1": {
+	styleSettings := map[string]interface{}{
+		"style1": map[string]interface{}{
 			"Font": map[string]interface{}{
 				"Bold": true,
 			},
@@ -47,7 +47,7 @@ func TestCreateStyle(t *testing.T) {
 			},
 			"CustomNumFmt": "0.00",
 		},
-		"style2": {
+		"style2": map[string]interface{}{
 			"Font": map[string]interface{}{
 				"Bold": true,
 				"Size": float64(12),

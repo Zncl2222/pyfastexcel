@@ -190,17 +190,17 @@ func getProtectionStyle(protectionMap map[string]interface{}) *excelize.Protecti
 // Returns:
 //
 //	map[string]int: A map linking style names to their corresponding style index in the Excel file.
-func CreateStyle(file *excelize.File, styleSettings map[string]map[string]interface{}) map[string]int {
+func CreateStyle(file *excelize.File, styleSettings map[string]interface{}) map[string]int {
 	styleMap := make(map[string]int)
 
 	for key, style := range styleSettings {
-		customNumFmt := style["CustomNumFmt"].(string)
+		customNumFmt := style.(map[string]interface{})["CustomNumFmt"].(string)
 		customStyle, err := file.NewStyle(&excelize.Style{
-			Font:         getFontStyle(style["Font"].(map[string]interface{})),
-			Fill:         getFillStyle(style["Fill"].(map[string]interface{})),
-			Border:       getBorderStyle(style["Border"].(map[string]interface{})),
-			Alignment:    getAlignmentStyle(style["Alignment"].(map[string]interface{})),
-			Protection:   getProtectionStyle(style["Protection"].(map[string]interface{})),
+			Font:         getFontStyle(style.(map[string]interface{})["Font"].(map[string]interface{})),
+			Fill:         getFillStyle(style.(map[string]interface{})["Fill"].(map[string]interface{})),
+			Border:       getBorderStyle(style.(map[string]interface{})["Border"].(map[string]interface{})),
+			Alignment:    getAlignmentStyle(style.(map[string]interface{})["Alignment"].(map[string]interface{})),
+			Protection:   getProtectionStyle(style.(map[string]interface{})["Protection"].(map[string]interface{})),
 			CustomNumFmt: &customNumFmt,
 		})
 		if err != nil {

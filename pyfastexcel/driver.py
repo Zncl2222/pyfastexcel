@@ -192,6 +192,7 @@ class ExcelDriver(RowWriter):
         results = {
             'content': self.excel_data,
             'file_props': self.file_props,
+            'style': self.style_map,
         }
         json_data = msgspec.json.encode(results)
         create_excel = pyfastexcel.Export
@@ -216,7 +217,6 @@ class ExcelDriver(RowWriter):
         self.style_map = {}
         for key, val in style_collections.items():
             self._update_style_map(key, val)
-        self.excel_data['Style'] = self.style_map
 
     def _get_style_collections(self) -> dict[str, CustomStyle]:
         """
@@ -261,11 +261,9 @@ class ExcelDriver(RowWriter):
     def _get_font_style(self, style: CustomStyle) -> dict[str, str | int | bool | None]:
         font_style_map = {}
         if style.font.name:
-            font_style_map['Name'] = style.font.name
+            font_style_map['Family'] = style.font.name
         if style.font.sz:
             font_style_map['Size'] = style.font.sz
-        if style.font.family:
-            font_style_map['Family'] = style.font.family
         if style.font.b:
             font_style_map['Bold'] = style.font.b
         if style.font.i:

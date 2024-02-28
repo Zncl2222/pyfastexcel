@@ -8,7 +8,7 @@ import (
 func TestWriteExcel(t *testing.T) {
 	// Mock input data
 	inputData := `{
-		"Style": {
+		"style": {
 			"style1": {
 				"Font": {
 					"Bold": true
