@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import time
 
-from openpyxl_style_writer import CustomStyle
 from openpyxl.styles import Side
+from openpyxl_style_writer import CustomStyle
+
 from pyfastexcel import FastWriter, NormalWriter
 
 
@@ -68,6 +69,8 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
+        self.set_cell_width(self.sheet, 3, 255)
+        self.set_cell_height(self.sheet, 4, 123)
 
     def _create_single_header(self):
         for i, h in enumerate(self.headers):
@@ -127,10 +130,12 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
                 else:
                     self.row_append(row[h], style='black_fill_style')
             self.create_row()
+        self.set_cell_width(self.sheet, 'A', 255)
+        self.set_cell_height(self.sheet, 4, 123)
 
 
 if __name__ == '__main__':
-    data = prepare_example_data(653, 90)
+    data = prepare_example_data(6, 9)
     fast_start_time = time.perf_counter()
     excel_fast = PyExcelizeFastExample(data).create_excel()
     fast_end_time = time.perf_counter()
