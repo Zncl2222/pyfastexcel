@@ -31,3 +31,8 @@ repos:
     -   id: flake8
         language_version: python3
         args: [--max-line-length=100, --extend-ignore=E203]
+-   repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+    -   id: isort
+        args: ["--profile", "black", "--filter-files"]
