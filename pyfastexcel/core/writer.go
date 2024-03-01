@@ -7,6 +7,7 @@ import (
 import (
 	"encoding/base64"
 	"fmt"
+	"strconv"
 
 	"github.com/perimeterx/marshmallow"
 
@@ -85,6 +86,45 @@ func setFileProps(file *excelize.File, config map[string]interface{}) {
 	}
 }
 
+// setCellWidthAndHeight sets the width and height of cells in the Excel file based on a map of key-value pairs.
+//
+// Args:
+//
+//	file (*excelize.File): The Excel file object.
+//	config (map[string]interface{}): Map containing key-value pairs for cell width and height.
+func setCellWidth(streamWriter *excelize.StreamWriter, config map[string]interface{}) {
+	if config["Width"] == nil {
+		return
+	}
+	width := config["Width"].(map[string]interface{})
+	for col := range width {
+		cidx, _ := strconv.Atoi(col)
+		streamWriter.SetColWidth(cidx, cidx, width[col].(float64))
+	}
+}
+
+// getRowHeightMap returns a map of row heights based on a map of key-value pairs.
+//
+// Args:
+//
+//	config (map[string]interface{}): Map containing key-value pairs for row heights.
+//
+// Returns:
+//
+//	map[string]excelize.RowOpts: Map of row heights.
+func getRowHeightMap(config map[string]interface{}) map[string]excelize.RowOpts {
+	rowHeightMap := make(map[string]excelize.RowOpts)
+
+	if config["Height"] == nil {
+		return rowHeightMap
+	}
+	height := config["Height"].(map[string]interface{})
+	for row := range height {
+		rowHeightMap[row] = excelize.RowOpts{Height: height[row].(float64), Hidden: false}
+	}
+	return rowHeightMap
+}
+
 // writeContentBySheet writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
@@ -93,14 +133,16 @@ func setFileProps(file *excelize.File, config map[string]interface{}) {
 //	data (map[string]interface{}): Map containing data for each sheet.
 func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 	for sheet := range data {
-		if sheet == "Style" {
-			continue
-		}
 		sheetData := data[sheet].(map[string]interface{})
-
 		// Create Sheet and Wrtie Header
 		file.NewSheet(sheet)
 		streamWriter, _ := file.NewStreamWriter(sheet)
+
+		// CellWidtrh should be set before SetRow
+		// Height should be set with SetRow in StreamWriter
+		setCellWidth(streamWriter, sheetData)
+		rowHeightMap := getRowHeightMap(sheetData)
+
 		startedRow := 1
 		cell, _ := excelize.CoordinatesToCellName(1, startedRow)
 		for i, _ := range sheetData["Header"].([]interface{}) {
@@ -130,9 +172,17 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 				panic(err)
 			}
 
-			if err := streamWriter.SetRow(cell, processedRow); err != nil {
-				fmt.Println(err)
+			// Write cell with Height if rowHeightMap key found
+			if rowHeight, ok := rowHeightMap[strconv.Itoa(i+startedRow)]; ok {
+				if err := streamWriter.SetRow(cell, processedRow, rowHeight); err != nil {
+					fmt.Println(err)
+				}
+			} else {
+				if err := streamWriter.SetRow(cell, processedRow); err != nil {
+					fmt.Println(err)
+				}
 			}
+
 		}
 
 		if err := streamWriter.Flush(); err != nil {

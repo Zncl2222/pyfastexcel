@@ -115,7 +115,9 @@ func testExport(t *testing.T) {
 				"Data": [
 					[["Data1", "style1"], ["Data2", "style1"], ["Data3", "style1"]],
 					[["Data4", "style1"], ["Data5", "style1"], ["Data6", "style1"]]
-				]
+				],
+				"Height": {"3": 252},
+				"Width": {"1": 25, "2": 26, "3": 6}
 			}
 		}
 	}`

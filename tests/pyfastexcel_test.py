@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import pytest
-
-from openpyxl_style_writer import CustomStyle
 from openpyxl.styles import Side
-from pyfastexcel import FastWriter, NormalWriter
+from openpyxl_style_writer import CustomStyle
 
+from pyfastexcel import FastWriter, NormalWriter
 
 font_params = {
     'size': 11,
@@ -120,6 +119,9 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
+        self.set_cell_height(self.sheet, 5, 12)
+        self.set_cell_width(self.sheet, 'A', 12)
+        self.set_cell_width(self.sheet, 3, 12)
 
     def _create_single_header(self):
         for i, h in enumerate(self.headers):
@@ -156,6 +158,9 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
+        self.set_cell_height(self.sheet, 5, 12)
+        self.set_cell_width(self.sheet, 'A', 12)
+        self.set_cell_width(self.sheet, 3, 12)
 
     def _create_single_header(self):
         for h in self.headers:
@@ -192,6 +197,12 @@ def test_set_file_props():
     excel_example = PyExcelizeFastExample([])
     with pytest.raises(ValueError):
         excel_example.set_file_props('Test', 'Test')
+
+
+def test_set_cell_width():
+    excel_example = PyExcelizeFastExample([])
+    with pytest.raises(ValueError):
+        excel_example.set_cell_width(excel_example.sheet, 16385, 12)
 
 
 def test_pyexcelize_normal_example():

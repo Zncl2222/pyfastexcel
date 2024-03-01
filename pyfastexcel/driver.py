@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-import sys
-
-from datetime import datetime
-from typing import Any
-from openpyxl_style_writer import RowWriter, CustomStyle
-from pathlib import Path
-
-import ctypes
-import msgspec
 import base64
+import ctypes
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+import msgspec
+from openpyxl_style_writer import CustomStyle, RowWriter
+
+from .utils import column_to_index
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -100,7 +101,8 @@ class ExcelDriver(RowWriter):
             'Header': [],
             'Data': [],
             'MergeCells': [],
-            'Width': [],
+            'Width': {},
+            'Height': {},
         }
 
     def _get_default_file_props(self) -> dict[str, str]:
@@ -124,6 +126,16 @@ class ExcelDriver(RowWriter):
         if key not in self._FILE_PROPS:
             raise ValueError(f'Invalid file property: {key}')
         self.file_props[key] = value
+
+    def set_cell_width(self, sheet: str, col: str | int, value: int) -> None:
+        if isinstance(col, str):
+            col = column_to_index(col)
+        if col < 1 or col > 16384:
+            raise ValueError(f'Invalid column index: {col}')
+        self.excel_data[sheet]['Width'][col] = value
+
+    def set_cell_height(self, sheet: str, row: int, value: int) -> None:
+        self.excel_data[sheet]['Height'][row] = value
 
     def remove_sheet(self, sheet: str) -> None:
         """

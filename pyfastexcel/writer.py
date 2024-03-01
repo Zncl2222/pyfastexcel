@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pyfastexcel.driver import ExcelDriver
 from openpyxl_style_writer import CustomStyle
+
+from pyfastexcel.driver import ExcelDriver
 
 
 class FastWriter(ExcelDriver):
