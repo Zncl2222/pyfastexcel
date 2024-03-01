@@ -10,7 +10,7 @@ from typing import Any
 import msgspec
 from openpyxl_style_writer import CustomStyle, RowWriter
 
-from .utils import column_to_index
+from .utils import column_to_index, separate_alpha_numeric
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -136,6 +136,55 @@ class ExcelDriver(RowWriter):
 
     def set_cell_height(self, sheet: str, row: int, value: int) -> None:
         self.excel_data[sheet]['Height'][row] = value
+
+    def set_merge_cell(self, sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
+        """
+        Sets a merge cell range in the specified sheet.
+
+        Args:
+            sheet (str): The name of the sheet where the merge cell range will be set.
+            top_left_cell (str): The cell location of the top-left corner of the
+                merge cell range (e.g., 'A1').
+            bottom_right_cell (str): The cell location of the bottom-right corner
+                of the merge cell range (e.g., 'C3').
+
+        Raises:
+            ValueError: If any of the following conditions are met:
+                - Either the top_left_cell or bottom_right_cell has an invalid
+                    row number (not between 1 and 1048576).
+                - The top_left_cell number is larger than the bottom_right_cell number.
+                - The top_left_cell column index is larger than the bottom_right_cell
+                    column index.
+
+        Returns:
+            None
+        """
+        top_alpha, top_number = separate_alpha_numeric(top_left_cell)
+        bottom_alpha, bottom_number = separate_alpha_numeric(bottom_right_cell)
+        top_idx = column_to_index(top_alpha)
+        bottom_idx = column_to_index(bottom_alpha)
+
+        if (
+            int(top_number) > 1048576
+            or int(bottom_number) > 1048576
+            or int(top_number) < 1
+            or int(bottom_number) < 1
+        ):
+            raise ValueError('Invalid row number. Row number should be between 1 and 1048576.')
+
+        if int(top_number) > int(bottom_number):
+            raise ValueError(
+                'Invalid cell range. The top-left cell number should be'
+                + 'smaller than or equal to the bottom-right cell number.',
+            )
+
+        if top_idx > bottom_idx:
+            raise ValueError(
+                'Invalid cell range. The top-left cell column should be'
+                + 'smaller than or equal to the bottom-right cell column.',
+            )
+
+        self.excel_data[sheet]['MergeCells'].append((top_left_cell, bottom_right_cell))
 
     def remove_sheet(self, sheet: str) -> None:
         """

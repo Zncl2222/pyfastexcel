@@ -125,6 +125,13 @@ func getRowHeightMap(config map[string]interface{}) map[string]excelize.RowOpts 
 	return rowHeightMap
 }
 
+
+func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
+	for _, col := range cell {
+		sw.MergeCell(col.([]interface{})[0].(string), col.([]interface{})[1].(string))
+	}
+}
+
 // writeContentBySheet writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
@@ -142,6 +149,8 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 		// Height should be set with SetRow in StreamWriter
 		setCellWidth(streamWriter, sheetData)
 		rowHeightMap := getRowHeightMap(sheetData)
+
+		mergeCell(streamWriter, sheetData["MergeCells"].([]interface{}))
 
 		startedRow := 1
 		cell, _ := excelize.CoordinatesToCellName(1, startedRow)
