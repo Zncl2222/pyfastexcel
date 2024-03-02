@@ -1,4 +1,11 @@
+import re
 import string
+
+
+def separate_alpha_numeric(input_string: str):
+    alpha_part = re.findall(r'[a-zA-Z]+', input_string)
+    num_part = re.findall(r'[0-9]+', input_string)
+    return alpha_part[0], num_part[0]
 
 
 def _is_valid_column(column: str) -> bool:

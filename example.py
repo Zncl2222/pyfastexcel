@@ -132,6 +132,7 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
             self.create_row()
         self.set_cell_width(self.sheet, 'A', 255)
         self.set_cell_height(self.sheet, 4, 123)
+        self.set_merge_cell(self.sheet, 'A2', 'A12')
 
 
 if __name__ == '__main__':

@@ -125,6 +125,22 @@ func getRowHeightMap(config map[string]interface{}) map[string]excelize.RowOpts 
 	return rowHeightMap
 }
 
+// mergeCell merges cells in an Excel worksheet using the provided StreamWriter.
+//
+// Args:
+//
+//     sw (excelize.StreamWriter): The StreamWriter to use for merging cells.
+//     cell ([]interface{}): A slice of cell ranges to merge, where each cell range is
+//         represented as a pair of strings (top-left and bottom-right cells).
+func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
+	for _, col := range cell {
+		cellRange := col.([]interface{})
+		topLeft := cellRange[0].(string)
+		bottomRight := cellRange[1].(string)
+		sw.MergeCell(topLeft, bottomRight)
+	}
+}
+
 // writeContentBySheet writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
@@ -142,6 +158,8 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 		// Height should be set with SetRow in StreamWriter
 		setCellWidth(streamWriter, sheetData)
 		rowHeightMap := getRowHeightMap(sheetData)
+
+		mergeCell(streamWriter, sheetData["MergeCells"].([]interface{}))
 
 		startedRow := 1
 		cell, _ := excelize.CoordinatesToCellName(1, startedRow)

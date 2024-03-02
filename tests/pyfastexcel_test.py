@@ -205,6 +205,31 @@ def test_set_cell_width():
         excel_example.set_cell_width(excel_example.sheet, 16385, 12)
 
 
+@pytest.mark.parametrize(
+    'sheet, top_left_cell, bottom_right_cell, expected_exception',
+    [
+        ('Sheet1', 'A1', 'C2', None),  # Valid case
+        ('Sheet1', 'A1', 'A1', None),  # Invalid: Single cell is not a merge cell
+        ('Sheet1', 'A1048577', 'C2', ValueError),  # Invalid: Row number exceeds limit
+        ('Sheet1', 'A1', 'C1048577', ValueError),  # Invalid: Row number exceeds limit
+        ('Sheet1', 'XFD1', 'XFD1048576', None),  # Valid: Maximum row and column numbers
+        ('Sheet1', 'A1', 'XFE1048576', ValueError),  # Invalid: Column number exceeds limit
+        ('Sheet1', 'A2', 'A1', ValueError),  # Invalid: Top number less than bottom number
+        ('Sheet1', 'C1', 'A1', ValueError),  # Invalid: Top column less than bottom column
+        ('Sheet1', 'A0', 'A1', ValueError),  # Invalid: Row number too small
+        ('Sheet1', 'A0', 'C0', ValueError),  # Invalid: Row number too small
+    ],
+)
+def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_exception):
+    excel = PyExcelizeFastExample([])
+    if expected_exception is not None:
+        with pytest.raises(expected_exception):
+            excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
+    else:
+        excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
+        assert (top_left_cell, bottom_right_cell) in excel.excel_data[sheet]['MergeCells']
+
+
 def test_pyexcelize_normal_example():
     data = prepare_example_data(rows=3, cols=3)
     excel_example = PyExcelizeNormalExample(data)

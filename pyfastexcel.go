@@ -117,7 +117,8 @@ func testExport(t *testing.T) {
 					[["Data4", "style1"], ["Data5", "style1"], ["Data6", "style1"]]
 				],
 				"Height": {"3": 252},
-				"Width": {"1": 25, "2": 26, "3": 6}
+				"Width": {"1": 25, "2": 26, "3": 6},
+				"MergeCells": [["A1", "A2"], ["B2","C3"]]
 			}
 		}
 	}`
