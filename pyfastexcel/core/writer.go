@@ -125,10 +125,19 @@ func getRowHeightMap(config map[string]interface{}) map[string]excelize.RowOpts 
 	return rowHeightMap
 }
 
-
+// mergeCell merges cells in an Excel worksheet using the provided StreamWriter.
+//
+// Args:
+//
+//     sw (excelize.StreamWriter): The StreamWriter to use for merging cells.
+//     cell ([]interface{}): A slice of cell ranges to merge, where each cell range is
+//         represented as a pair of strings (top-left and bottom-right cells).
 func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
 	for _, col := range cell {
-		sw.MergeCell(col.([]interface{})[0].(string), col.([]interface{})[1].(string))
+		cellRange := col.([]interface{})
+		topLeft := cellRange[0].(string)
+		bottomRight := cellRange[1].(string)
+		sw.MergeCell(topLeft, bottomRight)
 	}
 }
 
