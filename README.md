@@ -209,7 +209,7 @@ if __name__ == '__main__':
 
 Limitations:
 
-This project currently depends on the `CustomStyle`` object of
+This project currently depends on the `CustomStyle` object of
 the [openpyxl_style_writer](https://github.com/Zncl2222/openpyxl_style_writer)
 package, which is built for openpyxl to write styles in write-only
 mode more efficiently without duplicating code.
