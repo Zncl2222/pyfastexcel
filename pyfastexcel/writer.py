@@ -4,8 +4,147 @@ from openpyxl_style_writer import CustomStyle
 
 from pyfastexcel.driver import ExcelDriver
 
+from .utils import column_to_index, separate_alpha_numeric
 
-class FastWriter(ExcelDriver):
+# TODO: Implement a General Writer for all cases to use, and enable
+#   the ability to use excel index or number index to set the value
+
+
+class BaseWriter(ExcelDriver):
+    """
+    A base class for writing data to Excel files with custom styles.
+
+    This class provides methods to set file properties, cell dimensions,
+    merge cells, manipulate sheets, and more.
+
+    Methods:
+        set_file_props(key: str, value: str) -> None:
+            Sets a file property.
+        set_cell_width(sheet: str, col: str | int, value: int) -> None:
+            Sets the width of a cell.
+        set_cell_height(sheet: str, row: int, value: int) -> None:
+            Sets the height of a cell.
+        set_merge_cell(sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
+            Sets a merge cell range in the specified sheet.
+        remove_sheet(sheet: str) -> None:
+            Removes a sheet from the Excel data.
+        create_sheet(sheet_name: str) -> None:
+            Creates a new sheet.
+        switch_sheet(sheet_name: str) -> None:
+            Switches to a different sheet.
+    """
+
+    def set_file_props(self, key: str, value: str) -> None:
+        """
+        Sets a file property.
+
+        Args:
+            key (str): The property key.
+            value (str): The property value.
+
+        Raises:
+            ValueError: If the key is invalid.
+        """
+        if key not in self._FILE_PROPS:
+            raise ValueError(f'Invalid file property: {key}')
+        self.file_props[key] = value
+
+    def set_cell_width(self, sheet: str, col: str | int, value: int) -> None:
+        if isinstance(col, str):
+            col = column_to_index(col)
+        if col < 1 or col > 16384:
+            raise ValueError(f'Invalid column index: {col}')
+        self.excel_data[sheet]['Width'][col] = value
+
+    def set_cell_height(self, sheet: str, row: int, value: int) -> None:
+        self.excel_data[sheet]['Height'][row] = value
+
+    def set_merge_cell(self, sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
+        """
+        Sets a merge cell range in the specified sheet.
+
+        Args:
+            sheet (str): The name of the sheet where the merge cell range will be set.
+            top_left_cell (str): The cell location of the top-left corner of the
+                merge cell range (e.g., 'A1').
+            bottom_right_cell (str): The cell location of the bottom-right corner
+                of the merge cell range (e.g., 'C3').
+
+        Raises:
+            ValueError: If any of the following conditions are met:
+                - Either the top_left_cell or bottom_right_cell has an invalid
+                    row number (not between 1 and 1048576).
+                - The top_left_cell number is larger than the bottom_right_cell number.
+                - The top_left_cell column index is larger than the bottom_right_cell
+                    column index.
+
+        Returns:
+            None
+        """
+        top_alpha, top_number = separate_alpha_numeric(top_left_cell)
+        bottom_alpha, bottom_number = separate_alpha_numeric(bottom_right_cell)
+        top_idx = column_to_index(top_alpha)
+        bottom_idx = column_to_index(bottom_alpha)
+
+        if (
+            int(top_number) > 1048576
+            or int(bottom_number) > 1048576
+            or int(top_number) < 1
+            or int(bottom_number) < 1
+        ):
+            raise ValueError('Invalid row number. Row number should be between 1 and 1048576.')
+
+        if int(top_number) > int(bottom_number):
+            raise ValueError(
+                'Invalid cell range. The top-left cell number should be'
+                + 'smaller than or equal to the bottom-right cell number.',
+            )
+
+        if top_idx > bottom_idx:
+            raise ValueError(
+                'Invalid cell range. The top-left cell column should be'
+                + 'smaller than or equal to the bottom-right cell column.',
+            )
+
+        self.excel_data[sheet]['MergeCells'].append((top_left_cell, bottom_right_cell))
+
+    def remove_sheet(self, sheet: str) -> None:
+        """
+        Removes a sheet from the Excel data.
+
+        Args:
+            sheet (str): The name of the sheet to remove.
+        """
+        self.excel_data.pop(sheet)
+
+    def create_sheet(self, sheet_name: str) -> None:
+        """
+        Creates a new sheet.
+
+        Args:
+            sheet_name (str): The name of the new sheet.
+        """
+        self.excel_data[sheet_name] = self._get_default_sheet()
+
+    def switch_sheet(self, sheet_name: str) -> None:
+        """
+        Switches to a different sheet.
+
+        Args:
+            sheet_name (str): The name of the sheet to switch to.
+        """
+        self.sheet = sheet_name
+        if self.excel_data.get(sheet_name) is None:
+            self.excel_data[sheet_name] = self._get_default_sheet()
+
+    def create_single_header(self) -> None:
+        pass
+
+    def create_body(self) -> None:
+        pass
+
+
+class FastWriter(BaseWriter):
     """
     A class for fast writing data to Excel files with custom styles.
 
@@ -89,7 +228,7 @@ class FastWriter(ExcelDriver):
         self.excel_data[self.sheet]['Data'].append(self._row_list[idx])
 
 
-class NormalWriter(ExcelDriver):
+class NormalWriter(BaseWriter):
     """
     A class for writing data to Excel files with or without custom styles.
 

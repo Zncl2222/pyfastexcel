@@ -2,20 +2,21 @@ from __future__ import annotations
 
 import base64
 import ctypes
+import logging
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import msgspec
-from openpyxl_style_writer import CustomStyle, RowWriter
-
-from .utils import column_to_index, separate_alpha_numeric
+from openpyxl_style_writer import CustomStyle
 
 BASE_DIR = Path(__file__).resolve().parent
 
+# TODO: Implement a CustomStyle without the dependency of openpyxl_style_writer
 
-class ExcelDriver(RowWriter):
+
+class ExcelDriver:
     """
     A driver class to write data to Excel files using custom styles.
 
@@ -27,15 +28,11 @@ class ExcelDriver(RowWriter):
 
     ### Methods:
         __init__(): Initializes the ExcelDriver.
-        set_file_props(key: str, value: str): Sets a file property.
-        remove_sheet(sheet: str): Removes a sheet from the Excel data.
-        create_sheet(sheet_name: str): Creates a new sheet.
-        switch_sheet(sheet_name: str): Switches to a different sheet.
-        create_single_header(): Creates a single header.
-        create_body(): Creates the body of the Excel file.
         _read_lib(lib_path: str): Reads a library for Excel manipulation.
         _read_lib_and_create_excel(lib_path: str = None): Reads the library and
                 creates the Excel file.
+        set_custom_style(cls, name: str, custom_style: CustomStyle): Set custom style
+            by register method.
         _create_style(): Creates custom styles for the Excel file.
         _get_style_collections(): Gets collections of custom styles.
         _get_default_style(): Gets the default style.
@@ -80,6 +77,13 @@ class ExcelDriver(RowWriter):
         'Language': 'en-Us',
         'Version': '',
     }
+    # The style retrieved from set_custom_style will be stored in
+    # REGISTERED_STYLES temporarily. It will be created after any
+    # Writer is initialized and calls the self._create_style() method.
+    REGISTERED_STYLES = {}
+    # The shared memory in the parent class that stores every CustomStyle
+    # from different Writer classes.
+    _style_map = {}
 
     def __init__(self):
         """
@@ -96,6 +100,10 @@ class ExcelDriver(RowWriter):
         self.style_name_map = {}
         self._create_style()
 
+    @classmethod
+    def set_custom_style(cls, name: str, custom_style: CustomStyle):
+        cls.REGISTERED_STYLES[name] = custom_style
+
     def _get_default_sheet(self) -> dict[str, dict[str, list]]:
         return {
             'Header': [],
@@ -111,115 +119,6 @@ class ExcelDriver(RowWriter):
         file_props['Created'] = now
         file_props['Modified'] = now
         return file_props
-
-    def set_file_props(self, key: str, value: str) -> None:
-        """
-        Sets a file property.
-
-        Args:
-            key (str): The property key.
-            value (str): The property value.
-
-        Raises:
-            ValueError: If the key is invalid.
-        """
-        if key not in self._FILE_PROPS:
-            raise ValueError(f'Invalid file property: {key}')
-        self.file_props[key] = value
-
-    def set_cell_width(self, sheet: str, col: str | int, value: int) -> None:
-        if isinstance(col, str):
-            col = column_to_index(col)
-        if col < 1 or col > 16384:
-            raise ValueError(f'Invalid column index: {col}')
-        self.excel_data[sheet]['Width'][col] = value
-
-    def set_cell_height(self, sheet: str, row: int, value: int) -> None:
-        self.excel_data[sheet]['Height'][row] = value
-
-    def set_merge_cell(self, sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
-        """
-        Sets a merge cell range in the specified sheet.
-
-        Args:
-            sheet (str): The name of the sheet where the merge cell range will be set.
-            top_left_cell (str): The cell location of the top-left corner of the
-                merge cell range (e.g., 'A1').
-            bottom_right_cell (str): The cell location of the bottom-right corner
-                of the merge cell range (e.g., 'C3').
-
-        Raises:
-            ValueError: If any of the following conditions are met:
-                - Either the top_left_cell or bottom_right_cell has an invalid
-                    row number (not between 1 and 1048576).
-                - The top_left_cell number is larger than the bottom_right_cell number.
-                - The top_left_cell column index is larger than the bottom_right_cell
-                    column index.
-
-        Returns:
-            None
-        """
-        top_alpha, top_number = separate_alpha_numeric(top_left_cell)
-        bottom_alpha, bottom_number = separate_alpha_numeric(bottom_right_cell)
-        top_idx = column_to_index(top_alpha)
-        bottom_idx = column_to_index(bottom_alpha)
-
-        if (
-            int(top_number) > 1048576
-            or int(bottom_number) > 1048576
-            or int(top_number) < 1
-            or int(bottom_number) < 1
-        ):
-            raise ValueError('Invalid row number. Row number should be between 1 and 1048576.')
-
-        if int(top_number) > int(bottom_number):
-            raise ValueError(
-                'Invalid cell range. The top-left cell number should be'
-                + 'smaller than or equal to the bottom-right cell number.',
-            )
-
-        if top_idx > bottom_idx:
-            raise ValueError(
-                'Invalid cell range. The top-left cell column should be'
-                + 'smaller than or equal to the bottom-right cell column.',
-            )
-
-        self.excel_data[sheet]['MergeCells'].append((top_left_cell, bottom_right_cell))
-
-    def remove_sheet(self, sheet: str) -> None:
-        """
-        Removes a sheet from the Excel data.
-
-        Args:
-            sheet (str): The name of the sheet to remove.
-        """
-        self.excel_data.pop(sheet)
-
-    def create_sheet(self, sheet_name: str) -> None:
-        """
-        Creates a new sheet.
-
-        Args:
-            sheet_name (str): The name of the new sheet.
-        """
-        self.excel_data[sheet_name] = self._get_default_sheet()
-
-    def switch_sheet(self, sheet_name: str) -> None:
-        """
-        Switches to a different sheet.
-
-        Args:
-            sheet_name (str): The name of the sheet to switch to.
-        """
-        self.sheet = sheet_name
-        if self.excel_data.get(sheet_name) is None:
-            self.excel_data[sheet_name] = self._get_default_sheet()
-
-    def create_single_header(self) -> None:
-        pass
-
-    def create_body(self) -> None:
-        pass
 
     def _read_lib(self, lib_path: str) -> ctypes.CDLL:
         """
@@ -253,7 +152,7 @@ class ExcelDriver(RowWriter):
         results = {
             'content': self.excel_data,
             'file_props': self.file_props,
-            'style': self.style_map,
+            'style': self._style_map,
         }
         json_data = msgspec.json.encode(results)
         create_excel = pyfastexcel.Export
@@ -266,7 +165,7 @@ class ExcelDriver(RowWriter):
         free_pointer(byte_data)
         return decoded_bytes
 
-    def _create_style(self) -> None:
+    def _create_style(self, overwrite: bool = False) -> None:
         """
         Creates custom styles for the Excel file.
 
@@ -275,8 +174,13 @@ class ExcelDriver(RowWriter):
         """
         style_collections = self._get_style_collections()
         self.style_map_name = {val: key for key, val in style_collections.items()}
-        self.style_map = {}
+
+        # Set the CustomStyle from the pre-defined class attributes.
         for key, val in style_collections.items():
+            self._update_style_map(key, val)
+
+        # Set the CustomStyle from the REGISTERED method.
+        for key, val in self.REGISTERED_STYLES.items():
             self._update_style_map(key, val)
 
     def _get_style_collections(self) -> dict[str, CustomStyle]:
@@ -311,13 +215,15 @@ class ExcelDriver(RowWriter):
         }
 
     def _update_style_map(self, style_name: str, custom_style: CustomStyle) -> None:
-        self.style_map[style_name] = self._get_default_style()
-        self.style_map[style_name]['Font'] = self._get_font_style(custom_style)
-        self.style_map[style_name]['Fill'] = self._get_fill_style(custom_style)
-        self.style_map[style_name]['Border'] = self._get_border_style(custom_style)
-        self.style_map[style_name]['Alignment'] = self._get_alignment_style(custom_style)
-        self.style_map[style_name]['Protection'] = self._get_protection_style(custom_style)
-        self.style_map[style_name]['CustomNumFmt'] = custom_style.number_format
+        if self._style_map.get(style_name):
+            logging.warning(f'{style_name} has already existed. Overiding the style settings.')
+        self._style_map[style_name] = self._get_default_style()
+        self._style_map[style_name]['Font'] = self._get_font_style(custom_style)
+        self._style_map[style_name]['Fill'] = self._get_fill_style(custom_style)
+        self._style_map[style_name]['Border'] = self._get_border_style(custom_style)
+        self._style_map[style_name]['Alignment'] = self._get_alignment_style(custom_style)
+        self._style_map[style_name]['Protection'] = self._get_protection_style(custom_style)
+        self._style_map[style_name]['CustomNumFmt'] = custom_style.number_format
 
     def _get_font_style(self, style: CustomStyle) -> dict[str, str | int | bool | None]:
         font_style_map = {}
