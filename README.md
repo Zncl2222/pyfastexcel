@@ -269,10 +269,11 @@ if __name__ == '__main__':
 
 Future Plans:
 
-1. Make the style register in the shared class object on the Python side.
+1. ~~Make the style register in the shared class object on the Python side.
 Also, create a function to register the style. By doing so, the style
 won't need to depend on the `custom-writer-class`. All the styles registered
-through that function will be sent to Golang and registered.
+through that function will be sent to Golang and registered.~~ (This has been finished
+in current version)
 
 2. Add the ability to create a cell and style with the index, similar
 to what openpyxl does. (The code snippet provided is only an example,
