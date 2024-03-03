@@ -61,6 +61,9 @@ def prepare_example_data(rows: int = 1000, cols: int = 10) -> list[dict[str, str
     return records
 
 
+style_for_set_custom_style = CustomStyle(font_color='fcfcfc')
+
+
 class StyleCollections:
     black_fill_style = CustomStyle(
         font_name='Time News Roman',
@@ -171,7 +174,7 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
         for row in self.data:
             for h in self.headers:
                 if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='black_fill_style')
+                    self.row_append(row[h], style=self.black_fill_style)
                 else:
                     self.row_append(row[h], style='test_fill_style')
             self.create_row()
@@ -187,6 +190,9 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
 
 
 def test_pyexcelize_fast_example():
+    from pyfastexcel.utils import set_custom_style
+
+    set_custom_style('test', style_for_set_custom_style)
     data = prepare_example_data(rows=25, cols=9)
     excel_example = PyExcelizeFastExample(data)
     excel_bytes = excel_example.create_excel()
