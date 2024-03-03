@@ -1,6 +1,14 @@
 import re
 import string
 
+from openpyxl_style_writer import CustomStyle
+
+from .driver import ExcelDriver
+
+
+def set_custom_style(style_name: str, style: CustomStyle):
+    ExcelDriver.set_custom_style(style_name, style)
+
 
 def separate_alpha_numeric(input_string: str):
     alpha_part = re.findall(r'[a-zA-Z]+', input_string)

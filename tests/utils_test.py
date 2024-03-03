@@ -1,6 +1,7 @@
 import pytest
+from openpyxl_style_writer import CustomStyle
 
-from pyfastexcel.utils import column_to_index, index_to_column
+from pyfastexcel.utils import column_to_index, index_to_column, set_custom_style
 
 
 @pytest.mark.parametrize(
@@ -61,3 +62,8 @@ def test_index_to_column_valid_indices(index, expected_column):
 def test_index_to_column_invalid_indices(index, error_type):
     with pytest.raises(error_type):
         index_to_column(index)
+
+
+def test_set_custom_style():
+    style = CustomStyle(font_size=12, font_bold=True)
+    set_custom_style('bold_font', style)
