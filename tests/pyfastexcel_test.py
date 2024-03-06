@@ -140,7 +140,7 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
                     self.row_append(row[h], style='test_fill_style', row_idx=i, col_idx=j)
             self.create_row(i)
 
-        self.switch_sheet('Sheet2')
+        self.create_sheet('Sheet2')
         for i, row in enumerate(self.data):
             for j, h in enumerate(self.headers):
                 if h[-1] in ('1', '3', '5', '7', '9'):
@@ -179,7 +179,7 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
                     self.row_append(row[h], style='test_fill_style')
             self.create_row()
 
-        self.switch_sheet('Sheet2')
+        self.create_sheet('Sheet2')
         for row in self.data:
             for h in self.headers:
                 if h[-1] in ('1', '3', '5', '7', '9'):
@@ -205,10 +205,30 @@ def test_set_file_props():
         excel_example.set_file_props('Test', 'Test')
 
 
-def test_set_cell_width():
+@pytest.mark.parametrize(
+    'sheet, column, width, expected_exception',
+    [
+        ('Sheet1', 16385, 12, ValueError),  # Invalid case
+        ('qwe', '', '', KeyError),  # Invalid: Single cell is not a merge cell
+    ],
+)
+def test_set_cell_width(sheet, column, width, expected_exception):
     excel_example = PyExcelizeFastExample([])
-    with pytest.raises(ValueError):
-        excel_example.set_cell_width(excel_example.sheet, 16385, 12)
+    with pytest.raises(expected_exception):
+        excel_example.set_cell_width(sheet, column, width)
+
+
+@pytest.mark.parametrize(
+    'sheet, row, height, expected_exception',
+    [
+        ('Sheet1', 1048577, 12, ValueError),  # Invalid case
+        ('qwe', '', '', KeyError),  # Invalid: Single cell is not a merge cell
+    ],
+)
+def test_set_cell_height(sheet, row, height, expected_exception):
+    excel_example = PyExcelizeFastExample([])
+    with pytest.raises(expected_exception):
+        excel_example.set_cell_height(sheet, row, height)
 
 
 @pytest.mark.parametrize(
@@ -224,6 +244,7 @@ def test_set_cell_width():
         ('Sheet1', 'C1', 'A1', ValueError),  # Invalid: Top column less than bottom column
         ('Sheet1', 'A0', 'A1', ValueError),  # Invalid: Row number too small
         ('Sheet1', 'A0', 'C0', ValueError),  # Invalid: Row number too small
+        ('abcd', '', '', KeyError),  # Invalid: Sheet name not found
     ],
 )
 def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_exception):
@@ -233,7 +254,7 @@ def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_except
             excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
     else:
         excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
-        assert (top_left_cell, bottom_right_cell) in excel.excel_data[sheet]['MergeCells']
+        assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet]['MergeCells']
 
 
 def test_pyexcelize_normal_example():
@@ -241,5 +262,6 @@ def test_pyexcelize_normal_example():
     excel_example = PyExcelizeNormalExample(data)
     excel_example.create_sheet('Test')
     excel_example.remove_sheet('Test')
+    excel_example.switch_sheet('Sheet1')
     excel_bytes = excel_example.create_excel()
     assert isinstance(excel_bytes, bytes)
