@@ -92,7 +92,7 @@ class ExcelDriver:
         It initializes the Excel data, file properties, default sheet,
         current sheet, and style mappings.
         """
-        self.excel_data = {
+        self.workbook = {
             'Sheet1': self._get_default_sheet(),
         }
         self.file_props = self._get_default_file_props()
@@ -103,6 +103,10 @@ class ExcelDriver:
     @classmethod
     def set_custom_style(cls, name: str, custom_style: CustomStyle):
         cls.REGISTERED_STYLES[name] = custom_style
+
+    def _check_if_sheet_exists(self, sheet_name: str) -> None:
+        if sheet_name not in self.workbook:
+            raise KeyError(f'{sheet_name} Sheet Does Not Exist.')
 
     def _get_default_sheet(self) -> dict[str, dict[str, list]]:
         return {
@@ -150,7 +154,7 @@ class ExcelDriver:
         """
         pyfastexcel = self._read_lib(lib_path)
         results = {
-            'content': self.excel_data,
+            'content': self.workbook,
             'file_props': self.file_props,
             'style': self._style_map,
         }
@@ -165,7 +169,7 @@ class ExcelDriver:
         free_pointer(byte_data)
         return decoded_bytes
 
-    def _create_style(self, overwrite: bool = False) -> None:
+    def _create_style(self) -> None:
         """
         Creates custom styles for the Excel file.
 

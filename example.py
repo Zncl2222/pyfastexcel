@@ -86,7 +86,7 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
                     self.row_append(row[h], style='test_fill_style', row_idx=i, col_idx=j)
             self.create_row(i)
 
-        self.switch_sheet('Sheet2')
+        self.create_sheet('Sheet2')
         for i, row in enumerate(self.data):
             for j, h in enumerate(self.headers):
                 if h[-1] in ('1', '3', '5', '7', '9'):
@@ -122,7 +122,7 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
                     self.row_append(row[h], style='test_fill_style')
             self.create_row()
 
-        self.switch_sheet('Sheet2')
+        self.create_sheet('Sheet2')
         for row in self.data:
             for h in self.headers:
                 if h[-1] in ('1', '3', '5', '7', '9'):

@@ -18,6 +18,12 @@ class BaseWriter(ExcelDriver):
     merge cells, manipulate sheets, and more.
 
     Methods:
+        remove_sheet(sheet: str) -> None:
+            Removes a sheet from the Excel data.
+        create_sheet(sheet_name: str) -> None:
+            Creates a new sheet.
+        switch_sheet(sheet_name: str) -> None:
+            Set current self.sheet to a different sheet.
         set_file_props(key: str, value: str) -> None:
             Sets a file property.
         set_cell_width(sheet: str, col: str | int, value: int) -> None:
@@ -26,13 +32,42 @@ class BaseWriter(ExcelDriver):
             Sets the height of a cell.
         set_merge_cell(sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
             Sets a merge cell range in the specified sheet.
-        remove_sheet(sheet: str) -> None:
-            Removes a sheet from the Excel data.
-        create_sheet(sheet_name: str) -> None:
-            Creates a new sheet.
-        switch_sheet(sheet_name: str) -> None:
-            Switches to a different sheet.
     """
+
+    def remove_sheet(self, sheet: str) -> None:
+        """
+        Removes a sheet from the Excel data.
+
+        Args:
+            sheet (str): The name of the sheet to remove.
+        """
+        self.workbook.pop(sheet)
+        # TODO: Make a function to set the current sheet to the first sheet
+        self.sheet = 'Sheet1'
+
+    def create_sheet(self, sheet_name: str) -> None:
+        """
+        Creates a new sheet, and set it as current self.sheet.
+
+        Args:
+            sheet_name (str): The name of the new sheet.
+        """
+        self.workbook[sheet_name] = self._get_default_sheet()
+        self.sheet = sheet_name
+
+    def switch_sheet(self, sheet_name: str) -> None:
+        """
+        Set current self.sheet to a different sheet. If sheet does not existed
+        then raise error.
+
+        Args:
+            sheet_name (str): The name of the sheet to switch to.
+
+        Raises:
+            IndexError: If sheet does not exist.
+        """
+        self._check_if_sheet_exists(sheet_name)
+        self.sheet = sheet_name
 
     def set_file_props(self, key: str, value: str) -> None:
         """
@@ -50,14 +85,18 @@ class BaseWriter(ExcelDriver):
         self.file_props[key] = value
 
     def set_cell_width(self, sheet: str, col: str | int, value: int) -> None:
+        self._check_if_sheet_exists(sheet)
         if isinstance(col, str):
             col = column_to_index(col)
         if col < 1 or col > 16384:
             raise ValueError(f'Invalid column index: {col}')
-        self.excel_data[sheet]['Width'][col] = value
+        self.workbook[sheet]['Width'][col] = value
 
     def set_cell_height(self, sheet: str, row: int, value: int) -> None:
-        self.excel_data[sheet]['Height'][row] = value
+        self._check_if_sheet_exists(sheet)
+        if row < 1 or row > 1048576:
+            raise ValueError(f'Invalid row index: {row}')
+        self.workbook[sheet]['Height'][row] = value
 
     def set_merge_cell(self, sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
         """
@@ -77,10 +116,12 @@ class BaseWriter(ExcelDriver):
                 - The top_left_cell number is larger than the bottom_right_cell number.
                 - The top_left_cell column index is larger than the bottom_right_cell
                     column index.
+            IndexError: If sheet does not exist.
 
         Returns:
             None
         """
+        self._check_if_sheet_exists(sheet)
         top_alpha, top_number = separate_alpha_numeric(top_left_cell)
         bottom_alpha, bottom_number = separate_alpha_numeric(bottom_right_cell)
         top_idx = column_to_index(top_alpha)
@@ -106,36 +147,7 @@ class BaseWriter(ExcelDriver):
                 + 'smaller than or equal to the bottom-right cell column.',
             )
 
-        self.excel_data[sheet]['MergeCells'].append((top_left_cell, bottom_right_cell))
-
-    def remove_sheet(self, sheet: str) -> None:
-        """
-        Removes a sheet from the Excel data.
-
-        Args:
-            sheet (str): The name of the sheet to remove.
-        """
-        self.excel_data.pop(sheet)
-
-    def create_sheet(self, sheet_name: str) -> None:
-        """
-        Creates a new sheet.
-
-        Args:
-            sheet_name (str): The name of the new sheet.
-        """
-        self.excel_data[sheet_name] = self._get_default_sheet()
-
-    def switch_sheet(self, sheet_name: str) -> None:
-        """
-        Switches to a different sheet.
-
-        Args:
-            sheet_name (str): The name of the sheet to switch to.
-        """
-        self.sheet = sheet_name
-        if self.excel_data.get(sheet_name) is None:
-            self.excel_data[sheet_name] = self._get_default_sheet()
+        self.workbook[sheet]['MergeCells'].append((top_left_cell, bottom_right_cell))
 
     def create_single_header(self) -> None:
         pass
@@ -213,7 +225,7 @@ class FastWriter(BaseWriter):
         """
         original_len = len(self._row_list[idx])
         self._pop_none_from_row_list(idx)
-        self.excel_data[self.sheet]['Header'] = self._row_list[idx]
+        self.workbook[self.sheet]['Header'] = self._row_list[idx]
         # Reset row_list for body creation
         self._row_list[idx] = [None] * original_len
 
@@ -225,7 +237,7 @@ class FastWriter(BaseWriter):
             idx: The index of the row.
         """
         self._pop_none_from_row_list(idx)
-        self.excel_data[self.sheet]['Data'].append(self._row_list[idx])
+        self.workbook[self.sheet]['Data'].append(self._row_list[idx])
 
 
 class NormalWriter(BaseWriter):
@@ -278,5 +290,5 @@ class NormalWriter(BaseWriter):
                 row. Defaults to False.
         """
         key = 'Header' if is_header is True else 'Data'
-        self.excel_data[self.sheet][key].append(self._row_list)
+        self.workbook[self.sheet][key].append(self._row_list)
         self._row_list = []
