@@ -63,37 +63,34 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
     def create_excel(self) -> bytes:
         self._set_header()
         self._create_style()
-        self._create_single_header()
         self._create_body()
         return self._read_lib_and_create_excel()
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
+        for i, h in enumerate(self.headers):
+            self.row_append(h, style='black_fill_style', col_idx=i)
         self.set_cell_width(self.sheet, 3, 255)
         self.set_cell_height(self.sheet, 4, 123)
-
-    def _create_single_header(self):
-        for i, h in enumerate(self.headers):
-            self.row_append(h, style='green_fill_style', row_idx=0, col_idx=i)
-        self.apply_to_header()
+        self.create_row()
 
     def _create_body(self) -> None:
-        for i, row in enumerate(self.data):
+        for row in self.data:
             for j, h in enumerate(self.headers):
                 if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='black_fill_style', row_idx=i, col_idx=j)
+                    self.row_append(row[h], style='black_fill_style', col_idx=j)
                 else:
-                    self.row_append(row[h], style='test_fill_style', row_idx=i, col_idx=j)
-            self.create_row(i)
+                    self.row_append(row[h], style='test_fill_style', col_idx=j)
+            self.create_row()
 
         self.create_sheet('Sheet2')
-        for i, row in enumerate(self.data):
+        for row in self.data:
             for j, h in enumerate(self.headers):
                 if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='test_fill_style', row_idx=i, col_idx=j)
+                    self.row_append(row[h], style='test_fill_style', col_idx=j)
                 else:
-                    self.row_append(row[h], style='black_fill_style', row_idx=i, col_idx=j)
-            self.create_row(i)
+                    self.row_append(row[h], style='black_fill_style', col_idx=j)
+            self.create_row()
 
 
 class PyExcelizeNormalExample(NormalWriter, StyleCollections):

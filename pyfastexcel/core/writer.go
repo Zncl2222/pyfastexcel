@@ -129,9 +129,9 @@ func getRowHeightMap(config map[string]interface{}) map[string]excelize.RowOpts 
 //
 // Args:
 //
-//     sw (excelize.StreamWriter): The StreamWriter to use for merging cells.
-//     cell ([]interface{}): A slice of cell ranges to merge, where each cell range is
-//         represented as a pair of strings (top-left and bottom-right cells).
+//	sw (excelize.StreamWriter): The StreamWriter to use for merging cells.
+//	cell ([]interface{}): A slice of cell ranges to merge, where each cell range is
+//	    represented as a pair of strings (top-left and bottom-right cells).
 func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
 	for _, col := range cell {
 		cellRange := col.([]interface{})
@@ -161,24 +161,11 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 
 		mergeCell(streamWriter, sheetData["MergeCells"].([]interface{}))
 
-		startedRow := 1
-		cell, _ := excelize.CoordinatesToCellName(1, startedRow)
-		for i, _ := range sheetData["Header"].([]interface{}) {
-			sheetData["Header"].([]interface{})[i] = createCell(sheetData["Header"].([]interface{})[i].([]interface{}))
-		}
-
-		if len(sheetData["Header"].([]interface{})) != 0 {
-			if err := streamWriter.SetRow(cell, sheetData["Header"].([]interface{})); err != nil {
-				fmt.Println(err)
-			}
-			startedRow += 1
-		}
-
 		// Write Data
+		startedRow := 1
 		excelData := sheetData["Data"].([]interface{})
 		for i, rowData := range excelData {
 			row := rowData.([]interface{})
-
 			processedRow := make([]interface{}, len(row))
 			for j, cellData := range row {
 				cell := cellData.([]interface{})
