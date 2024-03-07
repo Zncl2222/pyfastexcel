@@ -186,10 +186,12 @@ class FastWriter(BaseWriter):
         super().__init__()
         # The data is list[dict[str, str]] as default, if your data is other dtype
         # You should override the __init___ method to allocate correct space for __row_list
-        self._row_list = [[None] * (len(data[0])) for _ in range(len(data))]
+        self._row_list = [[None] * (len(data[0]) + 1) for _ in range(len(data) + 1)]
+        self._original_row_list = self._row_list.copy()
         self.data = data
+        self.current_row = 0
 
-    def row_append(self, value: str, style: str, row_idx: int, col_idx: int):
+    def row_append(self, value: str, style: str, col_idx: int):
         """
         Appends a value to a specific row and column.
 
@@ -201,7 +203,19 @@ class FastWriter(BaseWriter):
         """
         if isinstance(style, CustomStyle):
             style = self.style_map_name[style]
-        self._row_list[row_idx][col_idx] = (value, style)
+        self._row_list[self.current_row][col_idx] = (value, style)
+
+    def create_sheet(self, sheet_name: str) -> None:
+        super().create_sheet(sheet_name)
+        self.reset_row_list()
+
+    def switch_sheet(self, sheet_name: str) -> None:
+        super().switch_sheet(sheet_name)
+        self.reset_row_list()
+
+    def reset_row_list(self):
+        self._row_list = self._original_row_list.copy()
+        self.current_row = 0
 
     def _pop_none_from_row_list(self, idx: int) -> None:
         """
@@ -216,28 +230,15 @@ class FastWriter(BaseWriter):
             else:
                 break
 
-    def apply_to_header(self, idx: int = 0):
-        """
-        Applies the header row to the Excel data.
-
-        Args:
-            idx (int, optional): The index of the header row. Defaults to 0.
-        """
-        original_len = len(self._row_list[idx])
-        self._pop_none_from_row_list(idx)
-        self.workbook[self.sheet]['Header'] = self._row_list[idx]
-        # Reset row_list for body creation
-        self._row_list[idx] = [None] * original_len
-
-    def create_row(self, idx):
+    def create_row(self):
         """
         Creates a row in the Excel data.
-
-        Args:
-            idx: The index of the row.
         """
-        self._pop_none_from_row_list(idx)
-        self.workbook[self.sheet]['Data'].append(self._row_list[idx])
+        self._pop_none_from_row_list(self.current_row)
+        self.workbook[self.sheet]['Data'].append(
+            self._row_list[self.current_row].copy(),
+        )
+        self.current_row += 1
 
 
 class NormalWriter(BaseWriter):

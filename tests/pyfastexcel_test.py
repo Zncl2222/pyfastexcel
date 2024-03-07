@@ -128,26 +128,27 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
 
     def _create_single_header(self):
         for i, h in enumerate(self.headers):
-            self.row_append(h, style='green_fill_style', row_idx=0, col_idx=i)
-        self.apply_to_header()
+            self.row_append(h, style='green_fill_style', col_idx=i)
+        self.create_row()
 
     def _create_body(self) -> None:
-        for i, row in enumerate(self.data):
+        for row in self.data:
             for j, h in enumerate(self.headers):
                 if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='black_fill_style', row_idx=i, col_idx=j)
+                    self.row_append(row[h], style='black_fill_style', col_idx=j)
                 else:
-                    self.row_append(row[h], style='test_fill_style', row_idx=i, col_idx=j)
-            self.create_row(i)
+                    self.row_append(row[h], style='test_fill_style', col_idx=j)
+            self.create_row()
 
         self.create_sheet('Sheet2')
-        for i, row in enumerate(self.data):
+        self.switch_sheet('Sheet2')
+        for row in self.data:
             for j, h in enumerate(self.headers):
                 if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='test_fill_style', row_idx=i, col_idx=j)
+                    self.row_append(row[h], style='test_fill_style', col_idx=j)
                 else:
-                    self.row_append(row[h], style='black_fill_style', row_idx=i, col_idx=j)
-            self.create_row(i)
+                    self.row_append(row[h], style='black_fill_style', col_idx=j)
+            self.create_row()
 
 
 class PyExcelizeNormalExample(NormalWriter, StyleCollections):
@@ -200,7 +201,7 @@ def test_pyexcelize_fast_example():
 
 
 def test_set_file_props():
-    excel_example = PyExcelizeFastExample([])
+    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
     with pytest.raises(ValueError):
         excel_example.set_file_props('Test', 'Test')
 
@@ -213,7 +214,7 @@ def test_set_file_props():
     ],
 )
 def test_set_cell_width(sheet, column, width, expected_exception):
-    excel_example = PyExcelizeFastExample([])
+    excel_example = PyExcelizeNormalExample([])
     with pytest.raises(expected_exception):
         excel_example.set_cell_width(sheet, column, width)
 
@@ -226,7 +227,7 @@ def test_set_cell_width(sheet, column, width, expected_exception):
     ],
 )
 def test_set_cell_height(sheet, row, height, expected_exception):
-    excel_example = PyExcelizeFastExample([])
+    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
     with pytest.raises(expected_exception):
         excel_example.set_cell_height(sheet, row, height)
 
@@ -248,7 +249,7 @@ def test_set_cell_height(sheet, row, height, expected_exception):
     ],
 )
 def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_exception):
-    excel = PyExcelizeFastExample([])
+    excel = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
     if expected_exception is not None:
         with pytest.raises(expected_exception):
             excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)

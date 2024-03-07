@@ -110,7 +110,6 @@ class ExcelDriver:
 
     def _get_default_sheet(self) -> dict[str, dict[str, list]]:
         return {
-            'Header': [],
             'Data': [],
             'MergeCells': [],
             'Width': {},
