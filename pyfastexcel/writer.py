@@ -189,21 +189,22 @@ class FastWriter(BaseWriter):
         self._row_list = [[None] * (len(data[0]) + 1) for _ in range(len(data) + 1)]
         self._original_row_list = self._row_list.copy()
         self.data = data
+        # The row and col index for streaming row_append method
         self.current_row = 0
+        self.current_col = 0
 
-    def row_append(self, value: str, style: str, col_idx: int):
+    def row_append(self, value: str, style: str):
         """
         Appends a value to a specific row and column.
 
         Args:
             value (str): The value to be appended.
             style (str): The style of the value.
-            row_idx (int): The index of the row.
-            col_idx (int): The index of the column.
         """
         if isinstance(style, CustomStyle):
             style = self.style_map_name[style]
-        self._row_list[self.current_row][col_idx] = (value, style)
+        self._row_list[self.current_row][self.current_col] = (value, style)
+        self.current_col += 1
 
     def create_sheet(self, sheet_name: str) -> None:
         super().create_sheet(sheet_name)
@@ -238,7 +239,10 @@ class FastWriter(BaseWriter):
         self.workbook[self.sheet]['Data'].append(
             self._row_list[self.current_row].copy(),
         )
+
+        # Row + 1, Column reset
         self.current_row += 1
+        self.current_col = 0
 
 
 class NormalWriter(BaseWriter):
