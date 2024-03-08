@@ -127,27 +127,27 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
         self.set_cell_width(self.sheet, 3, 12)
 
     def _create_single_header(self):
-        for i, h in enumerate(self.headers):
-            self.row_append(h, style='green_fill_style', col_idx=i)
+        for h in self.headers:
+            self.row_append(h, style='green_fill_style')
         self.create_row()
 
     def _create_body(self) -> None:
         for row in self.data:
-            for j, h in enumerate(self.headers):
+            for h in self.headers:
                 if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='black_fill_style', col_idx=j)
+                    self.row_append(row[h], style='black_fill_style')
                 else:
-                    self.row_append(row[h], style='test_fill_style', col_idx=j)
+                    self.row_append(row[h], style='test_fill_style')
             self.create_row()
 
         self.create_sheet('Sheet2')
         self.switch_sheet('Sheet2')
         for row in self.data:
-            for j, h in enumerate(self.headers):
+            for h in self.headers:
                 if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='test_fill_style', col_idx=j)
+                    self.row_append(row[h], style='test_fill_style')
                 else:
-                    self.row_append(row[h], style='black_fill_style', col_idx=j)
+                    self.row_append(row[h], style='black_fill_style')
             self.create_row()
 
 
