@@ -11,6 +11,8 @@ from typing import Any
 import msgspec
 from openpyxl_style_writer import CustomStyle
 
+from .utils import excel_index_to_list_index
+
 BASE_DIR = Path(__file__).resolve().parent
 
 # TODO: Implement a CustomStyle without the dependency of openpyxl_style_writer
@@ -80,7 +82,8 @@ class ExcelDriver:
     # The style retrieved from set_custom_style will be stored in
     # REGISTERED_STYLES temporarily. It will be created after any
     # Writer is initialized and calls the self._create_style() method.
-    REGISTERED_STYLES = {}
+    DEFAULT_STYLE = CustomStyle()
+    REGISTERED_STYLES = {'DEFAULT_STYLE': DEFAULT_STYLE}
     # The shared memory in the parent class that stores every CustomStyle
     # from different Writer classes.
     _style_map = {}
@@ -93,10 +96,11 @@ class ExcelDriver:
         current sheet, and style mappings.
         """
         self.workbook = {
-            'Sheet1': self._get_default_sheet(),
+            'Sheet1': WorkSheet(index_supported=True) if self.INDEX_SUPPORTED else WorkSheet(),
         }
         self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'
+        self.sheet_list = ['Sheet1']
         self.style_name_map = {}
         self._create_style()
 
@@ -104,17 +108,12 @@ class ExcelDriver:
     def set_custom_style(cls, name: str, custom_style: CustomStyle):
         cls.REGISTERED_STYLES[name] = custom_style
 
-    def _check_if_sheet_exists(self, sheet_name: str) -> None:
-        if sheet_name not in self.workbook:
-            raise KeyError(f'{sheet_name} Sheet Does Not Exist.')
+    def __getitem__(self, key: str) -> tuple:
+        return self.workbook[key]
 
-    def _get_default_sheet(self) -> dict[str, dict[str, list]]:
-        return {
-            'Data': [],
-            'MergeCells': [],
-            'Width': {},
-            'Height': {},
-        }
+    def _check_if_sheet_exists(self, sheet_name: str) -> None:
+        if sheet_name not in self.sheet_list:
+            raise KeyError(f'{sheet_name} Sheet Does Not Exist.')
 
     def _get_default_file_props(self) -> dict[str, str]:
         now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -152,6 +151,11 @@ class ExcelDriver:
             bytes: The byte data of the created Excel file.
         """
         pyfastexcel = self._read_lib(lib_path)
+        # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
+        for sheet in self.sheet_list:
+            self.workbook[sheet]._transfer_to_dict()
+            self.workbook[sheet] = self.workbook[sheet].sheet
+
         results = {
             'content': self.workbook,
             'file_props': self.file_props,
@@ -311,3 +315,87 @@ class ExcelDriver:
         if style.protection.hidden:
             protection_style_map['Hidden'] = style.protection.hidden
         return protection_style_map
+
+
+class WorkSheet:
+    """
+    A class representing a worksheet in a spreadsheet. Remeber to call
+    _transfer_to_dict before turn worksheet to JSON.
+
+    Attributes:
+        sheet (dict): A dictionary representing the default sheet structure.
+        data (list): A list of rows containing cell data.
+        header (list): A list containing the header row.
+        merge_cells (list): A list of merged cell ranges.
+        width (dict): A dictionary mapping column indices to column widths.
+        height (dict): A dictionary mapping row indices to row heights.
+        index_supported (bool): A flag indicating whether index-based
+            access is supported.
+
+    Methods:
+        _transfer_to_dict():
+            Transfers the worksheet data to a dictionary representation.
+
+        _get_default_sheet():
+            Returns a dictionary representing the default sheet structure.
+
+        __getitem__(key: str) -> tuple:
+            If index_supported is True, retrieves the cell value at the
+            specified index. Raises TypeError if index_supported is False.
+
+        __setitem__(key: str, value: any) -> None:
+            If index_supported is True, sets the cell value at the specified
+            index. Raises TypeError if index_supported is False.
+    """
+
+    def __init__(self, index_supported: bool = False):
+        """
+        Initializes a WorkSheet instance.
+
+        Args:
+            index_supported (bool, optional): A flag indicating whether
+                index-based access is supported. Defaults to False.
+        """
+        self.sheet = self._get_default_sheet()
+        self.data = []
+        self.header = []
+        self.merge_cells = []
+        self.width = {}
+        self.height = {}
+        self.index_supported = index_supported
+
+    def _transfer_to_dict(self) -> None:
+        self.sheet = {
+            'Header': self.header,
+            'Data': self.data,
+            'MergeCells': self.merge_cells,
+            'Width': self.width,
+            'Height': self.height,
+        }
+
+    def _get_default_sheet(self) -> dict[str, dict[str, list]]:
+        return {
+            'Header': [],
+            'Data': [],
+            'MergeCells': [],
+            'Width': {},
+            'Height': {},
+        }
+
+    def __getitem__(self, key: str) -> tuple:
+        if self.index_supported:
+            row, col = excel_index_to_list_index(key)
+            return self.data[row][col]
+        else:
+            raise IndexError('Index is not supported in this Writer.')
+
+    def __setitem__(self, key: str, value: any) -> None:
+        if self.index_supported:
+            row, col = excel_index_to_list_index(key)
+            if not isinstance(value, tuple):
+                value = (f'{value}', 'DEFAULT_STYLE')
+            elif not isinstance(value[1], (str, CustomStyle)):
+                raise TypeError('Style should be a string or CustomStyle object.')
+            self.data[row][col] = value
+        else:
+            raise IndexError('Index is not supported in this Writer.')
