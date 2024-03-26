@@ -100,9 +100,13 @@ class ExcelDriver:
         }
         self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'
-        self.sheet_list = ['Sheet1']
+        self._sheet_list = tuple(['Sheet1'])
         self.style_name_map = {}
         self._create_style()
+
+    @property
+    def sheet_list(self):
+        return self._sheet_list
 
     @classmethod
     def set_custom_style(cls, name: str, custom_style: CustomStyle):
@@ -152,7 +156,7 @@ class ExcelDriver:
         """
         pyfastexcel = self._read_lib(lib_path)
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
-        for sheet in self.sheet_list:
+        for sheet in self._sheet_list:
             self.workbook[sheet]._transfer_to_dict()
             self.workbook[sheet] = self.workbook[sheet].sheet
 
