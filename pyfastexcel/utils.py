@@ -12,6 +12,17 @@ def set_custom_style(style_name: str, style: CustomStyle):
     ExcelDriver.set_custom_style(style_name, style)
 
 
+def style_validation(style: CustomStyle):
+    from .driver import ExcelDriver
+
+    if not isinstance(style, CustomStyle):
+        raise TypeError(
+            f'Invalid type ({type(style)}). Style should be a CustomStyle object.',
+        )
+    set_custom_style(f'Custom Style {ExcelDriver._STYLE_ID}', style)
+    ExcelDriver._STYLE_ID += 1
+
+
 def separate_alpha_numeric(input_string: str):
     alpha_part = re.findall(r'[a-zA-Z]+', input_string)
     num_part = re.findall(r'[0-9]+', input_string)
