@@ -364,6 +364,33 @@ class WorkSheet:
         self.height = {}
         self.index_supported = index_supported
 
+    def cell(
+        self,
+        row: int,
+        column: int,
+        value: any,
+        style: str | CustomStyle = 'DEFAULT_STYLE',
+    ) -> None:
+        """
+        Sets the value and style of a cell in the worksheet.
+
+        Args:
+            row (int): The row index of the cell.
+            col (int): The column index of the cell.
+            value (any): The value to set in the cell.
+            style (str | CustomStyle, optional): The style to apply to the cell.
+                Defaults to 'DEFAULT_STYLE'.
+        """
+        if not isinstance(value, tuple):
+            value = (f'{value}', style)
+        elif not isinstance(value[1], (str, CustomStyle)):
+            raise TypeError('Style should be a string or CustomStyle object.')
+        if row < 1 or row > 1048576:
+            raise ValueError(f'Invalid row index: {row}')
+        if column < 1 or column > 16384:
+            raise ValueError(f'Invalid column index: {column}')
+        self.data[row][column] = value
+
     def _transfer_to_dict(self) -> None:
         self.sheet = {
             'Header': self.header,
