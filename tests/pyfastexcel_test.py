@@ -149,6 +149,8 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
                 else:
                     self.row_append(row[h], style='black_fill_style')
             self.create_row()
+        # self.workbook['Sheet1']['A4'] = 'Test with defautl style'
+        # self.workbook['Sheet1']['A3'] = ('Hello', 'black_fill_style')
 
 
 class PyExcelizeNormalExample(NormalWriter, StyleCollections):
@@ -198,6 +200,22 @@ def test_pyexcelize_fast_example():
     excel_example = PyExcelizeFastExample(data)
     excel_bytes = excel_example.create_excel()
     assert isinstance(excel_bytes, bytes)
+
+
+def test_set_data_with_index():
+    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example.workbook['Sheet1']['A1'] = 'test'
+
+    with pytest.raises(TypeError):
+        excel_example.workbook['Sheet1']['A1'] = ('test', [])
+
+
+def test_set_data_faield_with_index():
+    excel_example = PyExcelizeNormalExample([])
+    with pytest.raises(IndexError):
+        excel_example.workbook['Sheet1']['A1'] = 'qwe'
+    with pytest.raises(IndexError):
+        print(excel_example['Sheet1']['A1'])
 
 
 def test_set_file_props():
@@ -255,7 +273,7 @@ def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_except
             excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
     else:
         excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
-        assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet]['MergeCells']
+        assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet].merge_cells
 
 
 def test_pyexcelize_normal_example():

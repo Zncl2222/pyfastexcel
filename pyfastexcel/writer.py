@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from openpyxl_style_writer import CustomStyle
 
-from pyfastexcel.driver import ExcelDriver
+from pyfastexcel.driver import ExcelDriver, WorkSheet
 
 from .utils import column_to_index, separate_alpha_numeric
 
@@ -44,6 +44,7 @@ class BaseWriter(ExcelDriver):
         self.workbook.pop(sheet)
         # TODO: Make a function to set the current sheet to the first sheet
         self.sheet = 'Sheet1'
+        self.sheet_list.remove(sheet)
 
     def create_sheet(self, sheet_name: str) -> None:
         """
@@ -52,8 +53,11 @@ class BaseWriter(ExcelDriver):
         Args:
             sheet_name (str): The name of the new sheet.
         """
-        self.workbook[sheet_name] = self._get_default_sheet()
+        self.workbook[sheet_name] = (
+            WorkSheet(index_supported=True) if self.INDEX_SUPPORTED else WorkSheet()
+        )
         self.sheet = sheet_name
+        self.sheet_list.append(sheet_name)
 
     def switch_sheet(self, sheet_name: str) -> None:
         """
@@ -90,13 +94,13 @@ class BaseWriter(ExcelDriver):
             col = column_to_index(col)
         if col < 1 or col > 16384:
             raise ValueError(f'Invalid column index: {col}')
-        self.workbook[sheet]['Width'][col] = value
+        self.workbook[sheet].width[col] = value
 
     def set_cell_height(self, sheet: str, row: int, value: int) -> None:
         self._check_if_sheet_exists(sheet)
         if row < 1 or row > 1048576:
             raise ValueError(f'Invalid row index: {row}')
-        self.workbook[sheet]['Height'][row] = value
+        self.workbook[sheet].height[row] = value
 
     def set_merge_cell(self, sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
         """
@@ -147,13 +151,7 @@ class BaseWriter(ExcelDriver):
                 + 'smaller than or equal to the bottom-right cell column.',
             )
 
-        self.workbook[sheet]['MergeCells'].append((top_left_cell, bottom_right_cell))
-
-    def create_single_header(self) -> None:
-        pass
-
-    def create_body(self) -> None:
-        pass
+        self.workbook[sheet].merge_cells.append((top_left_cell, bottom_right_cell))
 
 
 class FastWriter(BaseWriter):
@@ -161,6 +159,8 @@ class FastWriter(BaseWriter):
     A class for fast writing data to Excel files with custom styles.
 
     Attributes:
+        INDEX_SUPPORTED (bool): Indicates whether the writer supports using
+            index to access worksheet.
         _row_list (list[list[Union[str, Tuple[str, str]]]]): A list of rows to
         be written to the Excel file.
         data (list[dict[str, str]]): The data to be written to the Excel file.
@@ -175,6 +175,8 @@ class FastWriter(BaseWriter):
             create_row(idx): Creates a row in the Excel data.
     """
 
+    INDEX_SUPPORTED = True
+
     def __init__(self, data: list[dict[str, str]]):
         """
         Initializes the FastWriter.
@@ -185,9 +187,12 @@ class FastWriter(BaseWriter):
         """
         super().__init__()
         # The data is list[dict[str, str]] as default, if your data is other dtype
-        # You should override the __init___ method to allocate correct space for __row_list
-        self._row_list = [[None] * (len(data[0]) + 1) for _ in range(len(data) + 1)]
+        # You should override the __init___ method to allocate correct space for _row_list
+        self.max_rows = len(data) + 1
+        self.max_cols = len(data[0]) + 1
+        self._row_list = [[None] * (self.max_cols) for _ in range(self.max_rows)]
         self._original_row_list = self._row_list.copy()
+        self.workbook[self.sheet].data = self._original_row_list.copy()
         self.data = data
         # The row and col index for streaming row_append method
         self.current_row = 0
@@ -208,6 +213,7 @@ class FastWriter(BaseWriter):
 
     def create_sheet(self, sheet_name: str) -> None:
         super().create_sheet(sheet_name)
+        self.workbook[self.sheet].data = self._original_row_list.copy()
         self.reset_row_list()
 
     def switch_sheet(self, sheet_name: str) -> None:
@@ -236,7 +242,7 @@ class FastWriter(BaseWriter):
         Creates a row in the Excel data.
         """
         self._pop_none_from_row_list(self.current_row)
-        self.workbook[self.sheet]['Data'].append(
+        self.workbook[self.sheet].data.append(
             self._row_list[self.current_row].copy(),
         )
 
@@ -250,6 +256,8 @@ class NormalWriter(BaseWriter):
     A class for writing data to Excel files with or without custom styles.
 
     Attributes:
+        INDEX_SUPPORTED (bool): Indicates whether the writer supports using
+            index to access worksheet.
         _row_list (list[Tuple[str, str | CustomStyle]]): A list of tuples
             representing rows with values and styles.
         data (list[dict[str, str]]): The data to be written to the Excel file.
@@ -260,6 +268,8 @@ class NormalWriter(BaseWriter):
             the row list.
         create_row(is_header: bool = False): Creates a row in the Excel data.
     """
+
+    INDEX_SUPPORTED = False
 
     def __init__(self, data: list[dict[str, str]]):
         """
@@ -286,7 +296,7 @@ class NormalWriter(BaseWriter):
             style = self.style_map_name[style]
         self._row_list.append((value, style))
 
-    def create_row(self, is_header: bool = False):
+    def create_row(self):
         """
         Creates a row in the Excel data, and clean the current _row_list.
 
@@ -294,6 +304,5 @@ class NormalWriter(BaseWriter):
             is_header (bool, optional): Indicates whether the row is a header
                 row. Defaults to False.
         """
-        key = 'Header' if is_header is True else 'Data'
-        self.workbook[self.sheet][key].append(self._row_list)
+        self.workbook[self.sheet].data.append(self._row_list)
         self._row_list = []

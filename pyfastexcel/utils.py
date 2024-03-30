@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import re
 import string
 
 from openpyxl_style_writer import CustomStyle
 
-from .driver import ExcelDriver
-
 
 def set_custom_style(style_name: str, style: CustomStyle):
+    from .driver import ExcelDriver
+
     ExcelDriver.set_custom_style(style_name, style)
 
 
@@ -50,3 +52,10 @@ def index_to_column(index: int) -> str:
         index, r = divmod(index - 1, 26)
         name = chr(r + ord('A')) + name
     return name
+
+
+def excel_index_to_list_index(index: str) -> tuple[int, int]:
+    alpha, num = separate_alpha_numeric(index)
+    column = column_to_index(alpha)
+    row = int(num)
+    return row - 1, column - 1
