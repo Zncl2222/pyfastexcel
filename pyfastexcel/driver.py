@@ -389,7 +389,22 @@ class WorkSheet:
             raise ValueError(f'Invalid row index: {row}')
         if column < 1 or column > 16384:
             raise ValueError(f'Invalid column index: {column}')
-        self.data[row][column] = value
+        try:
+            self.data[row][column] = value
+        except IndexError:
+            self._expand_row_and_cols(row, column)
+            self.data[row][column] = value
+
+    def _expand_row_and_cols(self, target_row: int, target_col: int):
+        current_row = len(self.data)
+        current_col = len(self.data[0])
+        current_row = max(current_row, target_row + 1)
+        current_col = max(current_col, target_col + 1)
+        new_data = [[('', 'DEFAULT_STYLE')] * current_col for _ in range(current_row)]
+        for i, _ in enumerate(self.data):
+            for j, _ in enumerate(self.data[i]):
+                new_data[i][j] = self.data[i][j]
+        self.data = new_data
 
     def _transfer_to_dict(self) -> None:
         self.sheet = {
@@ -423,6 +438,10 @@ class WorkSheet:
                 value = (f'{value}', 'DEFAULT_STYLE')
             elif not isinstance(value[1], (str, CustomStyle)):
                 raise TypeError('Style should be a string or CustomStyle object.')
-            self.data[row][col] = value
+            try:
+                self.data[row][col] = value
+            except IndexError:
+                self._expand_row_and_cols(row, col)
+                self.data[row][col] = value
         else:
             raise IndexError('Index is not supported in this Writer.')

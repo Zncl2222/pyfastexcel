@@ -93,6 +93,7 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
             self.create_row()
         self.workbook['Sheet1']['A2'] = ('Hellow World', 'black_fill_style')
         self.workbook['Sheet1']['A3'] = 'I am A3'
+        self.workbook['Sheet1']['AB9'] = 'qwer'
 
 
 class PyExcelizeNormalExample(NormalWriter, StyleCollections):
