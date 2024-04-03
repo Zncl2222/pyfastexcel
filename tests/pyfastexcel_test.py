@@ -205,6 +205,16 @@ def test_pyexcelize_fast_example():
 def test_set_data_with_index():
     excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
     excel_example.workbook['Sheet1']['A1'] = 'test'
+    excel_example.workbook['Sheet1']['AZ4455'] = 'I am 1234!!!'
+
+    with pytest.raises(TypeError):
+        excel_example.workbook['Sheet1']['A1'] = ('test', [])
+
+
+def test_get_data_with_index():
+    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example.workbook['Sheet1']['A1'] = 'test'
+    print(excel_example.workbook['Sheet1']['A1'])
 
     with pytest.raises(TypeError):
         excel_example.workbook['Sheet1']['A1'] = ('test', [])
@@ -214,6 +224,7 @@ def test_set_data_with_cell():
     excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
     ws = excel_example.workbook['Sheet1']
     ws.cell(row=1, column=1, value='test')
+    ws.cell(row=12312, column=11221, value='I am 1234!!!')
 
     with pytest.raises(TypeError):
         ws.cell(row=1, column=1, value=('test', []))
