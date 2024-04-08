@@ -210,6 +210,21 @@ def test_set_data_with_index():
         excel_example.workbook['Sheet1']['A1'] = ('test', [])
 
 
+def test_set_data_with_cell():
+    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    ws = excel_example.workbook['Sheet1']
+    ws.cell(row=1, column=1, value='test')
+
+    with pytest.raises(TypeError):
+        ws.cell(row=1, column=1, value=('test', []))
+
+    with pytest.raises(ValueError):
+        ws.cell(row=199999999, column=1, value='test')
+
+    with pytest.raises(ValueError):
+        ws.cell(row=1, column=99999999, value='test')
+
+
 def test_set_data_faield_with_index():
     excel_example = PyExcelizeNormalExample([])
     with pytest.raises(IndexError):
