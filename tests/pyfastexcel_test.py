@@ -147,10 +147,10 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
                 if h[-1] in ('1', '3', '5', '7', '9'):
                     self.row_append(row[h], style='test_fill_style')
                 else:
-                    self.row_append(row[h], style='black_fill_style')
+                    self.row_append(row[h], style=self.black_fill_style)
             self.create_row()
-        # self.workbook['Sheet1']['A4'] = 'Test with defautl style'
-        # self.workbook['Sheet1']['A3'] = ('Hello', 'black_fill_style')
+        self.workbook['Sheet1']['A4'] = 'Test with default style'
+        self.workbook['Sheet1']['A3'] = ('Hello', 'test_style')
 
 
 class PyExcelizeNormalExample(NormalWriter, StyleCollections):
@@ -248,6 +248,35 @@ def test_set_file_props():
     excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
     with pytest.raises(ValueError):
         excel_example.set_file_props('Test', 'Test')
+
+
+@pytest.mark.parametrize(
+    'sheet, expected_exception',
+    [
+        ('Sheet1', ValueError),  # Invalid case
+        ('Sheet2', None),  # Valid case
+        ('Sheet3', None),  # Valid case
+    ],
+)
+def test_create_sheet(sheet, expected_exception):
+    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    if expected_exception is None:
+        excel_example.create_sheet(sheet)
+    else:
+        with pytest.raises(expected_exception):
+            excel_example.create_sheet(sheet)
+
+
+def test_remove_sheet():
+    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    with pytest.raises(ValueError):
+        excel_example.remove_sheet('Sheet1')
+    excel_example.create_sheet('Sheet2')
+    excel_example.remove_sheet('Sheet2')
+
+    excel_example.create_sheet('Sheet3')
+    with pytest.raises(IndexError):
+        excel_example.remove_sheet('Sheet333')
 
 
 @pytest.mark.parametrize(
