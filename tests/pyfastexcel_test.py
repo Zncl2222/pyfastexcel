@@ -152,6 +152,15 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
         self.workbook['Sheet1']['A4'] = 'Test with default style'
         self.workbook['Sheet1']['A3'] = ('Hello', 'test_style')
 
+        custom_style2 = CustomStyle(
+            font_size='33',
+            font_bold=True,
+            font_color='000000',
+            fill_color='4db3af',
+        )
+        self.row_append('Local Style', style=custom_style2)
+        self.create_row()
+
 
 class PyExcelizeNormalExample(NormalWriter, StyleCollections):
     def create_excel(self) -> bytes:
@@ -190,6 +199,15 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
                 else:
                     self.row_append(row[h], style='black_fill_style')
             self.create_row()
+
+        custom_style2 = CustomStyle(
+            font_size='33',
+            font_bold=True,
+            font_color='000000',
+            fill_color='4db3af',
+        )
+        self.row_append('Local Style', style=custom_style2)
+        self.create_row()
 
 
 def test_pyexcelize_fast_example():

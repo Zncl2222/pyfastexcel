@@ -130,9 +130,18 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
                 else:
                     self.row_append(row[h], style='black_fill_style')
             self.create_row()
+
+        custom_style2 = CustomStyle(
+            font_size='33',
+            font_bold=True,
+            font_color='000000',
+            fill_color='4db3af',
+        )
+        self.row_append('New Style', style=custom_style2)
+        self.create_row()
         self.set_cell_width(self.sheet, 'A', 255)
         self.set_cell_height(self.sheet, 4, 123)
-        self.set_merge_cell(self.sheet, 'A2', 'A12')
+        self.set_merge_cell(self.sheet, 'A2', 'A6')
 
 
 if __name__ == '__main__':

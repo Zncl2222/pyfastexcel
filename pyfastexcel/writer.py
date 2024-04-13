@@ -4,7 +4,7 @@ from openpyxl_style_writer import CustomStyle
 
 from pyfastexcel.driver import ExcelDriver, WorkSheet
 
-from .utils import column_to_index, separate_alpha_numeric
+from .utils import column_to_index, separate_alpha_numeric, style_validation
 
 # TODO: Implement a General Writer for all cases to use, and enable
 #   the ability to use excel index or number index to set the value
@@ -203,7 +203,7 @@ class FastWriter(BaseWriter):
         self.current_row = 0
         self.current_col = 0
 
-    def row_append(self, value: str, style: str):
+    def row_append(self, value: str, style: str | CustomStyle = 'DEFAULT_STYLE'):
         """
         Appends a value to a specific row and column.
 
@@ -212,7 +212,9 @@ class FastWriter(BaseWriter):
             style (str): The style of the value.
         """
         if isinstance(style, CustomStyle):
-            style = self.style_map_name[style]
+            if self._STYLE_NAME_MAP.get(style) is None:
+                style_validation(style)
+            style = self._STYLE_NAME_MAP[style]
         self._row_list[self.current_row][self.current_col] = (value, style)
         self.current_col += 1
 
@@ -298,7 +300,9 @@ class NormalWriter(BaseWriter):
                 a style name or a CustomStyle object.
         """
         if isinstance(style, CustomStyle):
-            style = self.style_map_name[style]
+            if self._STYLE_NAME_MAP.get(style) is None:
+                style_validation(style)
+            style = self._STYLE_NAME_MAP[style]
         self._row_list.append((value, style))
 
     def create_row(self):
