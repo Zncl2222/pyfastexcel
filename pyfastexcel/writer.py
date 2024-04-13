@@ -41,10 +41,13 @@ class BaseWriter(ExcelDriver):
         Args:
             sheet (str): The name of the sheet to remove.
         """
+        if len(self.workbook) == 1:
+            raise ValueError('Cannot remove the only sheet in the workbook.')
+        if self.workbook.get(sheet) is None:
+            raise IndexError(f'Sheet {sheet} does not exist.')
         self.workbook.pop(sheet)
-        # TODO: Make a function to set the current sheet to the first sheet
-        self.sheet = 'Sheet1'
-        self.sheet_list.remove(sheet)
+        self._sheet_list = tuple(self.workbook.keys())
+        self.sheet = self._sheet_list[0]
 
     def create_sheet(self, sheet_name: str) -> None:
         """
@@ -53,11 +56,13 @@ class BaseWriter(ExcelDriver):
         Args:
             sheet_name (str): The name of the new sheet.
         """
+        if self.workbook.get(sheet_name) is not None:
+            raise ValueError(f'Sheet {sheet_name} already exists.')
         self.workbook[sheet_name] = (
             WorkSheet(index_supported=True) if self.INDEX_SUPPORTED else WorkSheet()
         )
         self.sheet = sheet_name
-        self.sheet_list.append(sheet_name)
+        self._sheet_list = tuple([x for x in self._sheet_list] + [sheet_name])
 
     def switch_sheet(self, sheet_name: str) -> None:
         """
@@ -283,7 +288,7 @@ class NormalWriter(BaseWriter):
         self._row_list = []
         self.data = data
 
-    def row_append(self, value: str, style: str | CustomStyle):
+    def row_append(self, value: str, style: str | CustomStyle = 'DEFAULT_STYLE'):
         """
         Appends a value to the row list.
 
