@@ -84,6 +84,8 @@ class ExcelDriver:
     # Writer is initialized and calls the self._create_style() method.
     DEFAULT_STYLE = CustomStyle()
     REGISTERED_STYLES = {'DEFAULT_STYLE': DEFAULT_STYLE}
+    _STYLE_NAME_MAP = {}
+    _STYLE_ID = 0
     # The shared memory in the parent class that stores every CustomStyle
     # from different Writer classes.
     _style_map = {}
@@ -101,8 +103,6 @@ class ExcelDriver:
         self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'
         self._sheet_list = tuple(['Sheet1'])
-        self.style_name_map = {}
-        self._create_style()
 
     @property
     def sheet_list(self):
@@ -111,6 +111,7 @@ class ExcelDriver:
     @classmethod
     def set_custom_style(cls, name: str, custom_style: CustomStyle):
         cls.REGISTERED_STYLES[name] = custom_style
+        cls._STYLE_NAME_MAP[custom_style] = name
 
     def __getitem__(self, key: str) -> tuple:
         return self.workbook[key]
@@ -155,6 +156,8 @@ class ExcelDriver:
             bytes: The byte data of the created Excel file.
         """
         pyfastexcel = self._read_lib(lib_path)
+        self._create_style()
+
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
         for sheet in self._sheet_list:
             self.workbook[sheet]._transfer_to_dict()
@@ -184,7 +187,7 @@ class ExcelDriver:
         predefined attributes.
         """
         style_collections = self._get_style_collections()
-        self.style_map_name = {val: key for key, val in style_collections.items()}
+        self._STYLE_NAME_MAP.update({val: key for key, val in style_collections.items()})
 
         # Set the CustomStyle from the pre-defined class attributes.
         for key, val in style_collections.items():
