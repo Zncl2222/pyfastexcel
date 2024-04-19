@@ -194,10 +194,68 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
                     self.row_append(row[h], style='black_fill_style')
             self.create_row()
 
-
 if __name__ == '__main__':
     data = prepare_example_data(653, 90)
     excel_normal = PyExcelizeNormalExample(data).create_excel()
+    file_path = 'pyexample_normal.xlsx'
+    with open(file_path2, 'wb') as file:
+        file.write(excel_normal)
+```
+
+The example of FastWriter now supports index assignment. Please see
+the last few lines of code in `_create_body()` for reference.
+
+```python
+from pyfastexcel.driver import FastWriter
+
+
+class PyExcelizeFastExample(FastWriter, StyleCollections):
+
+    def create_excel(self) -> bytes:
+        self._set_header()
+        self._create_style()
+        self.set_file_props('Creator', 'Hello')
+        self._create_single_header()
+        self._create_body()
+        return self._read_lib_and_create_excel()
+
+    def _set_header(self):
+        self.headers = list(self.data[0].keys())
+
+    def _create_single_header(self):
+        for h in self.headers:
+            self.row_append(h, style='green_fill_style')
+        self.create_row()
+
+    def _create_body(self) -> None:
+        for row in self.data:
+            for h in self.headers:
+                if h[-1] in ('1', '3', '5', '7', '9'):
+                    self.row_append(row[h], style='black_fill_style')
+                else:
+                    self.row_append(row[h], style='test_fill_style')
+            self.create_row()
+
+        self.switch_sheet('Sheet2')
+        for row in self.data:
+            for h in self.headers:
+                if h[-1] in ('1', '3', '5', '7', '9'):
+                    self.row_append(row[h], style=self.green_fill_style)
+                else:
+                    self.row_append(row[h], style='black_fill_style')
+            self.create_row()
+
+        # Assigning a value with a specific style
+        self.workbook['Sheet1']['A2'] = ('Hellow World', 'black_fill_style')
+
+        # Assigning a value without specifying a style (default style used)
+        self.workbook['Sheet1']['A3'] = 'I am A3'
+        self.workbook['Sheet1']['AB9'] = 'GOGOGO'
+
+
+if __name__ == '__main__':
+    data = prepare_example_data(653, 90)
+    excel_normal = PyExcelizeFastExample(data).create_excel()
     file_path = 'pyexample_normal.xlsx'
     with open(file_path2, 'wb') as file:
         file.write(excel_normal)
@@ -272,14 +330,13 @@ Future Plans:
 1. ~~Make the style register in the shared class object on the Python side.
 Also, create a function to register the style. By doing so, the style
 won't need to depend on the `custom-writer-class`. All the styles registered
-through that function will be sent to Golang and registered.~~ (This has been finished
-in current version)
+through that function will be sent to Golang and registered.~~
+(This has been finished in current version)
 
-2. Add the ability to create a cell and style with the index, similar
-to what openpyxl does. (The code snippet provided is only an example,
-not the real implementation method planned)
+2. ~~Add the ability to create a cell and style with the index, similar
+to what openpyxl does.~~ (This has been finished in current version)
 
-    ```python
-    ws['A1'].value = 'test'
-    ws['A1'].style = 'black_fill_style'
-    ```
+3. Rename `NormalWriter` and `FastWriter` to make them easier to use without
+requiring inheritance from a class, similar to how `openpyxl's Workbook`
+operates. However, ensure that they still allow for inheritance to write
+Excel files if needed.
