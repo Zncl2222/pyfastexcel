@@ -6,11 +6,8 @@ from pyfastexcel.driver import ExcelDriver, WorkSheet
 
 from .utils import column_to_index, separate_alpha_numeric, style_validation
 
-# TODO: Implement a General Writer for all cases to use, and enable
-#   the ability to use excel index or number index to set the value
 
-
-class BaseWriter(ExcelDriver):
+class Workbook(ExcelDriver):
     """
     A base class for writing data to Excel files with custom styles.
 
@@ -33,6 +30,8 @@ class BaseWriter(ExcelDriver):
         set_merge_cell(sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
             Sets a merge cell range in the specified sheet.
     """
+
+    INDEX_SUPPORTED = True
 
     def remove_sheet(self, sheet: str) -> None:
         """
@@ -159,7 +158,7 @@ class BaseWriter(ExcelDriver):
         self.workbook[sheet].merge_cells.append((top_left_cell, bottom_right_cell))
 
 
-class FastWriter(BaseWriter):
+class FastWriter(Workbook):
     """
     A class for fast writing data to Excel files with custom styles.
 
@@ -258,7 +257,7 @@ class FastWriter(BaseWriter):
         self.current_col = 0
 
 
-class NormalWriter(BaseWriter):
+class NormalWriter(Workbook):
     """
     A class for writing data to Excel files with or without custom styles.
 

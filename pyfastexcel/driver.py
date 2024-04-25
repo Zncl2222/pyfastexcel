@@ -364,7 +364,7 @@ class WorkSheet:
                 index-based access is supported. Defaults to False.
         """
         self.sheet = self._get_default_sheet()
-        self.data = []
+        self.data = [[]]
         self.header = []
         self.merge_cells = []
         self.width = {}
