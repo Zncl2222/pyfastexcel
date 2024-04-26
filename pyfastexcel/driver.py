@@ -431,24 +431,68 @@ class WorkSheet:
             'Height': {},
         }
 
-    def __getitem__(self, key: str) -> tuple:
+    def _validate_value_and_set_default(self, value: Any):
+        """
+        Validates the input value and ensures it is a tuple with the correct
+        format.
+
+        If the input value is not a tuple, it is converted to a tuple with
+        the value as the first element and the string 'DEFAULT_STYLE' as the
+        second element.
+
+        If the input value is a tuple, it checks if the second element is a
+        string or a CustomStyle object. If not, it raises a TypeError.
+
+        Args:
+            value (Any): The value to be validated and formatted.
+
+        Returns:
+            Tuple[str, Union[str, CustomStyle]]: A tuple with the value as the
+            first element and the style as the second element. The style can be
+            either a string or a CustomStyle object.
+
+        Raises:
+            TypeError: If the second element of the input tuple is not a string
+            or a CustomStyle object.
+        """
+        if not isinstance(value, tuple):
+            value = (f'{value}', 'DEFAULT_STYLE')
+        elif not isinstance(value[1], (str, CustomStyle)):
+            raise TypeError('Style should be a string or CustomStyle object.')
+        return value
+
+    def __getitem__(self, key: str | slice) -> tuple | list[tuple]:
         if self.index_supported:
-            row, col = excel_index_to_list_index(key)
-            return self.data[row][col]
+            if isinstance(key, slice):
+                if key.start[1] == key.stop[1]:
+                    return self.data[int(key.start[1]) - 1]
+                row_start, _ = excel_index_to_list_index(key.start)
+                row_stop, _ = excel_index_to_list_index(key.stop)
+                return self.data[row_start:row_stop]
+            elif isinstance(key, str):
+                row, col = excel_index_to_list_index(key)
+                return self.data[row][col]
         else:
             raise IndexError('Index is not supported in this Writer.')
 
-    def __setitem__(self, key: str, value: any) -> None:
+    def __setitem__(self, key: str | slice, value: Any) -> None:
         if self.index_supported:
-            row, col = excel_index_to_list_index(key)
-            if not isinstance(value, tuple):
-                value = (f'{value}', 'DEFAULT_STYLE')
-            elif not isinstance(value[1], (str, CustomStyle)):
-                raise TypeError('Style should be a string or CustomStyle object.')
-            try:
-                self.data[row][col] = value
-            except IndexError:
-                self._expand_row_and_cols(row, col)
-                self.data[row][col] = value
+            if isinstance(key, slice):
+                if key.start[1] != key.stop[1]:
+                    raise ValueError('Only support row-wise slicing.')
+                start_row, start_col = excel_index_to_list_index(key.start)
+                _, col_stop = excel_index_to_list_index(key.stop)
+                self._expand_row_and_cols(start_row, col_stop)
+                for idx, col in enumerate(range(start_col, col_stop + 1)):
+                    val = self._validate_value_and_set_default(value[idx])
+                    self.data[start_row][col] = val
+            else:
+                row, col = excel_index_to_list_index(key)
+                value = self._validate_value_and_set_default(value)
+                try:
+                    self.data[row][col] = value
+                except IndexError:
+                    self._expand_row_and_cols(row, col)
+                    self.data[row][col] = value
         else:
             raise IndexError('Index is not supported in this Writer.')
