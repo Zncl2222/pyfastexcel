@@ -4,7 +4,7 @@ import pytest
 from openpyxl.styles import Side
 from openpyxl_style_writer import CustomStyle
 
-from pyfastexcel import FastWriter, NormalWriter
+from pyfastexcel import FastWriter, NormalWriter, Workbook
 
 font_params = {
     'size': 11,
@@ -357,3 +357,46 @@ def test_pyexcelize_normal_example():
     excel_example.switch_sheet('Sheet1')
     excel_bytes = excel_example.create_excel()
     assert isinstance(excel_bytes, bytes)
+
+
+@pytest.mark.parametrize(
+    'range_slice, values, expected_output',
+    [
+        (
+            slice('A1', 'G1'),
+            [1, 2, 3, 9, 8, 45, 11],
+            [
+                ('1', 'DEFAULT_STYLE'),
+                ('2', 'DEFAULT_STYLE'),
+                ('3', 'DEFAULT_STYLE'),
+                ('9', 'DEFAULT_STYLE'),
+                ('8', 'DEFAULT_STYLE'),
+                ('45', 'DEFAULT_STYLE'),
+                ('11', 'DEFAULT_STYLE'),
+            ],
+        ),
+        (slice('A1', 'B1'), [1, 2], [('1', 'DEFAULT_STYLE'), ('2', 'DEFAULT_STYLE')]),
+    ],
+)
+def test_workbook(range_slice, values, expected_output):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws[range_slice] = values
+
+    actual_output = [tuple([cell for cell in row]) for row in ws[range_slice]]
+    assert actual_output == expected_output
+
+    # Test invalid assignment
+    with pytest.raises(ValueError):
+        ws['A1':'G3'] = [1, 2, 3]
+
+
+def test_workbook_slice():
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws['A1':'G1'] = [1, 2, 3, 9, 8, 45, 11]
+    print(ws['A1':'G1'])
+    print(ws['A2':'G3'])
+
+    with pytest.raises(ValueError):
+        ws['A1':'G3'] = [1, 2, 3]
