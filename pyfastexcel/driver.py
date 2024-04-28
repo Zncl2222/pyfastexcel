@@ -4,13 +4,14 @@ import base64
 import ctypes
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import msgspec
 from openpyxl_style_writer import CustomStyle
 
+from .exceptions import CreateFileNotCalledError
 from .utils import excel_index_to_list_index
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -31,7 +32,7 @@ class ExcelDriver:
     ### Methods:
         __init__(): Initializes the ExcelDriver.
         _read_lib(lib_path: str): Reads a library for Excel manipulation.
-        _read_lib_and_create_excel(lib_path: str = None): Reads the library and
+        read_lib_and_create_excel(lib_path: str = None): Reads the library and
                 creates the Excel file.
         set_custom_style(cls, name: str, custom_style: CustomStyle): Set custom style
             by register method.
@@ -113,6 +114,15 @@ class ExcelDriver:
         cls.REGISTERED_STYLES[name] = custom_style
         cls._STYLE_NAME_MAP[custom_style] = name
 
+    def save(self, path: str = './pyfastexcel.xlsx') -> None:
+        if not hasattr(self, 'decoded_bytes'):
+            raise CreateFileNotCalledError(
+                'Function read_lib_and_create_excel should be ' + 'called before saving the file.',
+            )
+
+        with open(path, 'wb') as file:
+            file.write(self.decoded_bytes)
+
     def __getitem__(self, key: str) -> tuple:
         return self.workbook[key]
 
@@ -120,32 +130,7 @@ class ExcelDriver:
         if sheet_name not in self.sheet_list:
             raise KeyError(f'{sheet_name} Sheet Does Not Exist.')
 
-    def _get_default_file_props(self) -> dict[str, str]:
-        now = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-        file_props = self._FILE_PROPS.copy()
-        file_props['Created'] = now
-        file_props['Modified'] = now
-        return file_props
-
-    def _read_lib(self, lib_path: str) -> ctypes.CDLL:
-        """
-        Reads a shared-library for writing Excel.
-
-        Args:
-            lib_path (str): The path to the library.
-
-        Returns:
-            ctypes.CDLL: The library object.
-        """
-        if lib_path is None:
-            if sys.platform.startswith('linux'):
-                lib_path = str(list(BASE_DIR.glob('**/*.so'))[0])
-            elif sys.platform.startswith('win32'):
-                lib_path = str(list(BASE_DIR.glob('**/*.dll'))[0])
-        lib = ctypes.CDLL(lib_path, winmode=0)
-        return lib
-
-    def _read_lib_and_create_excel(self, lib_path: str = None) -> bytes:
+    def read_lib_and_create_excel(self, lib_path: str = None) -> bytes:
         """
         Reads the library and creates the Excel file.
 
@@ -175,9 +160,34 @@ class ExcelDriver:
         create_excel.argtypes = [ctypes.c_char_p]
         create_excel.restype = ctypes.c_void_p
         byte_data = create_excel(json_data)
-        decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
+        self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
         free_pointer(byte_data)
-        return decoded_bytes
+        return self.decoded_bytes
+
+    def _read_lib(self, lib_path: str) -> ctypes.CDLL:
+        """
+        Reads a shared-library for writing Excel.
+
+        Args:
+            lib_path (str): The path to the library.
+
+        Returns:
+            ctypes.CDLL: The library object.
+        """
+        if lib_path is None:
+            if sys.platform.startswith('linux'):
+                lib_path = str(list(BASE_DIR.glob('**/*.so'))[0])
+            elif sys.platform.startswith('win32'):
+                lib_path = str(list(BASE_DIR.glob('**/*.dll'))[0])
+        lib = ctypes.CDLL(lib_path, winmode=0)
+        return lib
+
+    def _get_default_file_props(self) -> dict[str, str]:
+        now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        file_props = self._FILE_PROPS.copy()
+        file_props['Created'] = now
+        file_props['Modified'] = now
+        return file_props
 
     def _create_style(self) -> None:
         """

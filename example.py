@@ -64,7 +64,7 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
         self._set_header()
         self._create_style()
         self._create_body()
-        return self._read_lib_and_create_excel()
+        return self.read_lib_and_create_excel()
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
@@ -103,7 +103,7 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
         self.set_file_props('Creator', 'Hello')
         self._create_single_header()
         self._create_body()
-        return self._read_lib_and_create_excel()
+        return self.read_lib_and_create_excel()
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
@@ -146,20 +146,27 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
 
 if __name__ == '__main__':
     data = prepare_example_data(6, 9)
+
+    # Fast Writer
     fast_start_time = time.perf_counter()
-    excel_fast = PyExcelizeFastExample(data).create_excel()
+    pyfast_example = PyExcelizeFastExample(data)
+    excel_fast = pyfast_example.create_excel()
     fast_end_time = time.perf_counter()
     print('PYExcelizeFastDriver time: ', fast_end_time - fast_start_time)
+
+    # Normal Writer
     normal_start_time = time.perf_counter()
     excel_normal = PyExcelizeNormalExample(data).create_excel()
     notmal_end_time = time.perf_counter()
     print('PYExcelizeNormalDriver time: ', notmal_end_time - normal_start_time)
 
+    # File path to save
     file_path = 'pyexample_fast.xlsx'
     file_path2 = 'pyexample_normal.xlsx'
 
-    with open(file_path, 'wb') as file:
-        file.write(excel_fast)
+    # Save to the xlsx with save function of Workbook
+    pyfast_example.save(file_path)
 
+    # Save to the xlsx by the bytes return from create_excel()
     with open(file_path2, 'wb') as file:
         file.write(excel_normal)
