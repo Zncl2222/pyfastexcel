@@ -166,7 +166,7 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
         self.set_file_props('Creator', 'Hello')
         self._create_single_header()
         self._create_body()
-        return self._read_lib_and_create_excel()
+        return self.read_lib_and_create_excel()
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
@@ -196,10 +196,10 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
 
 if __name__ == '__main__':
     data = prepare_example_data(653, 90)
-    excel_normal = PyExcelizeNormalExample(data).create_excel()
+    normal_writer = PyExcelizeFastExample(data)
+    excel_normal = normal_writer.create_excel()
     file_path = 'pyexample_normal.xlsx'
-    with open(file_path2, 'wb') as file:
-        file.write(excel_normal)
+    normal_writer.save('pyexample_normal.xlsx')
 ```
 
 The example of FastWriter now supports index assignment. Please see
@@ -217,7 +217,7 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
         self.set_file_props('Creator', 'Hello')
         self._create_single_header()
         self._create_body()
-        return self._read_lib_and_create_excel()
+        return self.read_lib_and_create_excel()
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
@@ -255,10 +255,11 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
 
 if __name__ == '__main__':
     data = prepare_example_data(653, 90)
-    excel_normal = PyExcelizeFastExample(data).create_excel()
+    normal_writer = PyExcelizeFastExample(data)
+    excel_normal = normal_writer.create_excel()
     file_path = 'pyexample_normal.xlsx'
-    with open(file_path2, 'wb') as file:
-        file.write(excel_normal)
+    normal_writer.save('pyexample_normal.xlsx')
+
 ```
 
 ## Current Limitations & Future Plans

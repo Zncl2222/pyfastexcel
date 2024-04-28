@@ -118,7 +118,7 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
         self._create_style()
         self._create_single_header()
         self._create_body()
-        return self._read_lib_and_create_excel()
+        return self.read_lib_and_create_excel()
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
@@ -169,7 +169,7 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
         self.set_file_props('Creator', 'Hello')
         self._create_single_header()
         self._create_body()
-        return self._read_lib_and_create_excel()
+        return self.read_lib_and_create_excel()
 
     def _set_header(self):
         self.headers = list(self.data[0].keys())
@@ -400,3 +400,17 @@ def test_workbook_slice():
 
     with pytest.raises(ValueError):
         ws['A1':'G3'] = [1, 2, 3]
+
+
+def test_save_workbook():
+    from pyfastexcel.exceptions import CreateFileNotCalledError
+
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws['A1':'G1'] = [1, 2, 3, 9, 8, 45, 11]
+
+    with pytest.raises(CreateFileNotCalledError):
+        wb.save('test.xlsx')
+
+    wb.read_lib_and_create_excel()
+    wb.save('test.xlsx')
