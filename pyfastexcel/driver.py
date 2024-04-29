@@ -145,8 +145,7 @@ class ExcelDriver:
 
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
         for sheet in self._sheet_list:
-            self.workbook[sheet]._transfer_to_dict()
-            self.workbook[sheet] = self.workbook[sheet].sheet
+            self.workbook[sheet] = self.workbook[sheet]._transfer_to_dict()
 
         results = {
             'content': self.workbook,
@@ -336,8 +335,8 @@ class ExcelDriver:
 
 class WorkSheet:
     """
-    A class representing a worksheet in a spreadsheet. Remeber to call
-    _transfer_to_dict before turn worksheet to JSON.
+    A class representing a worksheet in a spreadsheet. Remember to call
+    _transfer_to_dict before turning the worksheet to JSON.
 
     Attributes:
         sheet (dict): A dictionary representing the default sheet structure.
@@ -356,11 +355,22 @@ class WorkSheet:
         _get_default_sheet():
             Returns a dictionary representing the default sheet structure.
 
-        __getitem__(key: str) -> tuple:
+        cell(row: int, column: int, value: any, style: str | CustomStyle = 'DEFAULT_STYLE') -> None:
+            Sets the value and style of a cell in the worksheet.
+
+        _expand_row_and_cols(target_row: int, target_col: int):
+            Expands the rows and columns of the worksheet to accommodate
+            the given row and column indices.
+
+        _validate_value_and_set_default(value: Any) -> Tuple[str, Union[str, CustomStyle]]:
+            Validates the input value and ensures it is a tuple with the correct
+            format.
+
+        __getitem__(key: str | slice) -> tuple | list[tuple]:
             If index_supported is True, retrieves the cell value at the
             specified index. Raises TypeError if index_supported is False.
 
-        __setitem__(key: str, value: any) -> None:
+        __setitem__(key: str | slice, value: Any) -> None:
             If index_supported is True, sets the cell value at the specified
             index. Raises TypeError if index_supported is False.
     """
@@ -431,6 +441,7 @@ class WorkSheet:
             'Width': self.width,
             'Height': self.height,
         }
+        return self.sheet
 
     def _get_default_sheet(self) -> dict[str, dict[str, list]]:
         return {
@@ -474,35 +485,49 @@ class WorkSheet:
     def __getitem__(self, key: str | slice) -> tuple | list[tuple]:
         if self.index_supported:
             if isinstance(key, slice):
-                if key.start[1] == key.stop[1]:
-                    return self.data[int(key.start[1]) - 1]
-                row_start, _ = excel_index_to_list_index(key.start)
-                row_stop, _ = excel_index_to_list_index(key.stop)
-                return self.data[row_start:row_stop]
+                return self._get_cell_by_slice(key)
             elif isinstance(key, str):
-                row, col = excel_index_to_list_index(key)
-                return self.data[row][col]
+                return self._get_cell_by_location(key)
         else:
             raise IndexError('Index is not supported in this Writer.')
 
-    def __setitem__(self, key: str | slice, value: Any) -> None:
+    def __setitem__(self, key: str | slice | int, value: Any) -> None:
         if self.index_supported:
             if isinstance(key, slice):
-                if key.start[1] != key.stop[1]:
-                    raise ValueError('Only support row-wise slicing.')
-                start_row, start_col = excel_index_to_list_index(key.start)
-                _, col_stop = excel_index_to_list_index(key.stop)
-                self._expand_row_and_cols(start_row, col_stop)
-                for idx, col in enumerate(range(start_col, col_stop + 1)):
-                    val = self._validate_value_and_set_default(value[idx])
-                    self.data[start_row][col] = val
+                self._set_cell_by_slice(key, value)
+            elif isinstance(key, str):
+                self._set_cell_by_location(key, value)
             else:
-                row, col = excel_index_to_list_index(key)
-                value = self._validate_value_and_set_default(value)
-                try:
-                    self.data[row][col] = value
-                except IndexError:
-                    self._expand_row_and_cols(row, col)
-                    self.data[row][col] = value
+                raise TypeError('Key should be a string or slice.')
         else:
             raise IndexError('Index is not supported in this Writer.')
+
+    def _get_cell_by_slice(self, cell_slice: slice) -> list[tuple]:
+        if cell_slice.start[1] == cell_slice.stop[1]:
+            return self.data[int(cell_slice.start[1]) - 1]
+        row_start, _ = excel_index_to_list_index(cell_slice.start)
+        row_stop, _ = excel_index_to_list_index(cell_slice.stop)
+        return self.data[row_start:row_stop]
+
+    def _get_cell_by_location(self, key: str) -> tuple:
+        row, col = excel_index_to_list_index(key)
+        return self.data[row][col]
+
+    def _set_cell_by_slice(self, cell_slice: slice, value: Any) -> None:
+        if cell_slice.start[1] != cell_slice.stop[1]:
+            raise ValueError('Only support row-wise slicing.')
+        start_row, start_col = excel_index_to_list_index(cell_slice.start)
+        _, col_stop = excel_index_to_list_index(cell_slice.stop)
+        self._expand_row_and_cols(start_row, col_stop)
+        for idx, col in enumerate(range(start_col, col_stop + 1)):
+            val = self._validate_value_and_set_default(value[idx])
+            self.data[start_row][col] = val
+
+    def _set_cell_by_location(self, key: str, value: Any) -> None:
+        row, col = excel_index_to_list_index(key)
+        value = self._validate_value_and_set_default(value)
+        try:
+            self.data[row][col] = value
+        except IndexError:
+            self._expand_row_and_cols(row, col)
+            self.data[row][col] = value
