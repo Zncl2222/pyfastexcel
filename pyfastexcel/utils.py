@@ -70,3 +70,9 @@ def excel_index_to_list_index(index: str) -> tuple[int, int]:
     column = column_to_index(alpha)
     row = int(num)
     return row - 1, column - 1
+
+
+def extract_numeric_part(cell_location: str) -> str | None:
+    numeric_part = re.search(r'\d+', cell_location)
+    if numeric_part:
+        return numeric_part.group()
