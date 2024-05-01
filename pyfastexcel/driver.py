@@ -366,11 +366,11 @@ class WorkSheet:
             Validates the input value and ensures it is a tuple with the correct
             format.
 
-        __getitem__(key: str | slice) -> tuple | list[tuple]:
+        __getitem__(key: str | slice | int) -> tuple | list[tuple]:
             If index_supported is True, retrieves the cell value at the
             specified index. Raises TypeError if index_supported is False.
 
-        __setitem__(key: str | slice, value: Any) -> None:
+        __setitem__(key: str | slice | int, value: Any) -> None:
             If index_supported is True, sets the cell value at the specified
             index. Raises TypeError if index_supported is False.
     """
@@ -486,6 +486,8 @@ class WorkSheet:
         if self.index_supported:
             if isinstance(key, slice):
                 return self._get_cell_by_slice(key)
+            elif isinstance(key, int):
+                return self.data[key]
             elif isinstance(key, str):
                 return self._get_cell_by_location(key)
         else:
@@ -495,6 +497,8 @@ class WorkSheet:
         if self.index_supported:
             if isinstance(key, slice):
                 self._set_cell_by_slice(key, value)
+            elif isinstance(key, int):
+                self._set_row_by_index(key, value)
             elif isinstance(key, str):
                 self._set_cell_by_location(key, value)
             else:
@@ -522,6 +526,15 @@ class WorkSheet:
         for idx, col in enumerate(range(start_col, col_stop + 1)):
             val = self._validate_value_and_set_default(value[idx])
             self.data[start_row][col] = val
+
+    def _set_row_by_index(self, row: int, value: Any) -> None:
+        if row < 0 or row > 1048575:
+            raise ValueError(f'Invalid row index: {row}')
+        if not isinstance(value, list):
+            raise ValueError('Value should be a list.')
+        value = [self._validate_value_and_set_default(v) for v in value]
+        self._expand_row_and_cols(row, len(value) - 1)
+        self.data[row] = value
 
     def _set_cell_by_location(self, key: str, value: Any) -> None:
         row, col = excel_index_to_list_index(key)

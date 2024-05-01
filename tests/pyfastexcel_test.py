@@ -386,9 +386,20 @@ def test_workbook(range_slice, values, expected_output):
     actual_output = [tuple([cell for cell in row]) for row in ws[range_slice]]
     assert actual_output == expected_output
 
-    # Test invalid assignment
-    with pytest.raises(ValueError):
-        ws['A1':'G3'] = [1, 2, 3]
+
+@pytest.mark.parametrize(
+    'input_data, expected_exception',
+    [
+        ([slice('A1', 'G3'), [1, 2, 3]], ValueError),  # Invalid slice assignment
+        ((1.62, [1]), TypeError),  # Invalid row assignment
+    ],
+)
+def test_invalid_assignment(input_data, expected_exception):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    with pytest.raises(expected_exception):
+        ws[input_data[0]] = input_data[1]
 
 
 def test_workbook_slice():
@@ -400,6 +411,66 @@ def test_workbook_slice():
 
     with pytest.raises(ValueError):
         ws['A1':'G3'] = [1, 2, 3]
+
+
+@pytest.mark.parametrize(
+    'index, value_list, expected_output',
+    [
+        (
+            0,
+            [2, 6, 7, 8, 9],
+            [
+                ('2', 'DEFAULT_STYLE'),
+                ('6', 'DEFAULT_STYLE'),
+                ('7', 'DEFAULT_STYLE'),
+                ('8', 'DEFAULT_STYLE'),
+                ('9', 'DEFAULT_STYLE'),
+            ],
+        ),
+        (
+            1,
+            ['qwe', 6, 7, -8, 'hello'],
+            [
+                ('qwe', 'DEFAULT_STYLE'),
+                ('6', 'DEFAULT_STYLE'),
+                ('7', 'DEFAULT_STYLE'),
+                ('-8', 'DEFAULT_STYLE'),
+                ('hello', 'DEFAULT_STYLE'),
+            ],
+        ),
+        (
+            36669,
+            [('qwe', 'bold_font_style'), 6, 7, -8, 'hello'],
+            [
+                ('qwe', 'bold_font_style'),
+                ('6', 'DEFAULT_STYLE'),
+                ('7', 'DEFAULT_STYLE'),
+                ('-8', 'DEFAULT_STYLE'),
+                ('hello', 'DEFAULT_STYLE'),
+            ],
+        ),
+        (-1, [1, 2, 3], ValueError),
+        (1048576, [1], ValueError),
+        (2, 99, ValueError),
+        (6, 'STRING', ValueError),
+    ],
+)
+def test_worsheet_row_get_and_set(index, value_list, expected_output):
+    from pyfastexcel.utils import set_custom_style
+
+    style = CustomStyle(font_size=12, font_bold=True)
+    set_custom_style('bold_font_style', style)
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    if not isinstance(expected_output, list):
+        print('qweqweqw')
+        with pytest.raises(expected_output):
+            ws[index] = value_list
+    else:
+        ws[index] = value_list
+        print(ws[index])
+        assert ws[index] == expected_output
 
 
 def test_save_workbook():
