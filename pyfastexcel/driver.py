@@ -12,7 +12,7 @@ import msgspec
 from openpyxl_style_writer import CustomStyle
 
 from .exceptions import CreateFileNotCalledError
-from .utils import excel_index_to_list_index
+from .utils import excel_index_to_list_index, extract_numeric_part
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -507,18 +507,20 @@ class WorkSheet:
             raise IndexError('Index is not supported in this Writer.')
 
     def _get_cell_by_slice(self, cell_slice: slice) -> list[tuple]:
-        if cell_slice.start[1] == cell_slice.stop[1]:
-            return self.data[int(cell_slice.start[1]) - 1]
-        row_start, _ = excel_index_to_list_index(cell_slice.start)
-        row_stop, _ = excel_index_to_list_index(cell_slice.stop)
-        return self.data[row_start:row_stop]
+        start_row = extract_numeric_part(cell_slice.start)
+        stop_row = extract_numeric_part(cell_slice.stop)
+        if start_row != stop_row:
+            raise ValueError('Only support row-wise slicing.')
+        return self.data[int(start_row) - 1]
 
     def _get_cell_by_location(self, key: str) -> tuple:
         row, col = excel_index_to_list_index(key)
         return self.data[row][col]
 
     def _set_cell_by_slice(self, cell_slice: slice, value: Any) -> None:
-        if cell_slice.start[1] != cell_slice.stop[1]:
+        start_row = extract_numeric_part(cell_slice.start)
+        stop_row = extract_numeric_part(cell_slice.stop)
+        if start_row != stop_row:
             raise ValueError('Only support row-wise slicing.')
         start_row, start_col = excel_index_to_list_index(cell_slice.start)
         _, col_stop = excel_index_to_list_index(cell_slice.stop)

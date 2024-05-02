@@ -402,15 +402,63 @@ def test_invalid_assignment(input_data, expected_exception):
         ws[input_data[0]] = input_data[1]
 
 
-def test_workbook_slice():
+@pytest.mark.parametrize(
+    'row_slice, value_list, expected_output',
+    [
+        (
+            slice('A1', 'E1'),
+            [2, 6, 7, 8, 9],
+            [
+                ('2', 'DEFAULT_STYLE'),
+                ('6', 'DEFAULT_STYLE'),
+                ('7', 'DEFAULT_STYLE'),
+                ('8', 'DEFAULT_STYLE'),
+                ('9', 'DEFAULT_STYLE'),
+            ],
+        ),
+        (
+            slice('B6', 'F6'),
+            ['qwe', 6, 7, -8, 'hello'],
+            [
+                ('', 'DEFAULT_STYLE'),
+                ('qwe', 'DEFAULT_STYLE'),
+                ('6', 'DEFAULT_STYLE'),
+                ('7', 'DEFAULT_STYLE'),
+                ('-8', 'DEFAULT_STYLE'),
+                ('hello', 'DEFAULT_STYLE'),
+            ],
+        ),
+        (
+            slice('E100', 'I100'),
+            [('qwe', 'bold_font_style'), 6, 7, -8, 'hello'],
+            [
+                ('', 'DEFAULT_STYLE'),
+                ('', 'DEFAULT_STYLE'),
+                ('', 'DEFAULT_STYLE'),
+                ('', 'DEFAULT_STYLE'),
+                ('qwe', 'bold_font_style'),
+                ('6', 'DEFAULT_STYLE'),
+                ('7', 'DEFAULT_STYLE'),
+                ('-8', 'DEFAULT_STYLE'),
+                ('hello', 'DEFAULT_STYLE'),
+            ],
+        ),
+        (slice('A1', 'G100'), [1, 2, 3], ValueError),
+    ],
+)
+def test_workbook_slice(row_slice, value_list, expected_output):
     wb = Workbook()
     ws = wb['Sheet1']
-    ws['A1':'G1'] = [1, 2, 3, 9, 8, 45, 11]
-    print(ws['A1':'G1'])
-    print(ws['A2':'G3'])
 
-    with pytest.raises(ValueError):
-        ws['A1':'G3'] = [1, 2, 3]
+    if not isinstance(expected_output, list):
+        with pytest.raises(expected_output):
+            ws[row_slice] = value_list
+        with pytest.raises(expected_output):
+            print(ws[row_slice])
+    else:
+        ws[row_slice] = value_list
+        print(ws[row_slice])
+        assert ws[row_slice] == expected_output
 
 
 @pytest.mark.parametrize(
