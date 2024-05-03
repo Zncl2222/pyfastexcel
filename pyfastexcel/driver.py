@@ -423,15 +423,23 @@ class WorkSheet:
             self.data[row][column] = value
 
     def _expand_row_and_cols(self, target_row: int, target_col: int):
-        current_row = len(self.data)
-        current_col = len(self.data[0])
-        current_row = max(current_row, target_row + 1)
-        current_col = max(current_col, target_col + 1)
-        new_data = [[('', 'DEFAULT_STYLE')] * current_col for _ in range(current_row)]
-        for i, _ in enumerate(self.data):
-            for j, _ in enumerate(self.data[i]):
-                new_data[i][j] = self.data[i][j]
-        self.data = new_data
+        data_row_len = len(self.data)
+        data_col_len = len(self.data[0])
+
+        # Case when the memory space of self.data row is enough
+        # but the memory space of the target_col is not enough
+        if data_row_len > target_row:
+            if data_col_len < target_col:
+                self.data[target_row].extend(
+                    [('', 'DEFAULT_STYLE')] * (target_col + 1 - data_col_len),
+                )
+        else:
+            current_row = max(data_row_len, target_row + 1)
+            current_col = max(data_col_len, target_col + 1)
+            default_value = ('', 'DEFAULT_STYLE')
+            self.data.extend(
+                [[default_value] * current_col] * (current_row - data_row_len),
+            )
 
     def _transfer_to_dict(self) -> None:
         self.sheet = {
