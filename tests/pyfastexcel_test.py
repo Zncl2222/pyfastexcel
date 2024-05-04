@@ -366,16 +366,16 @@ def test_pyexcelize_normal_example():
             slice('A1', 'G1'),
             [1, 2, 3, 9, 8, 45, 11],
             [
-                ('1', 'DEFAULT_STYLE'),
-                ('2', 'DEFAULT_STYLE'),
-                ('3', 'DEFAULT_STYLE'),
-                ('9', 'DEFAULT_STYLE'),
-                ('8', 'DEFAULT_STYLE'),
-                ('45', 'DEFAULT_STYLE'),
-                ('11', 'DEFAULT_STYLE'),
+                (1, 'DEFAULT_STYLE'),
+                (2, 'DEFAULT_STYLE'),
+                (3, 'DEFAULT_STYLE'),
+                (9, 'DEFAULT_STYLE'),
+                (8, 'DEFAULT_STYLE'),
+                (45, 'DEFAULT_STYLE'),
+                (11, 'DEFAULT_STYLE'),
             ],
         ),
-        (slice('A1', 'B1'), [1, 2], [('1', 'DEFAULT_STYLE'), ('2', 'DEFAULT_STYLE')]),
+        (slice('A1', 'B1'), [1, 2], [(1, 'DEFAULT_STYLE'), (2, 'DEFAULT_STYLE')]),
     ],
 )
 def test_workbook(range_slice, values, expected_output):
@@ -409,11 +409,11 @@ def test_invalid_assignment(input_data, expected_exception):
             slice('A1', 'E1'),
             [2, 6, 7, 8, 9],
             [
-                ('2', 'DEFAULT_STYLE'),
-                ('6', 'DEFAULT_STYLE'),
-                ('7', 'DEFAULT_STYLE'),
-                ('8', 'DEFAULT_STYLE'),
-                ('9', 'DEFAULT_STYLE'),
+                (2, 'DEFAULT_STYLE'),
+                (6, 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (8, 'DEFAULT_STYLE'),
+                (9, 'DEFAULT_STYLE'),
             ],
         ),
         (
@@ -422,9 +422,9 @@ def test_invalid_assignment(input_data, expected_exception):
             [
                 ('', 'DEFAULT_STYLE'),
                 ('qwe', 'DEFAULT_STYLE'),
-                ('6', 'DEFAULT_STYLE'),
-                ('7', 'DEFAULT_STYLE'),
-                ('-8', 'DEFAULT_STYLE'),
+                (6, 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (-8, 'DEFAULT_STYLE'),
                 ('hello', 'DEFAULT_STYLE'),
             ],
         ),
@@ -437,9 +437,9 @@ def test_invalid_assignment(input_data, expected_exception):
                 ('', 'DEFAULT_STYLE'),
                 ('', 'DEFAULT_STYLE'),
                 ('qwe', 'bold_font_style'),
-                ('6', 'DEFAULT_STYLE'),
-                ('7', 'DEFAULT_STYLE'),
-                ('-8', 'DEFAULT_STYLE'),
+                (6, 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (-8, 'DEFAULT_STYLE'),
                 ('hello', 'DEFAULT_STYLE'),
             ],
         ),
@@ -468,11 +468,11 @@ def test_workbook_slice(row_slice, value_list, expected_output):
             0,
             [2, 6, 7, 8, 9],
             [
-                ('2', 'DEFAULT_STYLE'),
-                ('6', 'DEFAULT_STYLE'),
-                ('7', 'DEFAULT_STYLE'),
-                ('8', 'DEFAULT_STYLE'),
-                ('9', 'DEFAULT_STYLE'),
+                (2, 'DEFAULT_STYLE'),
+                (6, 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (8, 'DEFAULT_STYLE'),
+                (9, 'DEFAULT_STYLE'),
             ],
         ),
         (
@@ -480,20 +480,20 @@ def test_workbook_slice(row_slice, value_list, expected_output):
             ['qwe', 6, 7, -8, 'hello'],
             [
                 ('qwe', 'DEFAULT_STYLE'),
-                ('6', 'DEFAULT_STYLE'),
-                ('7', 'DEFAULT_STYLE'),
-                ('-8', 'DEFAULT_STYLE'),
+                (6, 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (-8, 'DEFAULT_STYLE'),
                 ('hello', 'DEFAULT_STYLE'),
             ],
         ),
         (
             36669,
-            [('qwe', 'bold_font_style'), 6, 7, -8, 'hello'],
+            [('qwe', 'bold_font_style'), [6, 7, 78], 7, -8.5435, 'hello'],
             [
                 ('qwe', 'bold_font_style'),
-                ('6', 'DEFAULT_STYLE'),
-                ('7', 'DEFAULT_STYLE'),
-                ('-8', 'DEFAULT_STYLE'),
+                ('[6, 7, 78]', 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (-8.5435, 'DEFAULT_STYLE'),
                 ('hello', 'DEFAULT_STYLE'),
             ],
         ),
@@ -519,6 +519,22 @@ def test_worsheet_row_get_and_set(index, value_list, expected_output):
         ws[index] = value_list
         print(ws[index])
         assert ws[index] == expected_output
+
+
+@pytest.mark.parametrize(
+    'cell_value',
+    [
+        ([('1', '2', '3')]),
+        (('1', 3, 2)),
+        (('1')),
+        ((1)),
+    ],
+)
+def test_set_worksheet_with_wrong_format(cell_value):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    with pytest.raises(ValueError):
+        ws[0] = cell_value
 
 
 def test_save_workbook():
