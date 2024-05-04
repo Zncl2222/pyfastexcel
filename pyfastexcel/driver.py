@@ -485,9 +485,19 @@ class WorkSheet:
             or a CustomStyle object.
         """
         if not isinstance(value, tuple):
-            value = (f'{value}', 'DEFAULT_STYLE')
-        elif not isinstance(value[1], (str, CustomStyle)):
-            raise TypeError('Style should be a string or CustomStyle object.')
+            # Covert to string if value is not numeric or string
+            if not isinstance(value, (int, float, str)):
+                value = f'{value}'
+            value = (value, 'DEFAULT_STYLE')
+        else:
+            if len(value) != 2:
+                raise ValueError(
+                    'Cell value should be a tuple with two element' ' like (value, style).',
+                )
+            if not isinstance(value[1], (str, CustomStyle)):
+                raise TypeError(
+                    'Style should be a string or CustomStyle object.',
+                )
         return value
 
     def __getitem__(self, key: str | slice) -> tuple | list[tuple]:
