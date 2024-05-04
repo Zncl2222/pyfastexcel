@@ -12,7 +12,12 @@ import msgspec
 from openpyxl_style_writer import CustomStyle
 
 from .exceptions import CreateFileNotCalledError
-from .utils import excel_index_to_list_index, extract_numeric_part
+from .utils import (
+    column_to_index,
+    excel_index_to_list_index,
+    extract_numeric_part,
+    separate_alpha_numeric,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -421,6 +426,67 @@ class WorkSheet:
         except IndexError:
             self._expand_row_and_cols(row, column)
             self.data[row][column] = value
+
+    def set_cell_width(self, col: str | int, value: int) -> None:
+        if isinstance(col, str):
+            col = column_to_index(col)
+        if col < 1 or col > 16384:
+            raise ValueError(f'Invalid column index: {col}')
+        self.width[col] = value
+
+    def set_cell_height(self, row: int, value: int) -> None:
+        if row < 1 or row > 1048576:
+            raise ValueError(f'Invalid row index: {row}')
+        self.height[row] = value
+
+    def set_merge_cell(self, top_left_cell: str, bottom_right_cell: str) -> None:
+        """
+        Sets a merge cell range in the specified sheet.
+
+        Args:
+            top_left_cell (str): The cell location of the top-left corner of the
+                merge cell range (e.g., 'A1').
+            bottom_right_cell (str): The cell location of the bottom-right corner
+                of the merge cell range (e.g., 'C3').
+
+        Raises:
+            ValueError: If any of the following conditions are met:
+                - Either the top_left_cell or bottom_right_cell has an invalid
+                    row number (not between 1 and 1048576).
+                - The top_left_cell number is larger than the bottom_right_cell number.
+                - The top_left_cell column index is larger than the bottom_right_cell
+                    column index.
+            IndexError: If sheet does not exist.
+
+        Returns:
+            None
+        """
+        top_alpha, top_number = separate_alpha_numeric(top_left_cell)
+        bottom_alpha, bottom_number = separate_alpha_numeric(bottom_right_cell)
+        top_idx = column_to_index(top_alpha)
+        bottom_idx = column_to_index(bottom_alpha)
+
+        if (
+            int(top_number) > 1048576
+            or int(bottom_number) > 1048576
+            or int(top_number) < 1
+            or int(bottom_number) < 1
+        ):
+            raise ValueError('Invalid row number. Row number should be between 1 and 1048576.')
+
+        if int(top_number) > int(bottom_number):
+            raise ValueError(
+                'Invalid cell range. The top-left cell number should be'
+                + 'smaller than or equal to the bottom-right cell number.',
+            )
+
+        if top_idx > bottom_idx:
+            raise ValueError(
+                'Invalid cell range. The top-left cell column should be'
+                + 'smaller than or equal to the bottom-right cell column.',
+            )
+
+        self.merge_cells.append((top_left_cell, bottom_right_cell))
 
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)
