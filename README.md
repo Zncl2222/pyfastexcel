@@ -84,11 +84,54 @@ high performance.
 
 ## Usage
 
-The current version can only be used with this library through example
-snippets or the example.py file in the root directory of this repository.
-See [limitations](#current-limitations--future-plans) for more details.
+The index assignment is now avaliable in `Workbook` and the `FastWriter`.
+Here is the example usage:
 
-The steps are:
+```python
+from pyfastexcel import Workbook
+from pyfastexcel.utils import set_custom_style
+
+# CustomStyle will be integrate to the pyfatexcel in next version
+# Beside, CustomStyle will be re-implement in future to make it no-longer
+# depend on openpyxl_style writer and openpyxl
+from openpyxl_style_writer import CustomStyle
+
+
+if __name__ == '__main__':
+    # Workbook
+    wb = Workbook()
+
+    # Set and register CustomStyle
+    bold_style = CustomStyle(font_size=15, font_bold=True)
+    set_custom_style('bold_style', bold_style)
+
+    ws = wb['Sheet1']
+    # Write value with default style
+    ws['A1'] = 'A1 value'
+    # Write value with custom style
+    ws['B1'] = ('B1 value', 'bold_style')
+
+    # Write value in slice with default style
+    ws['A2': 'C2'] = [1, 2, 3]
+    # Write value in slice with custom style
+    ws['A3': 'C3'] = [(1, 'bold_style'), (2, 'bold_style'), (3, 'bold_style')]
+
+    # Write value by row with default style (python index 0 is the index 1 in excel)
+    ws[3] = [9, 8, 'go']
+    # Write value by row with custom style
+    ws[4] = [(9, 'bold_style'), (8, 'bold_style'), ('go', 'bold_style')]
+
+    # Send request to golang lib and create excel
+    wb.read_lib_and_create_excel()
+
+    # File path to save
+    file_path = 'pyexample_workbook.xlsx'
+    wb.save(file_path)
+
+```
+
+You can also using the `FastWriter` or `NormalWriter` which was the
+subclass of `Workbook` to write excel row by row, see the following steps:
 
 1. Create a class for your `style` registed like `StyleCollections`
 in the example.
@@ -277,67 +320,3 @@ Future Plans:
 
 This project plans to create its own `Style` object, making it no longer
 dependent on the mentioned package.
-
-### Problem 2: Inflexible Usage
-
-Limitations:
-
-The current version only has the function to write a cell with a style using
-the class-based inheritance streaming writer method, similar to the
-`Advanced Usage` in
-[openpyxl_style_writer](https://github.com/Zncl2222/openpyxl_style_writer).
-This means users must inherit the `NormalWriter` or `FastWriter` classes and
-also your `StyleCollections` to correctly register and use the Style. In short,
-if you want to use this library, you have to create `StyleCollections` and
-`Your-Writer-Class` and implement the excel creation in `Your-Writer-Class` as
-shown in the code snippet provided.
-
-```python
-from openpyxl_style_writer import CustomStyle
-
-class StyleCollections:
-    black_fill_style = CustomStyle(
-        font_size='11',
-        font_bold=True,
-        font_color='F62B00',
-        fill_color='000000',
-    )
-    test_fill_style = CustomStyle(
-        font_size='19'
-    )
-
-
-class PyExcelizeNormalExample(NormalWriter, StyleCollections):
-    headers = ['col1', 'col2', 'col3']
-
-    def create_excel(self) -> None:
-        for row in self.data:
-            for h in self.headers:
-                if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='black_fill_style')
-                else:
-                    self.row_append(row[h], style='test_fill_style')
-            self.create_row()
-
-if __name__ == '__main__':
-    data = [{'col1': 1, 'col2': 2, 'col3': 3}, {'col1': 4, 'col2': 5, 'col3', 6}]
-    excel = PyExcelizeNormalExample(data).create_excel()
-    with open('example.xlsx', 'wb') as file:
-        file.write(excel)
-```
-
-Future Plans:
-
-1. ~~Make the style register in the shared class object on the Python side.
-Also, create a function to register the style. By doing so, the style
-won't need to depend on the `custom-writer-class`. All the styles registered
-through that function will be sent to Golang and registered.~~
-(This has been finished in current version)
-
-2. ~~Add the ability to create a cell and style with the index, similar
-to what openpyxl does.~~ (This has been finished in current version)
-
-3. Rename `NormalWriter` and `FastWriter` to make them easier to use without
-requiring inheritance from a class, similar to how `openpyxl's Workbook`
-operates. However, ensure that they still allow for inheritance to write
-Excel files if needed.
