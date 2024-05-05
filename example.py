@@ -5,7 +5,8 @@ import time
 from openpyxl.styles import Side
 from openpyxl_style_writer import CustomStyle
 
-from pyfastexcel import FastWriter, NormalWriter
+from pyfastexcel import FastWriter, NormalWriter, Workbook
+from pyfastexcel.utils import set_custom_style
 
 
 def prepare_example_data(rows: int = 1000, cols: int = 10) -> list[dict[str, str]]:
@@ -160,12 +161,40 @@ if __name__ == '__main__':
     notmal_end_time = time.perf_counter()
     print('PYExcelizeNormalDriver time: ', notmal_end_time - normal_start_time)
 
+    # Workbook
+    wb = Workbook()
+
+    # Set and register CustomStyle
+    bold_style = CustomStyle(font_size=15, font_bold=True)
+    set_custom_style('bold_style', bold_style)
+
+    ws = wb['Sheet1']
+    # Write value with default style
+    ws['A1'] = 'A1 value'
+    # Write value with custom style
+    ws['B1'] = ('B1 value', 'bold_style')
+
+    # Write value in slice with default style
+    ws['A2':'C2'] = [1, 2, 3]
+    # Write value in slice with custom style
+    ws['A3':'C3'] = [(1, 'bold_style'), (2, 'bold_style'), (3, 'bold_style')]
+
+    # Write value by row with default style (python index 0 is the index 1 in excel)
+    ws[3] = [9, 8, 'go']
+    # Write value by row with custom style
+    ws[4] = [(9, 'bold_style'), (8, 'bold_style'), ('go', 'bold_style')]
+
+    # Send request to golang lib and create excel
+    wb.read_lib_and_create_excel()
+
     # File path to save
     file_path = 'pyexample_fast.xlsx'
     file_path2 = 'pyexample_normal.xlsx'
+    file_path3 = 'pyexample_workbook.xlsx'
 
     # Save to the xlsx with save function of Workbook
     pyfast_example.save(file_path)
+    wb.save(file_path3)
 
     # Save to the xlsx by the bytes return from create_excel()
     with open(file_path2, 'wb') as file:
