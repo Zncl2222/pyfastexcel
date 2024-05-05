@@ -608,8 +608,6 @@ class WorkSheet:
         start_row, start_col = excel_index_to_list_index(cell_slice.start)
         _, col_stop = excel_index_to_list_index(cell_slice.stop)
         self._expand_row_and_cols(start_row, col_stop)
-        print(start_row, col_stop)
-        print(self.data)
         for idx, col in enumerate(range(start_col, col_stop + 1)):
             val = self._validate_value_and_set_default(value[idx])
             self.data[start_row][col] = val
