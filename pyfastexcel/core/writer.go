@@ -151,7 +151,11 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 	for sheet := range data {
 		sheetData := data[sheet].(map[string]interface{})
 		// Create Sheet and Wrtie Header
-		file.NewSheet(sheet)
+		if file.SheetCount == 1 && file.GetSheetName(0) == "Sheet1" {
+			file.SetSheetName("Sheet1", sheet)
+		} else {
+			file.NewSheet(sheet)
+		}
 		streamWriter, _ := file.NewStreamWriter(sheet)
 
 		// CellWidtrh should be set before SetRow
