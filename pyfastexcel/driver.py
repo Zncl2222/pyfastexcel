@@ -120,6 +120,13 @@ class ExcelDriver:
         cls.REGISTERED_STYLES[name] = custom_style
         cls._STYLE_NAME_MAP[custom_style] = name
 
+    @classmethod
+    def reset_style_configs(cls):
+        cls.REGISTERED_STYLES = {'DEFAULT_STYLE': cls.DEFAULT_STYLE}
+        cls._STYLE_NAME_MAP = {}
+        cls._STYLE_ID = 0
+        cls._style_map = {}
+
     def save(self, path: str = './pyfastexcel.xlsx') -> None:
         if not hasattr(self, 'decoded_bytes'):
             raise CreateFileNotCalledError(
@@ -167,6 +174,7 @@ class ExcelDriver:
         byte_data = create_excel(json_data)
         self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
         free_pointer(byte_data)
+        ExcelDriver.reset_style_configs()
         return self.decoded_bytes
 
     def _read_lib(self, lib_path: str) -> ctypes.CDLL:
