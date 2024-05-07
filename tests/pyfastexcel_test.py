@@ -549,3 +549,51 @@ def test_save_workbook():
 
     wb.read_lib_and_create_excel()
     wb.save('test.xlsx')
+
+
+def test_if_style_is_reset():
+    from pyfastexcel.driver import ExcelDriver
+
+    wb = Workbook()
+    style = CustomStyle(font_size=11, font_color='000000')
+
+    ws = wb['Sheet1']
+    ws['A1'] = ('test', style)
+    wb._create_style()
+    assert len(ExcelDriver._style_map) != 0
+    assert len(ExcelDriver._STYLE_NAME_MAP) != 0
+    assert ExcelDriver._STYLE_ID == 1
+    assert ExcelDriver.REGISTERED_STYLES == {
+        'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
+        'Custom Style 0': style,
+    }
+    wb.read_lib_and_create_excel()
+    assert len(ExcelDriver._style_map) == 0
+    assert len(ExcelDriver._STYLE_NAME_MAP) == 0
+    assert ExcelDriver._STYLE_ID == 0
+    assert ExcelDriver.REGISTERED_STYLES == {
+        'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
+    }
+
+    # Create another Workbook in one process to ensure that after style configs
+    # reset, everythings is still working.
+    wb2 = Workbook()
+    style2 = CustomStyle(font_size=99, font_color='fcfcfc')
+
+    ws2 = wb2['Sheet1']
+    ws2['A1'] = ('test', style2)
+    wb2._create_style()
+    assert len(ExcelDriver._style_map) != 0
+    assert len(ExcelDriver._STYLE_NAME_MAP) != 0
+    assert ExcelDriver._STYLE_ID == 1
+    assert ExcelDriver.REGISTERED_STYLES == {
+        'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
+        'Custom Style 0': style2,
+    }
+    wb2.read_lib_and_create_excel()
+    assert len(ExcelDriver._style_map) == 0
+    assert len(ExcelDriver._STYLE_NAME_MAP) == 0
+    assert ExcelDriver._STYLE_ID == 0
+    assert ExcelDriver.REGISTERED_STYLES == {
+        'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
+    }
