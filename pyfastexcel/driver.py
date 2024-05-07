@@ -17,6 +17,7 @@ from .utils import (
     excel_index_to_list_index,
     extract_numeric_part,
     separate_alpha_numeric,
+    style_validation,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -557,12 +558,21 @@ class WorkSheet:
         else:
             if len(value) != 2:
                 raise ValueError(
-                    'Cell value should be a tuple with two element' ' like (value, style).',
+                    'Cell value should be a tuple with two element like (value, style).',
                 )
             if not isinstance(value[1], (str, CustomStyle)):
                 raise TypeError(
                     'Style should be a string or CustomStyle object.',
                 )
+            # The case that user do not register the Custom Style by 'Class attributes'
+            # or set_cumston_style function.
+            if (
+                isinstance(value[1], CustomStyle)
+                and ExcelDriver._STYLE_NAME_MAP.get(value[1]) is None
+            ):
+                style_validation(value[1])
+                style = ExcelDriver._STYLE_NAME_MAP[value[1]]
+                value = (value[0], style)
         return value
 
     def __getitem__(self, key: str | slice) -> tuple | list[tuple]:
