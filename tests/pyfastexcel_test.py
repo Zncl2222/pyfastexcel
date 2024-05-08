@@ -152,6 +152,7 @@ class PyExcelizeFastExample(FastWriter, StyleCollections):
         self.workbook['Sheet1']['A4'] = 'Test with default style'
         self.workbook['Sheet1']['A3'] = ('Hello', 'test_style')
 
+        # Test Local Style
         custom_style2 = CustomStyle(
             font_size='33',
             font_bold=True,
@@ -207,6 +208,10 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
             fill_color='4db3af',
         )
         self.row_append('Local Style', style=custom_style2)
+        self.create_row()
+
+        # Test non-numeric value for 'validate_and_format_value'
+        self.row_append(['1', 2, 3])
         self.create_row()
 
 
@@ -357,6 +362,7 @@ def test_pyexcelize_normal_example():
     excel_example.switch_sheet('Sheet1')
     excel_bytes = excel_example.create_excel()
     assert isinstance(excel_bytes, bytes)
+    assert excel_example.workbook['Sheet2']['Data'][-1] == [("['1', 2, 3]", 'DEFAULT_STYLE')]
 
 
 @pytest.mark.parametrize(
