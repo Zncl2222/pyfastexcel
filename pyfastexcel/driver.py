@@ -17,7 +17,8 @@ from .utils import (
     excel_index_to_list_index,
     extract_numeric_part,
     separate_alpha_numeric,
-    style_validation,
+    validate_and_format_value,
+    validate_and_register_style,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -559,10 +560,7 @@ class WorkSheet:
             or a CustomStyle object.
         """
         if not isinstance(value, tuple):
-            # Covert to string if value is not numeric or string
-            if not isinstance(value, (int, float, str)):
-                value = f'{value}'
-            value = (value, 'DEFAULT_STYLE')
+            value = validate_and_format_value(value)
         else:
             if len(value) != 2:
                 raise ValueError(
@@ -578,7 +576,7 @@ class WorkSheet:
                 isinstance(value[1], CustomStyle)
                 and ExcelDriver._STYLE_NAME_MAP.get(value[1]) is None
             ):
-                style_validation(value[1])
+                validate_and_register_style(value[1])
                 style = ExcelDriver._STYLE_NAME_MAP[value[1]]
                 value = (value[0], style)
         return value

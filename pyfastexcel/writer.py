@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from typing import Any
+
 from openpyxl_style_writer import CustomStyle
 
 from pyfastexcel.driver import ExcelDriver, WorkSheet
 
-from .utils import style_validation
+from .utils import validate_and_format_value, validate_and_register_style
 
 
 class Workbook(ExcelDriver):
@@ -149,18 +151,19 @@ class FastWriter(Workbook):
         self.current_row = 0
         self.current_col = 0
 
-    def row_append(self, value: str, style: str | CustomStyle = 'DEFAULT_STYLE'):
+    def row_append(self, value: Any, style: str | CustomStyle = 'DEFAULT_STYLE'):
         """
         Appends a value to a specific row and column.
 
         Args:
-            value (str): The value to be appended.
+            value (Any): The value to be appended.
             style (str): The style of the value.
         """
         if isinstance(style, CustomStyle):
             if self._STYLE_NAME_MAP.get(style) is None:
-                style_validation(style)
+                validate_and_register_style(style)
             style = self._STYLE_NAME_MAP[style]
+        value = validate_and_format_value(value, set_default_style=False)
         self._row_list[self.current_row][self.current_col] = (value, style)
         self.current_col += 1
 
@@ -236,28 +239,25 @@ class NormalWriter(Workbook):
         self._row_list = []
         self.data = data
 
-    def row_append(self, value: str, style: str | CustomStyle = 'DEFAULT_STYLE'):
+    def row_append(self, value: Any, style: str | CustomStyle = 'DEFAULT_STYLE'):
         """
         Appends a value to the row list.
 
         Args:
-            value (str): The value to be appended.
+            value (Any): The value to be appended.
             style (str | CustomStyle): The style of the value, can be either
                 a style name or a CustomStyle object.
         """
         if isinstance(style, CustomStyle):
             if self._STYLE_NAME_MAP.get(style) is None:
-                style_validation(style)
+                validate_and_register_style(style)
             style = self._STYLE_NAME_MAP[style]
+        value = validate_and_format_value(value, set_default_style=False)
         self._row_list.append((value, style))
 
     def create_row(self):
         """
         Creates a row in the Excel data, and clean the current _row_list.
-
-        Args:
-            is_header (bool, optional): Indicates whether the row is a header
-                row. Defaults to False.
         """
         self.workbook[self.sheet].data.append(self._row_list)
         self._row_list = []
