@@ -17,6 +17,7 @@ from .utils import (
     excel_index_to_list_index,
     extract_numeric_part,
     separate_alpha_numeric,
+    style_validation,
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -119,6 +120,13 @@ class ExcelDriver:
         cls.REGISTERED_STYLES[name] = custom_style
         cls._STYLE_NAME_MAP[custom_style] = name
 
+    @classmethod
+    def reset_style_configs(cls):
+        cls.REGISTERED_STYLES = {'DEFAULT_STYLE': cls.DEFAULT_STYLE}
+        cls._STYLE_NAME_MAP = {}
+        cls._STYLE_ID = 0
+        cls._style_map = {}
+
     def save(self, path: str = './pyfastexcel.xlsx') -> None:
         if not hasattr(self, 'decoded_bytes'):
             raise CreateFileNotCalledError(
@@ -166,6 +174,7 @@ class ExcelDriver:
         byte_data = create_excel(json_data)
         self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
         free_pointer(byte_data)
+        ExcelDriver.reset_style_configs()
         return self.decoded_bytes
 
     def _read_lib(self, lib_path: str) -> ctypes.CDLL:
@@ -557,12 +566,21 @@ class WorkSheet:
         else:
             if len(value) != 2:
                 raise ValueError(
-                    'Cell value should be a tuple with two element' ' like (value, style).',
+                    'Cell value should be a tuple with two element like (value, style).',
                 )
             if not isinstance(value[1], (str, CustomStyle)):
                 raise TypeError(
                     'Style should be a string or CustomStyle object.',
                 )
+            # The case that user do not register the Custom Style by 'Class attributes'
+            # or set_cumston_style function.
+            if (
+                isinstance(value[1], CustomStyle)
+                and ExcelDriver._STYLE_NAME_MAP.get(value[1]) is None
+            ):
+                style_validation(value[1])
+                style = ExcelDriver._STYLE_NAME_MAP[value[1]]
+                value = (value[0], style)
         return value
 
     def __getitem__(self, key: str | slice) -> tuple | list[tuple]:
