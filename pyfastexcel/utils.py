@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import re
 import string
+from typing import Any, Literal
 
 from openpyxl_style_writer import CustomStyle
 
 
-def set_custom_style(style_name: str, style: CustomStyle):
+def set_custom_style(style_name: str, style: CustomStyle) -> None:
     from .driver import ExcelDriver
 
     ExcelDriver.set_custom_style(style_name, style)
 
 
-def style_validation(style: CustomStyle):
+def validate_and_register_style(style: CustomStyle) -> None:
     from .driver import ExcelDriver
 
     if not isinstance(style, CustomStyle):
@@ -21,6 +22,19 @@ def style_validation(style: CustomStyle):
         )
     set_custom_style(f'Custom Style {ExcelDriver._STYLE_ID}', style)
     ExcelDriver._STYLE_ID += 1
+
+
+def validate_and_format_value(
+    value: Any,
+    set_default_style: bool = True,
+) -> tuple[Any, Literal['DEFAULT_STYLE']] | Any:
+    # Convert non-numeric value to string
+    value = f'{value}' if not isinstance(value, (int, float, str)) else value
+    # msgpec does not support np.float64, so we should convert
+    # it to python float.
+    value = float(value) if isinstance(value, float) else value
+
+    return (value, 'DEFAULT_STYLE') if set_default_style else value
 
 
 def separate_alpha_numeric(input_string: str):
