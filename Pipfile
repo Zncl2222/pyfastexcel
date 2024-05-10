@@ -13,6 +13,7 @@ pandas = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-xdist = "*"
+pip-tools = "*"
 
 [requires]
 python_version = "3.11"

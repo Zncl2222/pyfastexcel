@@ -1,0 +1,34 @@
+site_name: pyfastexcel
+site_url: https://pyfastexcel.readthedocs.io/en/latest/
+repo_url: https://github.com/Zncl2222/pyfastexcel
+edit_uri: https://github.com/Zncl2222/pyfastexcel/blob/main/docs/
+site_description: High performance excel writer in python
+site_author: Zncl2222
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+    - toc.integrate
+
+nav:
+  - Introduction:
+     - index.md
+  - Styling: style.md
+  - Workbook: workbook.md
+  - WorkSheet: worksheet.md
+  - Advanced Usage:
+      - StreamWriter: writer.md
+  - About:
+      - License: license.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
