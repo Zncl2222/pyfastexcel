@@ -12,7 +12,7 @@
 
 **Version:**      0.0.7
 
-**Project Link:** https://github.com/Zncl2222/pyfastexcel
+**Project Link:** <https://github.com/Zncl2222/pyfastexcel>
 
 ---
 
