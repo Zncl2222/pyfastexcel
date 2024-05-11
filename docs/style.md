@@ -4,12 +4,13 @@
 
 The `CustomStyle` class is a wrapper for defining Excel styles using the [openpyxl](https://openpyxl.readthedocs.io/en/stable/) library. It provides a convenient way to create custom styles for formatting cells in Excel spreadsheets. `pyfastexcel` use `CustomStyle` as an interface to get and set the style for each cell.
 
-> Note:
->
-> Currently, Customstyle is depends on the [openpyxl](https://openpyxl.readthedocs.io/en/stable/)
-> and [openpyxl_style_writer](https://github.com/Zncl2222/openpyxl_style_writer).
-> We plan to implement the Style object making it no longer depends on
-> openpyxl and openpyxl_style_writer in the future.
+!!! info "CustomStyle"
+
+    Currently, Customstyle is depends on the [openpyxl](https://openpyxl.readthedocs.io/en/stable/)
+    and [openpyxl_style_writer](https://github.com/Zncl2222/openpyxl_style_writer).
+    We plan to implement the Style object making it no longer depends on
+    openpyxl and openpyxl_style_writer in the future.
+
 
 ### Create CustomStyle
 
