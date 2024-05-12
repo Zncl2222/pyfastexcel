@@ -8,11 +8,7 @@ and assign styles and values to cells.
 ```python title="Workbook"
 from pyfastexcel import Workbook
 from pyfastexcel.utils import set_custom_style
-
-# CustomStyle will be integrate to the pyfatexcel in next version
-# Beside, CustomStyle will be re-implement in future to make it no-longer
-# depend on openpyxl_style writer and openpyxl
-from openpyxl_style_writer import CustomStyle
+from openpyxl_style_writer import CustomStyle # (1)
 
 
 if __name__ == '__main__':
@@ -47,6 +43,10 @@ if __name__ == '__main__':
     wb.save(file_path)
 
 ```
+
+1.  CustomStyle will be integrate to the pyfatexcel in next version
+    Beside, CustomStyle will be re-implement in future to make it no-longer
+    depend on openpyxl_style writer and openpyxl
 
 ### Write excel via StreamWriter
 

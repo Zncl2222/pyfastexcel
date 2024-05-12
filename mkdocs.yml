@@ -13,7 +13,7 @@ theme:
     - content.code.annotate
     - navigation.path
     - navigation.sections
-    - toc.integrate
+    - navigation.top
   palette:
     - scheme: slate
       primary: amber

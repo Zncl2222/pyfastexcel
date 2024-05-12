@@ -14,7 +14,60 @@ The `CustomStyle` class is a wrapper for defining Excel styles using the [openpy
 
 ### Create CustomStyle
 
-Users can set the `CustomStyle` via the alias defined by `openpyxl_style_writer`. The following code snippet demonstrates the available aliases in CustomStyle.
+Users can set the `CustomStyle` via the alias defined by `openpyxl_style_writer`.
+
+For example we can create a `CustomStyle` where the font is bold and font color is yellow like this.
+
+```python title="CustomStyle"
+from openpyxl_style_writer import CustomStyle
+
+
+yellow_bold_style = CustomStyle(font_bold=True, font_color='ffff00')
+```
+
+Also, you can globally change the default style like
+
+```python title="Change Default Style Globally"
+from openpyxl_style_writer import DefautStyle
+
+
+DefaultStyle.set_default(font_size=16)
+```
+
+Additionally, it is possible to set the style with the original style name from `opnepyxl`
+
+```python title="Set style by params"
+from opnpyxl.styles import Side
+
+from openpyxl_style_writer import CustomStyle
+
+# Create the dict that the key is the style name from openpyxl
+blue_title_font = {
+    'color': '0000ff',
+    'bold': True,
+    'size': 15,
+}
+cyan_title_pattern = {
+    'patternType': 'solid',
+    'fgColor': '00ffff'
+}
+border = {
+    'left': Side(style='medium', color='cccccc'),
+    'right': Side(style='thin', color='cccccc'),
+    'top': Side(style='double', color='cccccc'),
+    'bottom': Side(style='dashed', color='cccccc'),
+}
+
+custom_title_style = CustomStyle(
+    font_params=blue_title_font,
+    fill_params=cyan_titl_patter,
+    border_params=border,
+)
+```
+
+### Alias in CustomStyle
+
+The following code snippet demonstrates the available aliases in CustomStyle.
 
 ```python title="CustomStyle with all arguments"
 from opnepyxl_style_writer import CustomStyle
@@ -54,51 +107,5 @@ default_style = CustomStyle(
 
     # protect
     protect=False,
-)
-```
-
-For example we can create a `CustomStyle` where the font is bold and font color is yellow like this.
-
-```python title="CustomStyle"
-yellow_bold_style = CustomStyle(font_bold=True, font_color='ffff00')
-```
-
-Also, you can globally change the default style like
-
-```python title="Change Default Style Globally"
-from openpyxl_style_writer import DefautStyle
-
-
-DefaultStyle.set_default(font_size=16)
-```
-
-Additionally, it is possible to set the style with the original style name from `opnepyxl`
-
-```python
-from opnpyxl.styles import Side
-
-from openpyxl_style_writer import CustomStyle
-
-# Create the dict that the key is the style name from openpyxl
-blue_title_font = {
-    'color': '0000ff',
-    'bold': True,
-    'size': 15,
-}
-cyan_title_pattern = {
-    'patternType': 'solid',
-    'fgColor': '00ffff'
-}
-border = {
-    'left': Side(style='medium', color='cccccc'),
-    'right': Side(style='thin', color='cccccc'),
-    'top': Side(style='double', color='cccccc'),
-    'bottom': Side(style='dashed', color='cccccc'),
-}
-
-custom_title_style = CustomStyle(
-    font_params=blue_title_font,
-    fill_params=cyan_titl_patter,
-    border_params=border,
 )
 ```
