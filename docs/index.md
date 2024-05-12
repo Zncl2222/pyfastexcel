@@ -65,6 +65,12 @@ golang:
     excelize (Core functionality)
     marshmallow (for faster json decoding)
 
+!!! Note "Dependency version"
+
+    The dependencies for Go are unlikely to change frequently unless there are
+    significant performance improvements or necessary changes.
+    The current version of excelize is v2.8.0, and marshmallow is v1.1.5
+
 ## Installation
 
 ### Install via pip (Recommended)
