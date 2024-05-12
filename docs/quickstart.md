@@ -1,6 +1,5 @@
 ## Example
 
-
 ### Write excel via Workbook
 The following example show how to create a Workbook
 and assign styles and values to cells.
@@ -182,7 +181,6 @@ The example of FastWriter now supports index assignment. Please see
 the last few lines of code in `_create_body()` for reference.
 
 !!! example "FastWriter"
-
     ```python
     from pyfastexcel.driver import FastWriter
 

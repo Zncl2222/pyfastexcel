@@ -1,10 +1,10 @@
-## Workbook
+# Workbook
 
 A workbook contains all the information of the Excel file.
 Users can set the title, Excel properties, or create sheets
 through the Workbook class.
 
-### Create the Workbook
+## Create the Workbook
 
 By default, pyfastexcel creates `Sheet1` as the default sheet when the workbook is created.
 You can access the worksheet through an index, as shown in the code snippet below:
@@ -26,8 +26,7 @@ sheet_list = wb.sheet_list
     `#!python wb.sheet_list` to determine how many sheets you have in the
     `Workbook`. Refer to the `WorkSheet` documentation for more information.
 
-
-### Create and Save Workbook
+## Create and Save Workbook
 
 After writing all the content, pyfastexcel should encode the Python object to a JSON string and pass it to Golang for decoding. The Excel file is then created using Golang code.
 
@@ -44,15 +43,18 @@ wb.save(file_name)
     This is the interface between Python and Golang. Without this step,
     the Excel file won't be created.
 
-### Create the WorkSheet
+## Create the WorkSheet
 
 A worksheet can be created by the function `#!python wb.create_sheet(sheet_name: str)`
+
 ```python
 wb.create_sheet('New Sheet')
 ```
 
-### Remove the WorkSheet
+## Remove the WorkSheet
+
 Removing the worksheet is achieved with the function `#!python wb.remove_sheet(sheet_name: str)` function
+
 ```python
 wb.remove_sheet('Sheet1')
 ```
@@ -60,9 +62,11 @@ wb.remove_sheet('Sheet1')
 !!! note "Note"
     The sheet cannot be removed if there is only one sheet in the workbook.
 
-### Switch current sheet
+## Switch current sheet
+
 This function switch the instance attributes `#!python self.sheet`. This function is designed
 for `StreamWriter` to use.
+
 ```python
 wb.switch_sheet('Switch Sheet')
 ```
@@ -71,11 +75,14 @@ wb.switch_sheet('Switch Sheet')
     If the sheet does not exist, this function will create one and
     switch `self.sheet`.
 
-### Set Excel Properties
+## Set Excel Properties
+
 Excle properties can be set using the following function
+
 ```python
 wb.set_file_props('Creator', 'pyfastexcel-example')
 ```
+
 Here are all the key options for the set_file_props function.
 
 | Key                | type | default value | Description                                   |
@@ -93,10 +100,9 @@ Here are all the key options for the set_file_props function.
 | `Subject`          | str  |  empty string | Describes the subject of the resource         |
 | `Title`            | str  |  empty string | Provides the title of the resource            |
 | `Language`         | str  |  'en-Us'      | Specifies the language of the resource        |
-| `Version`          | str  |  empty string | Indicates the version of the resource
+| `Version`          | str  |  empty string | Indicates the version of the resource |
 
-
-### Set cell width and height
+## Set cell width and height
 
 The cell widht can be set with the function
 
@@ -126,7 +132,8 @@ The cell height can be set with the function
 wb.set_cell_height('New Sheet', 15, 20)
 ```
 
-### Merge Cell
+## Merge Cell
+
 The cell can be merge through the function
 
 | Parameter           | Data Type | Description                    |
