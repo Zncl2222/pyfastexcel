@@ -36,6 +36,8 @@ nav:
     - WorkSheet: worksheet.md
   - Advanced Usage:
       - StreamWriter: writer.md
+  - Developer:
+      - API Refrence: api.md
   - About:
       - License: license.md
 
