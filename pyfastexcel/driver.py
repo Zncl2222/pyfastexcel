@@ -11,7 +11,6 @@ from typing import Any
 import msgspec
 from openpyxl_style_writer import CustomStyle
 
-from .exceptions import CreateFileNotCalledError
 from .utils import (
     column_to_index,
     excel_index_to_list_index,
@@ -130,9 +129,7 @@ class ExcelDriver:
 
     def save(self, path: str = './pyfastexcel.xlsx') -> None:
         if not hasattr(self, 'decoded_bytes'):
-            raise CreateFileNotCalledError(
-                'Function read_lib_and_create_excel should be ' + 'called before saving the file.',
-            )
+            self.read_lib_and_create_excel()
 
         with open(path, 'wb') as file:
             file.write(self.decoded_bytes)
