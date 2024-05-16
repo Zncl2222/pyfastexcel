@@ -110,6 +110,7 @@ class ExcelDriver:
         self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'
         self._sheet_list = tuple(['Sheet1'])
+        self._dict_wb = {}
 
     @property
     def sheet_list(self):
@@ -156,10 +157,10 @@ class ExcelDriver:
 
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
         for sheet in self._sheet_list:
-            self.workbook[sheet] = self.workbook[sheet]._transfer_to_dict()
+            self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
 
         results = {
-            'content': self.workbook,
+            'content': self._dict_wb,
             'file_props': self.file_props,
             'style': self._style_map,
         }
