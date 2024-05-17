@@ -362,7 +362,7 @@ def test_pyexcelize_normal_example():
     excel_example.switch_sheet('Sheet1')
     excel_bytes = excel_example.create_excel()
     assert isinstance(excel_bytes, bytes)
-    assert excel_example.workbook['Sheet2']['Data'][-1] == [("['1', 2, 3]", 'DEFAULT_STYLE')]
+    assert excel_example._dict_wb['Sheet2']['Data'][-1] == [("['1', 2, 3]", 'DEFAULT_STYLE')]
 
 
 @pytest.mark.parametrize(
@@ -544,17 +544,15 @@ def test_set_worksheet_with_wrong_format(cell_value):
 
 
 def test_save_workbook():
-    from pyfastexcel.exceptions import CreateFileNotCalledError
-
     wb = Workbook()
     ws = wb['Sheet1']
     ws['A1':'G1'] = [1, 2, 3, 9, 8, 45, 11]
 
-    with pytest.raises(CreateFileNotCalledError):
-        wb.save('test.xlsx')
+    # Save without calling read_lib_and_create_excel()
+    wb.save('test1.xlsx')
 
     wb.read_lib_and_create_excel()
-    wb.save('test.xlsx')
+    wb.save('test2.xlsx')
 
 
 def test_if_style_is_reset():

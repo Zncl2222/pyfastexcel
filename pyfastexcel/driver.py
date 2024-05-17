@@ -11,7 +11,6 @@ from typing import Any
 import msgspec
 from openpyxl_style_writer import CustomStyle
 
-from .exceptions import CreateFileNotCalledError
 from .utils import (
     column_to_index,
     excel_index_to_list_index,
@@ -111,6 +110,7 @@ class ExcelDriver:
         self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'
         self._sheet_list = tuple(['Sheet1'])
+        self._dict_wb = {}
 
     @property
     def sheet_list(self):
@@ -130,9 +130,7 @@ class ExcelDriver:
 
     def save(self, path: str = './pyfastexcel.xlsx') -> None:
         if not hasattr(self, 'decoded_bytes'):
-            raise CreateFileNotCalledError(
-                'Function read_lib_and_create_excel should be ' + 'called before saving the file.',
-            )
+            self.read_lib_and_create_excel()
 
         with open(path, 'wb') as file:
             file.write(self.decoded_bytes)
@@ -159,10 +157,10 @@ class ExcelDriver:
 
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
         for sheet in self._sheet_list:
-            self.workbook[sheet] = self.workbook[sheet]._transfer_to_dict()
+            self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
 
         results = {
-            'content': self.workbook,
+            'content': self._dict_wb,
             'file_props': self.file_props,
             'style': self._style_map,
         }

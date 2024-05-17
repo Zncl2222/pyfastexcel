@@ -3,9 +3,8 @@ from __future__ import annotations
 import time
 
 from openpyxl.styles import Side
-from openpyxl_style_writer import CustomStyle
 
-from pyfastexcel import FastWriter, NormalWriter, Workbook
+from pyfastexcel import CustomStyle, FastWriter, NormalWriter, Workbook
 from pyfastexcel.utils import set_custom_style
 
 

@@ -12,9 +12,8 @@ Register the custom_style
 | `style`      | CustomStyle | CustomStyle instance     |
 
 ```python title="set_custom_style"
+from pyfastexcel import CustomStyle
 from pyfastexcel.utils import set_custom_style
-
-from openpyxl_style_writer import CustomStyle
 
 bold_style = CustomStyle(font_bold=True)
 
