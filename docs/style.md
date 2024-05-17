@@ -19,7 +19,7 @@ Users can set the `CustomStyle` via the alias defined by `openpyxl_style_writer`
 For example we can create a `CustomStyle` where the font is bold and font color is yellow like this.
 
 ```python title="CustomStyle"
-from openpyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 
 
 yellow_bold_style = CustomStyle(font_bold=True, font_color='ffff00')
@@ -28,7 +28,7 @@ yellow_bold_style = CustomStyle(font_bold=True, font_color='ffff00')
 Also, you can globally change the default style like
 
 ```python title="Change Default Style Globally"
-from openpyxl_style_writer import DefautStyle
+from pyfastexcel import DefautStyle
 
 
 DefaultStyle.set_default(font_size=16)
@@ -39,7 +39,7 @@ Additionally, it is possible to set the style with the original style name from 
 ```python title="Set style by params"
 from opnpyxl.styles import Side
 
-from openpyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 
 # Create the dict that the key is the style name from openpyxl
 blue_title_font = {
@@ -70,7 +70,7 @@ custom_title_style = CustomStyle(
 The following code snippet demonstrates the available aliases in CustomStyle.
 
 ```python title="CustomStyle with all arguments"
-from opnepyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 
 
 # This is the defualt settings, you can pass the arguments you want only.

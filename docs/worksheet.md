@@ -61,10 +61,9 @@ ws['A3'] = (9, bold_style)
 
 
 ```python title="Assign a value via slicing"
-from pyfastexcel import Workbook
+from pyfastexcel import CustomStyle, Workbook
 from pyfastexcel.utils import set_custom_style
 
-from openpyxl_style_writer import CustomStyle
 
 wb = Workbook()
 ws = wb['Sheet1']
@@ -87,10 +86,9 @@ ws['A2':'D2'] = [
 1. The default style will be used.
 
 ```python title="Assign a value via row index"
-from pyfastexcel import Workbook
+from pyfastexcel import CustomStyle, Workbook
 from pyfastexcel.utils import set_custom_style
 
-from openpyxl_style_writer import CustomStyle
 
 wb = Workbook()
 ws = wb['Sheet1']
