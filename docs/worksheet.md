@@ -108,6 +108,41 @@ ws[1] = [
 ]
 ```
 
+## Set Style
+
+Set style with input coordinate.
+
+| Parameter | Data Type                      | Description                    |
+|-----------|--------------------------------|--------------------------------|
+| `target`  | str, slice, or list[int, int]  | Target cells to apply style.   |
+| `style`   | CustomStyle or str             | Style to apply to the cells.   |
+
+```python
+from pyfastexcel import Workbook
+from pyfastexcel.utils import set_custom_style
+
+wb = Workbook()
+ws = wb['Sheet1']
+
+# Create and register the style
+bold_style = CustomStyle(font_size=19, font_bold=True)
+set_custom_style('bold_style', bold_style)
+
+ws[0] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+
+# Set style with CustomStyle instance
+ws.set_style('A1', bold_style)
+# Set style with the register name
+ws.set_style('B1', 'bold_style')
+
+# Set style with the string slice
+ws.set_style('C1:E1', 'bold_style')
+ws.set_style(slice('F1', 'H1'), 'bold_style')
+
+# Set style with the row and column index ([0, 8] = 'I1')
+ws.set_style([0, 8], 'bold_style')
+```
+
 ## Set cell width and height
 
 The cell widht can be set with the function
