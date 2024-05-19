@@ -379,6 +379,9 @@ class WorkSheet:
             Validates the input value and ensures it is a tuple with the correct
             format.
 
+        set_style(target: str | slice | list[int, int], style: CustomStyle | str) -> None:
+            Applies a style to specified cells.
+
         __getitem__(key: str | slice | int) -> tuple | list[tuple]:
             If index_supported is True, retrieves the cell value at the
             specified index. Raises TypeError if index_supported is False.
@@ -434,6 +437,71 @@ class WorkSheet:
         except IndexError:
             self._expand_row_and_cols(row, column)
             self.data[row][column] = value
+
+    def set_style(
+        self,
+        target: str | slice | list[int, int],
+        style: CustomStyle | str,
+    ) -> None:
+        """
+        Applies a specified style to a target range of cells.
+
+        Args:
+            target (str | slice | list[int, int]): Target cells to apply style.
+            style (CustomStyle | str): Style to apply to the cells.
+
+        Raises:
+            TypeError: If target type is invalid.
+            ValueError: If style is not registered.
+        """
+        if self.index_supported is False:
+            raise IndexError('Index is not supported in this Writer.')
+
+        if isinstance(style, str):
+            if ExcelDriver.REGISTERED_STYLES.get(style) is None:
+                raise ValueError(
+                    f'Style not found: {style}. Style should be register by '
+                    'set_custom_style function when you set a style with '
+                    'string.',
+                )
+        elif isinstance(style, CustomStyle):
+            if ExcelDriver._STYLE_NAME_MAP.get(style) is None:
+                validate_and_register_style(style)
+            style = ExcelDriver._STYLE_NAME_MAP[style]
+
+        if isinstance(target, str):
+            self._apply_style_to_string_target(target, style)
+        elif isinstance(target, slice):
+            self._apply_style_to_slice_target(target, style)
+        elif isinstance(target, list) and len(target) == 2:
+            self._apply_style_to_list_target(target, style)
+        else:
+            raise TypeError('Target should be a string, slice, or list[row, index].')
+
+    def _apply_style_to_string_target(self, target: str, style: str):
+        if ':' not in target:
+            row, col = excel_index_to_list_index(target)
+            self.data[row][col] = (self.data[row][col][0], style)
+        else:
+            target_slice = target.split(':')
+            target = slice(target_slice[0], target_slice[1])
+            self._apply_style_to_slice_target(target, style)
+
+    def _apply_style_to_slice_target(self, target: slice, style: str):
+        start_row, start_col, col_stop = self._extract_slice_indices(target)
+        for col in range(start_col, col_stop + 1):
+            self.data[start_row][col] = (self.data[start_row][col][0], style)
+
+    def _apply_style_to_list_target(self, target: list[int, int], style: str):
+        row = target[0]
+        col = target[1]
+        if not isinstance(row, int) or not isinstance(col, int):
+            raise TypeError('Target should be a list of integers.')
+        if row < 0 or row > 1048576:
+            raise ValueError(f'Invalid row index: {row}')
+        if col < 0 or col > 16384:
+            raise ValueError(f'Invalid column index: {col}')
+        self.data[row][col] = (self.data[row][col][0], style)
 
     def set_cell_width(self, col: str | int, value: int) -> None:
         if isinstance(col, str):
@@ -614,7 +682,7 @@ class WorkSheet:
         row, col = excel_index_to_list_index(key)
         return self.data[row][col]
 
-    def _set_cell_by_slice(self, cell_slice: slice, value: Any) -> None:
+    def _extract_slice_indices(self, cell_slice: slice) -> tuple[int, int, int]:
         start_row = extract_numeric_part(cell_slice.start)
         stop_row = extract_numeric_part(cell_slice.stop)
         if start_row != stop_row:
@@ -622,6 +690,10 @@ class WorkSheet:
         start_row, start_col = excel_index_to_list_index(cell_slice.start)
         _, col_stop = excel_index_to_list_index(cell_slice.stop)
         self._expand_row_and_cols(start_row, col_stop)
+        return start_row, start_col, col_stop
+
+    def _set_cell_by_slice(self, cell_slice: slice, value: Any) -> None:
+        start_row, start_col, col_stop = self._extract_slice_indices(cell_slice)
         for idx, col in enumerate(range(start_col, col_stop + 1)):
             val = self._validate_value_and_set_default(value[idx])
             self.data[start_row][col] = val

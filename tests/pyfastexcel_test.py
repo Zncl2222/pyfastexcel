@@ -601,3 +601,123 @@ def test_if_style_is_reset():
     assert ExcelDriver.REGISTERED_STYLES == {
         'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
     }
+
+
+@pytest.mark.parametrize(
+    'target, expected_output1',
+    [
+        ('A1', ('test', 'bold_font_style')),
+        ('XD1', ('test', 'bold_font_style')),
+    ],
+)
+def test_set_style_with_str(target, expected_output1):
+    from pyfastexcel.driver import ExcelDriver
+    from pyfastexcel.utils import set_custom_style
+
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    bold_style = CustomStyle(font_bold=True)
+    set_custom_style('bold_font_style', bold_style)
+    color_style = CustomStyle(font_color='d33513')
+
+    ws[target] = 'test'
+
+    ws.set_style(target, 'bold_font_style')
+    assert ws[target] == expected_output1
+
+    ws.set_style(target, color_style)
+    assert ws[target][1] == f'Custom Style {ExcelDriver._STYLE_ID - 1}'
+
+    with pytest.raises(ValueError):
+        ws.set_style(target, 'wrong_style')
+
+
+@pytest.mark.parametrize(
+    'target, expected_output1',
+    [
+        ('A1:B1', [('test', 'bold_font_style'), ('q', 'bold_font_style')]),
+        (slice('A1', 'B1'), [('test', 'bold_font_style'), ('q', 'bold_font_style')]),
+    ],
+)
+def test_set_style_with_silce(target, expected_output1):
+    from pyfastexcel.driver import ExcelDriver
+    from pyfastexcel.utils import set_custom_style
+
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    bold_style = CustomStyle(font_bold=True)
+    set_custom_style('bold_font_style', bold_style)
+    color_style = CustomStyle(font_color='d33513')
+
+    # Index assignment is not supported for slice currently.
+    if isinstance(target, str) and ':' in target:
+        t = target.split(':')
+        t = slice(t[0], t[1])
+    else:
+        t = target
+
+    ws[t] = ['test', 'q']
+
+    ws.set_style(target, 'bold_font_style')
+    assert ws[t] == expected_output1
+
+    ws.set_style(target, color_style)
+    assert ws[t][1][1] == f'Custom Style {ExcelDriver._STYLE_ID - 1}'
+
+    with pytest.raises(ValueError):
+        ws.set_style(target, 'wrong_style')
+
+
+@pytest.mark.parametrize(
+    'row, target, expected_output1',
+    [
+        (0, [0, 1], [('test', 'DEFAULT_STYLE'), ('q', 'bold_font_style'), ('1', 'DEFAULT_STYLE')]),
+        (1, [1, 1], [('test', 'DEFAULT_STYLE'), ('q', 'bold_font_style'), ('1', 'DEFAULT_STYLE')]),
+    ],
+)
+def test_set_style_with_list(row, target, expected_output1):
+    from pyfastexcel.driver import ExcelDriver
+    from pyfastexcel.utils import set_custom_style
+
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    bold_style = CustomStyle(font_bold=True)
+    set_custom_style('bold_font_style', bold_style)
+    color_style = CustomStyle(font_color='d33513')
+
+    ws[row] = ['test', 'q', '1']
+
+    ws.set_style(target, 'bold_font_style')
+    assert ws[row] == expected_output1
+
+    ws.set_style(target, color_style)
+    assert ws[row][target[1]][1] == f'Custom Style {ExcelDriver._STYLE_ID - 1}'
+
+
+@pytest.mark.parametrize(
+    'target, expected_output',
+    [
+        ([1048577, 1], ValueError),
+        ([1, 16385], ValueError),
+        (['awer', 1], TypeError),
+        ({}, TypeError),
+    ],
+)
+def test_set_style_error(target, expected_output):
+    from pyfastexcel.utils import set_custom_style
+
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    bold_style = CustomStyle(font_bold=True)
+    set_custom_style('bold_font_style', bold_style)
+
+    with pytest.raises(expected_output):
+        ws.set_style(target, 'bold_font_style')
+
+    writer = NormalWriter({})
+    with pytest.raises(IndexError):
+        writer['Sheet1'].set_style(target, 'bold_font_style')
