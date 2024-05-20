@@ -145,7 +145,7 @@ ws.set_style([0, 8], 'bold_style')
 
 ## Set cell width and height
 
-The cell widht can be set with the function
+Set column width
 
 | Parameter           | Data Type | Description                    |
 |---------------------|-----------|--------------------------------|
@@ -156,10 +156,10 @@ The cell widht can be set with the function
 # Set through alphabet
 ws.set_cell_width('A', 20)
 # Set through number
-ws.set_cell_width(, 23)
+ws.set_cell_width(1, 23)
 ```
 
-The cell height can be set with the function
+Set row height
 
 | Parameter           | Data Type | Description                    |
 |---------------------|-----------|--------------------------------|
@@ -168,7 +168,7 @@ The cell height can be set with the function
 
 ```python title="Set height"
 # Set row 15 to height = 20
-ws.set_cell_height( 15, 20)
+ws.set_cell_height(15, 20)
 ```
 
 ## Merge Cell
