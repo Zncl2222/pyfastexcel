@@ -26,7 +26,7 @@ set_custom_style('bold_style', bold_style)
     you can use `#!python ws['A1'] = (123, 'bold_style')` or
     `#!python ws['A1'] = (123, bold_style)`.
 
-## `column_to_index`
+## column_to_index
 
 Converts an Excel column name to an index, e.g., 'A' -> 1.
 

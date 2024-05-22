@@ -44,11 +44,7 @@ if __name__ == '__main__':
 
 ### Write excel via StreamWriter
 
-!!! warning "Warning"
-    Please note that the usage of StreamWriter, such as `FastWriter` and
-    `NormalWriter`, may have changed in recent versions (currently v0.0.7).
-
-You can also using the `FastWriter` or `NormalWriter` which was the
+You can also using the `StreamWriter` which was the
 subclass of `Workbook` to write excel row by row, see the following steps:
 
 1. Create a class for your `style` registed like `StyleCollections`
@@ -62,17 +58,16 @@ in the example.
         and inherit it from your `Writer` class.
 
 2. Create a class for your excel creation implementation and inherit
-`NormalWriter` or `FastWriter` and `StyleCollections`.
+`StreamWriter` and `StyleCollections`.
 
 3. Implement your data writing logic in `def _create_body()` and
 `def _create_single_header()`(The latter is not necessary)
 
-!!! example "NormalWriter"
+!!! example "StreamWriter"
 
     ```python
     from openpyxl.styles import Side
-    from pyfastexcel import CustomStyle
-    from pyfastexcel.driver import FastWriter, NormalWriter
+    from pyfastexcel import CustomStyle, StreamWriter
 
 
     def prepare_example_data(rows: int = 1000, cols: int = 10) -> list[dict[str, str]]:
@@ -128,7 +123,7 @@ in the example.
         )
 
 
-    class PyExcelizeNormalExample(NormalWriter, StyleCollections):
+    class PyFastExcelStreamExample(StreamWriter, StyleCollections):
 
         def create_excel(self) -> bytes:
             self._set_header()
@@ -166,69 +161,8 @@ in the example.
 
     if __name__ == '__main__':
         data = prepare_example_data(653, 90)
-        normal_writer = PyExcelizeFastExample(data)
-        excel_normal = normal_writer.create_excel()
-        file_path = 'pyexample_normal.xlsx'
-        normal_writer.save('pyexample_normal.xlsx')
-    ```
-
-The example of FastWriter now supports index assignment. Please see
-the last few lines of code in `_create_body()` for reference.
-
-!!! example "FastWriter"
-    ```python
-    from pyfastexcel.driver import FastWriter
-
-
-    class PyExcelizeFastExample(FastWriter, StyleCollections):
-
-        def create_excel(self) -> bytes:
-            self._set_header()
-            self._create_style()
-            self.set_file_props('Creator', 'Hello')
-            self._create_single_header()
-            self._create_body()
-            return self.read_lib_and_create_excel()
-
-        def _set_header(self):
-            self.headers = list(self.data[0].keys())
-
-        def _create_single_header(self):
-            for h in self.headers:
-                self.row_append(h, style='green_fill_style')
-            self.create_row()
-
-        def _create_body(self) -> None:
-            for row in self.data:
-                for h in self.headers:
-                    if h[-1] in ('1', '3', '5', '7', '9'):
-                        self.row_append(row[h], style='black_fill_style')
-                    else:
-                        self.row_append(row[h], style='test_fill_style')
-                self.create_row()
-
-            self.switch_sheet('Sheet2')
-            for row in self.data:
-                for h in self.headers:
-                    if h[-1] in ('1', '3', '5', '7', '9'):
-                        self.row_append(row[h], style=self.green_fill_style)
-                    else:
-                        self.row_append(row[h], style='black_fill_style')
-                self.create_row()
-
-            # Assigning a value with a specific style
-            self.workbook['Sheet1']['A2'] = ('Hellow World', 'black_fill_style')
-
-            # Assigning a value without specifying a style (default style used)
-            self.workbook['Sheet1']['A3'] = 'I am A3'
-            self.workbook['Sheet1']['AB9'] = 'GOGOGO'
-
-
-    if __name__ == '__main__':
-        data = prepare_example_data(653, 90)
-        normal_writer = PyExcelizeFastExample(data)
-        excel_normal = normal_writer.create_excel()
-        file_path = 'pyexample_normal.xlsx'
-        normal_writer.save('pyexample_normal.xlsx')
-
+        stream_writer = PyFastExcelStreamExample(data)
+        excel_bytes = stream_writer.create_excel()
+        file_path = 'pyexample_stream.xlsx'
+        stream_writer.save(file_path)
     ```
