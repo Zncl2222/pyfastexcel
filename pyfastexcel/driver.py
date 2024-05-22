@@ -572,14 +572,17 @@ class WorkSheet:
         if data_row_len > target_row:
             if data_col_len <= target_col:
                 self.data[target_row].extend(
-                    [('', 'DEFAULT_STYLE')] * (target_col + 1 - data_col_len),
+                    [('', 'DEFAULT_STYLE') for _ in range(target_col + 1 - data_col_len)],
                 )
         else:
             current_row = max(data_row_len, target_row + 1)
             current_col = max(data_col_len, target_col + 1)
             default_value = ('', 'DEFAULT_STYLE')
             self.data.extend(
-                [[default_value] * current_col] * (current_row - data_row_len),
+                [
+                    [default_value for _ in range(current_col)]
+                    for _ in range(current_row - data_row_len)
+                ],
             )
 
     def _transfer_to_dict(self) -> None:
