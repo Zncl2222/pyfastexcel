@@ -4,7 +4,7 @@ import pytest
 from openpyxl.styles import Side
 from openpyxl_style_writer import CustomStyle
 
-from pyfastexcel import FastWriter, NormalWriter, Workbook
+from pyfastexcel import StreamWriter, Workbook
 
 font_params = {
     'size': 11,
@@ -112,58 +112,7 @@ class StyleCollections:
     test_style.protection.hidden = True
 
 
-class PyExcelizeFastExample(FastWriter, StyleCollections):
-    def create_excel(self) -> bytes:
-        self._set_header()
-        self._create_style()
-        self._create_single_header()
-        self._create_body()
-        return self.read_lib_and_create_excel()
-
-    def _set_header(self):
-        self.headers = list(self.data[0].keys())
-        self.set_cell_height(self.sheet, 5, 12)
-        self.set_cell_width(self.sheet, 'A', 12)
-        self.set_cell_width(self.sheet, 3, 12)
-
-    def _create_single_header(self):
-        for h in self.headers:
-            self.row_append(h, style='green_fill_style')
-        self.create_row()
-
-    def _create_body(self) -> None:
-        for row in self.data:
-            for h in self.headers:
-                if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='black_fill_style')
-                else:
-                    self.row_append(row[h], style='test_fill_style')
-            self.create_row()
-
-        self.create_sheet('Sheet2')
-        self.switch_sheet('Sheet2')
-        for row in self.data:
-            for h in self.headers:
-                if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='test_fill_style')
-                else:
-                    self.row_append(row[h], style=self.black_fill_style)
-            self.create_row()
-        self.workbook['Sheet1']['A4'] = 'Test with default style'
-        self.workbook['Sheet1']['A3'] = ('Hello', 'test_style')
-
-        # Test Local Style
-        custom_style2 = CustomStyle(
-            font_size='33',
-            font_bold=True,
-            font_color='000000',
-            fill_color='4db3af',
-        )
-        self.row_append('Local Style', style=custom_style2)
-        self.create_row()
-
-
-class PyExcelizeNormalExample(NormalWriter, StyleCollections):
+class PyFastExcelStreamExample(StreamWriter, StyleCollections):
     def create_excel(self) -> bytes:
         self._set_header()
         self._create_style()
@@ -201,6 +150,10 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
                     self.row_append(row[h], style='black_fill_style')
             self.create_row()
 
+        self.workbook['Sheet1']['A4'] = 'Test with default style'
+        self.workbook['Sheet1']['A3'] = ('Hello', 'test_style')
+
+        # Test Local Style
         custom_style2 = CustomStyle(
             font_size='33',
             font_bold=True,
@@ -210,23 +163,22 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
         self.row_append('Local Style', style=custom_style2)
         self.create_row()
 
+        custom_style3 = CustomStyle(
+            font_size='33',
+            font_bold=True,
+            font_color='000000',
+            fill_color='4db3af',
+        )
+        self.row_append('Local Style', style=custom_style3)
+        self.create_row()
+
         # Test non-numeric value for 'validate_and_format_value'
         self.row_append(['1', 2, 3])
         self.create_row()
 
 
-def test_pyexcelize_fast_example():
-    from pyfastexcel.utils import set_custom_style
-
-    set_custom_style('test', style_for_set_custom_style)
-    data = prepare_example_data(rows=25, cols=9)
-    excel_example = PyExcelizeFastExample(data)
-    excel_bytes = excel_example.create_excel()
-    assert isinstance(excel_bytes, bytes)
-
-
 def test_set_data_with_index():
-    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     excel_example.workbook['Sheet1']['A1'] = 'test'
     excel_example.workbook['Sheet1']['AZ4455'] = 'I am 1234!!!'
 
@@ -235,7 +187,7 @@ def test_set_data_with_index():
 
 
 def test_get_data_with_index():
-    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     excel_example.workbook['Sheet1']['A1'] = 'test'
     print(excel_example.workbook['Sheet1']['A1'])
 
@@ -244,7 +196,7 @@ def test_get_data_with_index():
 
 
 def test_set_data_with_cell():
-    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     ws = excel_example.workbook['Sheet1']
     ws.cell(row=1, column=1, value='test')
     ws.cell(row=12312, column=11221, value='I am 1234!!!')
@@ -259,16 +211,8 @@ def test_set_data_with_cell():
         ws.cell(row=1, column=99999999, value='test')
 
 
-def test_set_data_faield_with_index():
-    excel_example = PyExcelizeNormalExample([])
-    with pytest.raises(IndexError):
-        excel_example.workbook['Sheet1']['A1'] = 'qwe'
-    with pytest.raises(IndexError):
-        print(excel_example['Sheet1']['A1'])
-
-
 def test_set_file_props():
-    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     with pytest.raises(ValueError):
         excel_example.set_file_props('Test', 'Test')
 
@@ -282,7 +226,7 @@ def test_set_file_props():
     ],
 )
 def test_create_sheet(sheet, expected_exception):
-    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     if expected_exception is None:
         excel_example.create_sheet(sheet)
     else:
@@ -291,7 +235,7 @@ def test_create_sheet(sheet, expected_exception):
 
 
 def test_remove_sheet():
-    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     with pytest.raises(ValueError):
         excel_example.remove_sheet('Sheet1')
     excel_example.create_sheet('Sheet2')
@@ -310,7 +254,7 @@ def test_remove_sheet():
     ],
 )
 def test_set_cell_width(sheet, column, width, expected_exception):
-    excel_example = PyExcelizeNormalExample([])
+    excel_example = PyFastExcelStreamExample([])
     with pytest.raises(expected_exception):
         excel_example.set_cell_width(sheet, column, width)
 
@@ -323,7 +267,7 @@ def test_set_cell_width(sheet, column, width, expected_exception):
     ],
 )
 def test_set_cell_height(sheet, row, height, expected_exception):
-    excel_example = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel_example = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     with pytest.raises(expected_exception):
         excel_example.set_cell_height(sheet, row, height)
 
@@ -345,7 +289,7 @@ def test_set_cell_height(sheet, row, height, expected_exception):
     ],
 )
 def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_exception):
-    excel = PyExcelizeFastExample([[None] * 1000 for _ in range(1000)])
+    excel = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     if expected_exception is not None:
         with pytest.raises(expected_exception):
             excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
@@ -356,7 +300,7 @@ def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_except
 
 def test_pyexcelize_normal_example():
     data = prepare_example_data(rows=3, cols=3)
-    excel_example = PyExcelizeNormalExample(data)
+    excel_example = PyFastExcelStreamExample(data)
     excel_example.create_sheet('Test')
     excel_example.remove_sheet('Test')
     excel_example.switch_sheet('Sheet1')
@@ -717,7 +661,3 @@ def test_set_style_error(target, expected_output):
 
     with pytest.raises(expected_output):
         ws.set_style(target, 'bold_font_style')
-
-    writer = NormalWriter({})
-    with pytest.raises(IndexError):
-        writer['Sheet1'].set_style(target, 'bold_font_style')
