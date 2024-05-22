@@ -382,6 +382,16 @@ def test_pyexcelize_normal_example():
             ],
         ),
         (slice('A1', 'B1'), [1, 2], [(1, 'DEFAULT_STYLE'), (2, 'DEFAULT_STYLE')]),
+        # Ensure the expand_row_and_cols do not induce value reference issue
+        (
+            'B3',
+            1,
+            [
+                [('', 'DEFAULT_STYLE')],
+                [('', 'DEFAULT_STYLE'), ('', 'DEFAULT_STYLE')],
+                [('', 'DEFAULT_STYLE'), (1, 'DEFAULT_STYLE')],
+            ],
+        ),
     ],
 )
 def test_workbook(range_slice, values, expected_output):
@@ -389,7 +399,10 @@ def test_workbook(range_slice, values, expected_output):
     ws = wb['Sheet1']
     ws[range_slice] = values
 
-    actual_output = [tuple([cell for cell in row]) for row in ws[range_slice]]
+    if not isinstance(range_slice, slice):
+        actual_output = ws.data
+    else:
+        actual_output = [tuple([cell for cell in row]) for row in ws[range_slice]]
     assert actual_output == expected_output
 
 
@@ -509,7 +522,7 @@ def test_workbook_slice(row_slice, value_list, expected_output):
         (6, 'STRING', ValueError),
     ],
 )
-def test_worsheet_row_get_and_set(index, value_list, expected_output):
+def test_worksheet_row_get_and_set(index, value_list, expected_output):
     from pyfastexcel.utils import set_custom_style
 
     style = CustomStyle(font_size=12, font_bold=True)
