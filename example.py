@@ -4,7 +4,7 @@ import time
 
 from openpyxl.styles import Side
 
-from pyfastexcel import CustomStyle, FastWriter, NormalWriter, Workbook
+from pyfastexcel import CustomStyle, StreamWriter, Workbook
 from pyfastexcel.utils import set_custom_style
 
 
@@ -59,44 +59,7 @@ class StyleCollections:
     )
 
 
-class PyExcelizeFastExample(FastWriter, StyleCollections):
-    def create_excel(self) -> bytes:
-        self._set_header()
-        self._create_style()
-        self._create_body()
-        return self.read_lib_and_create_excel()
-
-    def _set_header(self):
-        self.headers = list(self.data[0].keys())
-        for h in self.headers:
-            self.row_append(h, style='black_fill_style')
-        self.set_cell_width(self.sheet, 3, 255)
-        self.set_cell_height(self.sheet, 4, 123)
-        self.create_row()
-
-    def _create_body(self) -> None:
-        for row in self.data:
-            for h in self.headers:
-                if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='black_fill_style')
-                else:
-                    self.row_append(row[h], style='test_fill_style')
-            self.create_row()
-
-        self.create_sheet('Sheet2')
-        for row in self.data:
-            for h in self.headers:
-                if h[-1] in ('1', '3', '5', '7', '9'):
-                    self.row_append(row[h], style='test_fill_style')
-                else:
-                    self.row_append(row[h], style='black_fill_style')
-            self.create_row()
-        self.workbook['Sheet1']['A2'] = ('Hellow World', 'black_fill_style')
-        self.workbook['Sheet1']['A3'] = 'I am A3'
-        self.workbook['Sheet1']['AB9'] = 'qwer'
-
-
-class PyExcelizeNormalExample(NormalWriter, StyleCollections):
+class PyFastExcelStreamExample(StreamWriter, StyleCollections):
     def create_excel(self) -> bytes:
         self._set_header()
         self._create_style()
@@ -142,23 +105,19 @@ class PyExcelizeNormalExample(NormalWriter, StyleCollections):
         self.set_cell_width(self.sheet, 'A', 255)
         self.set_cell_height(self.sheet, 4, 123)
         self.set_merge_cell(self.sheet, 'A2', 'A6')
+        self.workbook['Sheet1']['A2'] = ('Hellow World', 'black_fill_style')
+        self.workbook['Sheet1']['A3'] = 'I am A3'
+        self.workbook['Sheet1']['AB9'] = 'qwer'
 
 
 if __name__ == '__main__':
     data = prepare_example_data(6, 9)
 
-    # Fast Writer
-    fast_start_time = time.perf_counter()
-    pyfast_example = PyExcelizeFastExample(data)
-    excel_fast = pyfast_example.create_excel()
-    fast_end_time = time.perf_counter()
-    print('PYExcelizeFastDriver time: ', fast_end_time - fast_start_time)
-
-    # Normal Writer
+    # StreamWriter
     normal_start_time = time.perf_counter()
-    excel_normal = PyExcelizeNormalExample(data).create_excel()
+    excel_normal = PyFastExcelStreamExample(data).create_excel()
     notmal_end_time = time.perf_counter()
-    print('PYExcelizeNormalDriver time: ', notmal_end_time - normal_start_time)
+    print('PyFastExcelStreamWriter time: ', notmal_end_time - normal_start_time)
 
     # Workbook
     wb = Workbook()
@@ -187,14 +146,12 @@ if __name__ == '__main__':
     wb.read_lib_and_create_excel()
 
     # File path to save
-    file_path = 'pyexample_fast.xlsx'
-    file_path2 = 'pyexample_normal.xlsx'
-    file_path3 = 'pyexample_workbook.xlsx'
+    file_path1 = 'pyexample_stream.xlsx'
+    file_path2 = 'pyexample_workbook.xlsx'
 
     # Save to the xlsx with save function of Workbook
-    pyfast_example.save(file_path)
-    wb.save(file_path3)
+    wb.save(file_path2)
 
     # Save to the xlsx by the bytes return from create_excel()
-    with open(file_path2, 'wb') as file:
+    with open(file_path1, 'wb') as file:
         file.write(excel_normal)

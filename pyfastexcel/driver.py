@@ -105,7 +105,7 @@ class ExcelDriver:
         current sheet, and style mappings.
         """
         self.workbook = {
-            'Sheet1': WorkSheet(index_supported=True) if self.INDEX_SUPPORTED else WorkSheet(),
+            'Sheet1': WorkSheet(),
         }
         self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'
@@ -358,8 +358,6 @@ class WorkSheet:
         merge_cells (list): A list of merged cell ranges.
         width (dict): A dictionary mapping column indices to column widths.
         height (dict): A dictionary mapping row indices to row heights.
-        index_supported (bool): A flag indicating whether index-based
-            access is supported.
 
     Methods:
         _transfer_to_dict():
@@ -391,7 +389,7 @@ class WorkSheet:
             index. Raises TypeError if index_supported is False.
     """
 
-    def __init__(self, index_supported: bool = False):
+    def __init__(self):
         """
         Initializes a WorkSheet instance.
 
@@ -405,7 +403,6 @@ class WorkSheet:
         self.merge_cells = []
         self.width = {}
         self.height = {}
-        self.index_supported = index_supported
 
     def cell(
         self,
@@ -454,9 +451,6 @@ class WorkSheet:
             TypeError: If target type is invalid.
             ValueError: If style is not registered.
         """
-        if self.index_supported is False:
-            raise IndexError('Index is not supported in this Writer.')
-
         if isinstance(style, str):
             if ExcelDriver.REGISTERED_STYLES.get(style) is None:
                 raise ValueError(
@@ -651,28 +645,22 @@ class WorkSheet:
         return value
 
     def __getitem__(self, key: str | slice) -> tuple | list[tuple]:
-        if self.index_supported:
-            if isinstance(key, slice):
-                return self._get_cell_by_slice(key)
-            elif isinstance(key, int):
-                return self.data[key]
-            elif isinstance(key, str):
-                return self._get_cell_by_location(key)
-        else:
-            raise IndexError('Index is not supported in this Writer.')
+        if isinstance(key, slice):
+            return self._get_cell_by_slice(key)
+        elif isinstance(key, int):
+            return self.data[key]
+        elif isinstance(key, str):
+            return self._get_cell_by_location(key)
 
     def __setitem__(self, key: str | slice | int, value: Any) -> None:
-        if self.index_supported:
-            if isinstance(key, slice):
-                self._set_cell_by_slice(key, value)
-            elif isinstance(key, int):
-                self._set_row_by_index(key, value)
-            elif isinstance(key, str):
-                self._set_cell_by_location(key, value)
-            else:
-                raise TypeError('Key should be a string or slice.')
+        if isinstance(key, slice):
+            self._set_cell_by_slice(key, value)
+        elif isinstance(key, int):
+            self._set_row_by_index(key, value)
+        elif isinstance(key, str):
+            self._set_cell_by_location(key, value)
         else:
-            raise IndexError('Index is not supported in this Writer.')
+            raise TypeError('Key should be a string or slice.')
 
     def _get_cell_by_slice(self, cell_slice: slice) -> list[tuple]:
         start_row = extract_numeric_part(cell_slice.start)
