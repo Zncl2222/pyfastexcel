@@ -108,6 +108,37 @@ ws[1] = [
 ]
 ```
 
+## Set Cell by row and columns index
+
+Set the cell value by row and column index.
+
+| Parameter |     Data Type      | Description                   |
+|-----------|------------------- |-------------------------------|
+| `row`     | int                | Target row.                   |
+| `column`  | int                | Target column.                |
+| `value`   | Any                | The value to set in the cell. |
+| `style`   | CustomStyle or str | Style to apply to the cells.  |
+
+```python title="Set Cell by row and column index"
+from pyfastexcel import Workbook
+from pyfastexcel.utils import set_custom_style
+
+wb = Workbook()
+ws = wb['Sheet1']
+
+# Create and register the style
+bold_style = CustomStyle(font_size=19, font_bold=True)
+set_custom_style('bold_style', bold_style)
+
+# Set style with the register name
+ws.cell(0, 0, 'Hello', style='bold_style')
+# Set style with the CustomStyle instance
+ws.cell(0, 1, '123', style=bold_style)
+```
+
+!!! note "Note"
+    The row and column index are 0-based. So if you want to set the value in the first row and the first column like `A1` in excel, you should use `ws.cell(0, 0, 'Hello')`.
+
 ## Set Style
 
 Set style with input coordinate.
