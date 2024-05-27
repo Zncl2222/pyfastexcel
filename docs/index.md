@@ -127,4 +127,11 @@ If you prefer to build the package manually, follow these steps:
 
 ## Benchmark
 
-Comming soon...
+The following result displays the performance comparison between
+`pyfastexcel` and `openpyxl` for writing 50000 rows with 30
+columns (Total 1500000 cells). To see more benchmark results, please
+see the [benchmark](https://pyfastexcel.readthedocs.io/en/stable/benchmark/).
+
+<dev align='center'>
+    <img src='./benchmark/50000+30_horizontal.png' width="80%" height="45%" >
+</dev>

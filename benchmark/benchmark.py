@@ -243,7 +243,7 @@ def plot_horizontal_bar(title='Method', fig_name='hbars.png'):
 
 
 if __name__ == '__main__':
-    cases = [(50, 30), (500, 30), (5000, 1)]
+    cases = [(50, 30), (500, 30), (5000, 30), (50000, 30)]
     for row, col in cases:
         data = prepare_example_data(rows=row, cols=col)
         benchmark = run_test_case(
