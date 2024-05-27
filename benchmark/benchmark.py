@@ -126,7 +126,7 @@ def add_labels(bars, ax, orientation='v'):
         if orientation == 'v':
             height = bar.get_height()
             ax.annotate(
-                '{}'.format(round(height, 3)),
+                f'{height:.3f}',
                 xy=(bar.get_x() + bar.get_width() / 2, height),
                 xytext=(0, 3),  # 3 points vertical offset
                 textcoords='offset points',
@@ -136,7 +136,7 @@ def add_labels(bars, ax, orientation='v'):
         else:
             width = bar.get_width()
             ax.annotate(
-                '{}'.format(round(width, 3)),
+                f'{width:.3f}',
                 xy=(width, bar.get_y() + bar.get_height() / 2),
                 xytext=(3, 0),  # 3 points horizontal offset
                 textcoords='offset points',
@@ -151,7 +151,7 @@ def plot_bars(orientation='v', title='Method', fig_name='benchmark.png'):
     indices = np.arange(num_bars)
     bar_width = 0.2
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    _, ax = plt.subplots(figsize=(10, 6))
 
     if orientation == 'v':
         bars1 = ax.bar(
@@ -173,10 +173,10 @@ def plot_bars(orientation='v', title='Method', fig_name='benchmark.png'):
         )
         ax2 = ax.twinx()
         ax2.plot(indices, std_devs, '--o', color='red', label='Std Dev')
-        ax.set_xlabel(title)
-        ax.set_ylabel('Time (s)')
+        ax.set_xlabel(title, fontsize=14)
+        ax.set_ylabel('Time (s)', fontsize=14)
         ax.set_xticks(indices)
-        ax.set_xticklabels(labels, rotation=45, ha='right')
+        ax.set_xticklabels(labels, fontsize=10)
         ax2.set_ylabel('Standard Deviation')
     else:
         bars1 = ax.barh(
@@ -204,8 +204,8 @@ def plot_bars(orientation='v', title='Method', fig_name='benchmark.png'):
             color='pink',
             edgecolor='black',
         )
-        ax.set_ylabel(title)
-        ax.set_xlabel('Time (s)')
+        ax.set_ylabel(title, fontsize=14)
+        ax.set_xlabel('Time (s)', fontsize=14)
         ax.set_yticks(indices)
         ax.set_yticklabels(labels)
 
@@ -243,7 +243,7 @@ def plot_horizontal_bar(title='Method', fig_name='hbars.png'):
 
 
 if __name__ == '__main__':
-    cases = [(500, 30), (5000, 30), (50000, 30)]
+    cases = [(50, 30), (500, 30), (5000, 1)]
     for row, col in cases:
         data = prepare_example_data(rows=row, cols=col)
         benchmark = run_test_case(
@@ -252,11 +252,11 @@ if __name__ == '__main__':
         )
         benchmark += run_test_case('WorkBook by row', 'write_excel_with_pyfastexcel_with_row')
         benchmark += run_test_case('StreamWriter', 'write_excel_with_stream_writer')
-        benchmark += run_test_case('Openpyxl Workbook', 'write_excel_with_openpyxl_normal_wb')
+        benchmark += run_test_case('Openpyxl\nWorkbook', 'write_excel_with_openpyxl_normal_wb')
         benchmark += run_test_case(
-            'Openpyxl Write Only Workbook',
+            'Openpyxl Write\nOnly Workbook',
             'write_excel_with_openpyxl_write_only_wb',
         )
         print(benchmark)
-        plot_vertical_bar(f'Method (rows={row}, columns={col})', f'{row}+{col}_vertical.png')
+        # plot_vertical_bar(f'Method (rows={row}, columns={col})', f'{row}+{col}_vertical.png')
         plot_horizontal_bar(f'Method (rows={row}, columns={col})', f'{row}+{col}_horizontal.png')
