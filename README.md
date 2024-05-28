@@ -133,6 +133,17 @@ The documentation is hosted on Read the Docs.
 
 - [Latest Stable Version](https://pyfastexcel.readthedocs.io/en/stable/)
 
+## Benchmark
+
+The following result displays the performance comparison between
+`pyfastexcel` and `openpyxl` for writing 50000 rows with 30
+columns (Total 1500000 cells). To see more benchmark results, please
+see the [benchmark](https://pyfastexcel.readthedocs.io/en/stable/benchmark/).
+
+<dev align='center'>
+    <img src='./benchmark/50000+30_horizontal.png' width="80%" height="45%" >
+</dev>
+
 ## How it Works
 
 The core functionality revolves around encoding Excel cell data and styles,

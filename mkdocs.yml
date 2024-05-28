@@ -30,6 +30,7 @@ nav:
   - Overview:
      - index.md
      - quickstart.md
+     - benchmark.md
   - Usage:
     - Styling: style.md
     - Workbook: workbook.md
