@@ -13,6 +13,8 @@ from example import prepare_example_data  # noqa
 from pyfastexcel import StreamWriter  # noqa
 from pyfastexcel import Workbook as PyFastExcelWorkbook  # noqa
 
+os_name = 'Windows11'
+os_title = f'OS: {os_name}'
 data = None
 result_dict = {}
 
@@ -209,6 +211,7 @@ def plot_bars(orientation='v', title='Method', fig_name='benchmark.png'):
         ax.set_yticks(indices)
         ax.set_yticklabels(labels)
 
+    ax.set_title(os_title, fontsize=14)
     handles1, labels1 = ax.get_legend_handles_labels()
     handles2, labels2 = ax2.get_legend_handles_labels() if orientation == 'v' else ([], [])
     ax.legend(handles1 + handles2, labels1 + labels2)
@@ -258,5 +261,10 @@ if __name__ == '__main__':
             'write_excel_with_openpyxl_write_only_wb',
         )
         print(benchmark)
-        # plot_vertical_bar(f'Method (rows={row}, columns={col})', f'{row}+{col}_vertical.png')
-        plot_horizontal_bar(f'Method (rows={row}, columns={col})', f'{row}+{col}_horizontal.png')
+        # plot_vertical_bar(
+        #   f'Method (rows={row}, columns={col})', f'{row}_{col}_vertical_{os_name}.png'
+        # )
+        plot_horizontal_bar(
+            f'Method (rows={row}, columns={col})',
+            f'{row}_{col}_horizontal_{os_name}.png',
+        )
