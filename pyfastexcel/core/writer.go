@@ -148,13 +148,22 @@ func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
 //	file (*excelize.File): The Excel file object.
 //	data (map[string]interface{}): Map containing data for each sheet.
 func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
+	sheetCount := 1
+	hasSheet1 := false
+	for s := range data {
+		if s == "Sheet1" {
+			hasSheet1 = true
+		}
+	}
 	for sheet := range data {
 		sheetData := data[sheet].(map[string]interface{})
 		// Create Sheet and Wrtie Header
-		if file.SheetCount == 1 && file.GetSheetName(0) == "Sheet1" {
+		if !hasSheet1 && sheetCount == 1 {
 			file.SetSheetName("Sheet1", sheet)
+			hasSheet1 = true
 		} else {
 			file.NewSheet(sheet)
+			sheetCount++
 		}
 		streamWriter, _ := file.NewStreamWriter(sheet)
 
