@@ -20,25 +20,25 @@ The following results show the performance comparison between `pyfastexcel` and 
 ### Write 50 rows with 30 columns (Total 1500 cells)
 
 <dev align='center'>
-    <img src='../images/50_30_horizontal_Windows11.png'>
+    <img src='../docs/images/50_30_horizontal_Windows11.png'>
 </dev>
 
 ### Write 500 rows with 30 columns (Total 15000 cells)
 
 <dev align='center'>
-    <img src='../images/500_30_horizontal_Windows11.png'>
+    <img src='../docs/images/500_30_horizontal_Windows11.png'>
 </dev>
 
 ### Write 5000 rows with 30 columns (Total 150000 cells)
 
 <dev align='center'>
-    <img src='../images/5000_30_horizontal_Windows11.png'>
+    <img src='../docs/images/5000_30_horizontal_Windows11.png'>
 </dev>
 
 ### Write 50000 rows with 30 columns (Total 1500000 cells)
 
 <dev align='center'>
-    <img src='../images/50000_30_horizontal_Windows11.png'>
+    <img src='../docs/images/50000_30_horizontal_Windows11.png'>
 </dev>
 
 ## Benchmark Results (Windows 11 WSL2 Ubuntu 22.04)
@@ -46,23 +46,23 @@ The following results show the performance comparison between `pyfastexcel` and 
 ### Write 50 rows with 30 columns (Total 1500 cells)
 
 <dev align='center'>
-    <img src='../images/50_30_horizontal_WSL2-Ubuntu22.04.png'>
+    <img src='../docs/images/50_30_horizontal_WSL2-Ubuntu22.04.png'>
 </dev>
 
 ### Write 500 rows with 30 columns (Total 15000 cells)
 
 <dev align='center'>
-    <img src='../images/500_30_horizontal_WSL2-Ubuntu22.04.png'>
+    <img src='../docs/images/500_30_horizontal_WSL2-Ubuntu22.04.png'>
 </dev>
 
 ### Write 5000 rows with 30 columns (Total 150000 cells)
 
 <dev align='center'>
-    <img src='../images/5000_30_horizontal_WSL2-Ubuntu22.04.png'>
+    <img src='../docs/images/5000_30_horizontal_WSL2-Ubuntu22.04.png'>
 </dev>
 
 ### Write 50000 rows with 30 columns (Total 1500000 cells)
 
 <dev align='center'>
-    <img src='../images/50000_30_horizontal_WSL2-Ubuntu22.04.png'>
+    <img src='../docs/images/50000_30_horizontal_WSL2-Ubuntu22.04.png'>
 </dev>
