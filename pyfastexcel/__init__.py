@@ -1,6 +1,7 @@
 from openpyxl_style_writer import CustomStyle, DefaultStyle
 
-from pyfastexcel.writer import StreamWriter, Workbook
+from pyfastexcel.workbook import Workbook
+from pyfastexcel.writer import StreamWriter
 
 __all__ = [
     'Workbook',

@@ -8,20 +8,20 @@ from openpyxl_style_writer import CustomStyle
 
 
 def set_custom_style(style_name: str, style: CustomStyle) -> None:
-    from .driver import ExcelDriver
+    from .style import StyleManager
 
-    ExcelDriver.set_custom_style(style_name, style)
+    StyleManager.set_custom_style(style_name, style)
 
 
 def validate_and_register_style(style: CustomStyle) -> None:
-    from .driver import ExcelDriver
+    from .style import StyleManager
 
     if not isinstance(style, CustomStyle):
         raise TypeError(
             f'Invalid type ({type(style)}). Style should be a CustomStyle object.',
         )
-    set_custom_style(f'Custom Style {ExcelDriver._STYLE_ID}', style)
-    ExcelDriver._STYLE_ID += 1
+    set_custom_style(f'Custom Style {StyleManager._STYLE_ID}', style)
+    StyleManager._STYLE_ID += 1
 
 
 def validate_and_format_value(
