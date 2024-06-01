@@ -212,7 +212,7 @@ def test_save_workbook():
 
 
 def test_if_style_is_reset():
-    from pyfastexcel.driver import ExcelDriver
+    from pyfastexcel.style import StyleManager
 
     wb = Workbook()
     style = CustomStyle(font_size=11, font_color='000000')
@@ -220,19 +220,19 @@ def test_if_style_is_reset():
     ws = wb['Sheet1']
     ws['A1'] = ('test', style)
     wb._create_style()
-    assert len(ExcelDriver._style_map) != 0
-    assert len(ExcelDriver._STYLE_NAME_MAP) != 0
-    assert ExcelDriver._STYLE_ID == 1
-    assert ExcelDriver.REGISTERED_STYLES == {
-        'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
+    assert len(StyleManager._style_map) != 0
+    assert len(StyleManager._STYLE_NAME_MAP) != 0
+    assert StyleManager._STYLE_ID == 1
+    assert StyleManager.REGISTERED_STYLES == {
+        'DEFAULT_STYLE': StyleManager.DEFAULT_STYLE,
         'Custom Style 0': style,
     }
     wb.read_lib_and_create_excel()
-    assert len(ExcelDriver._style_map) == 0
-    assert len(ExcelDriver._STYLE_NAME_MAP) == 0
-    assert ExcelDriver._STYLE_ID == 0
-    assert ExcelDriver.REGISTERED_STYLES == {
-        'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
+    assert len(StyleManager._style_map) == 0
+    assert len(StyleManager._STYLE_NAME_MAP) == 0
+    assert StyleManager._STYLE_ID == 0
+    assert StyleManager.REGISTERED_STYLES == {
+        'DEFAULT_STYLE': StyleManager.DEFAULT_STYLE,
     }
 
     # Create another Workbook in one process to ensure that after style configs
@@ -243,19 +243,19 @@ def test_if_style_is_reset():
     ws2 = wb2['Sheet1']
     ws2['A1'] = ('test', style2)
     wb2._create_style()
-    assert len(ExcelDriver._style_map) != 0
-    assert len(ExcelDriver._STYLE_NAME_MAP) != 0
-    assert ExcelDriver._STYLE_ID == 1
-    assert ExcelDriver.REGISTERED_STYLES == {
-        'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
+    assert len(StyleManager._style_map) != 0
+    assert len(StyleManager._STYLE_NAME_MAP) != 0
+    assert StyleManager._STYLE_ID == 1
+    assert StyleManager.REGISTERED_STYLES == {
+        'DEFAULT_STYLE': StyleManager.DEFAULT_STYLE,
         'Custom Style 0': style2,
     }
     wb2.read_lib_and_create_excel()
-    assert len(ExcelDriver._style_map) == 0
-    assert len(ExcelDriver._STYLE_NAME_MAP) == 0
-    assert ExcelDriver._STYLE_ID == 0
-    assert ExcelDriver.REGISTERED_STYLES == {
-        'DEFAULT_STYLE': ExcelDriver.DEFAULT_STYLE,
+    assert len(StyleManager._style_map) == 0
+    assert len(StyleManager._STYLE_NAME_MAP) == 0
+    assert StyleManager._STYLE_ID == 0
+    assert StyleManager.REGISTERED_STYLES == {
+        'DEFAULT_STYLE': StyleManager.DEFAULT_STYLE,
     }
 
 
@@ -267,7 +267,7 @@ def test_if_style_is_reset():
     ],
 )
 def test_set_style_with_str(target, expected_output1):
-    from pyfastexcel.driver import ExcelDriver
+    from pyfastexcel.style import StyleManager
     from pyfastexcel.utils import set_custom_style
 
     wb = Workbook()
@@ -283,7 +283,7 @@ def test_set_style_with_str(target, expected_output1):
     assert ws[target] == expected_output1
 
     ws.set_style(target, color_style)
-    assert ws[target][1] == f'Custom Style {ExcelDriver._STYLE_ID - 1}'
+    assert ws[target][1] == f'Custom Style {StyleManager._STYLE_ID - 1}'
 
     with pytest.raises(ValueError):
         ws.set_style(target, 'wrong_style')
@@ -297,7 +297,7 @@ def test_set_style_with_str(target, expected_output1):
     ],
 )
 def test_set_style_with_silce(target, expected_output1):
-    from pyfastexcel.driver import ExcelDriver
+    from pyfastexcel.style import StyleManager
     from pyfastexcel.utils import set_custom_style
 
     wb = Workbook()
@@ -320,7 +320,7 @@ def test_set_style_with_silce(target, expected_output1):
     assert ws[t] == expected_output1
 
     ws.set_style(target, color_style)
-    assert ws[t][1][1] == f'Custom Style {ExcelDriver._STYLE_ID - 1}'
+    assert ws[t][1][1] == f'Custom Style {StyleManager._STYLE_ID - 1}'
 
     with pytest.raises(ValueError):
         ws.set_style(target, 'wrong_style')
@@ -334,7 +334,7 @@ def test_set_style_with_silce(target, expected_output1):
     ],
 )
 def test_set_style_with_list(row, target, expected_output1):
-    from pyfastexcel.driver import ExcelDriver
+    from pyfastexcel.style import StyleManager
     from pyfastexcel.utils import set_custom_style
 
     wb = Workbook()
@@ -350,7 +350,7 @@ def test_set_style_with_list(row, target, expected_output1):
     assert ws[row] == expected_output1
 
     ws.set_style(target, color_style)
-    assert ws[row][target[1]][1] == f'Custom Style {ExcelDriver._STYLE_ID - 1}'
+    assert ws[row][target[1]][1] == f'Custom Style {StyleManager._STYLE_ID - 1}'
 
 
 @pytest.mark.parametrize(
