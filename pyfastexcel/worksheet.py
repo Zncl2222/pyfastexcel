@@ -7,6 +7,7 @@ from openpyxl_style_writer import CustomStyle
 from .style import StyleManager
 from .utils import (
     column_to_index,
+    deprecated_warning,
     excel_index_to_list_index,
     extract_numeric_part,
     separate_alpha_numeric,
@@ -179,6 +180,12 @@ class WorkSheet:
         self.height[row] = value
 
     def set_merge_cell(self, top_left_cell: str, bottom_right_cell: str) -> None:
+        deprecated_warning(
+            "This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead",
+        )
+        self.merge_cell(top_left_cell, bottom_right_cell)
+
+    def merge_cell(self, top_left_cell: str, bottom_right_cell: str) -> None:
         """
         Sets a merge cell range in the specified sheet.
 

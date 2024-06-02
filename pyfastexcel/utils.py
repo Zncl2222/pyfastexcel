@@ -2,9 +2,20 @@ from __future__ import annotations
 
 import re
 import string
+import warnings
 from typing import Any, Literal
 
 from openpyxl_style_writer import CustomStyle
+
+warnings.simplefilter('always', DeprecationWarning)
+
+
+def deprecated_warning(msg: str):
+    warnings.warn(
+        msg,
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
 
 def set_custom_style(style_name: str, style: CustomStyle) -> None:
