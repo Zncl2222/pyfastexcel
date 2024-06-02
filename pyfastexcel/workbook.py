@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pyfastexcel.driver import ExcelDriver, WorkSheet
+from pyfastexcel.utils import deprecated_warning
 
 
 class Workbook(ExcelDriver):
@@ -93,5 +94,11 @@ class Workbook(ExcelDriver):
         self.workbook[sheet].set_cell_height(row, value)
 
     def set_merge_cell(self, sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
+        deprecated_warning(
+            "This function is going to deprecated in v1.0.0. Please use 'wb.merge_cell' instead",
+        )
+        self.merge_cell(sheet, top_left_cell, bottom_right_cell)
+
+    def merge_cell(self, sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_merge_cell(top_left_cell, bottom_right_cell)

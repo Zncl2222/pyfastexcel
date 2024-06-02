@@ -104,7 +104,7 @@ class PyFastExcelStreamExample(StreamWriter, StyleCollections):
         self.create_row()
         self.set_cell_width(self.sheet, 'A', 255)
         self.set_cell_height(self.sheet, 4, 123)
-        self.set_merge_cell(self.sheet, 'A2', 'A6')
+        self.merge_cell(self.sheet, 'A2', 'A6')
         self.workbook['Sheet1']['A2'] = ('Hellow World', 'black_fill_style')
         self.workbook['Sheet1']['A3'] = 'I am A3'
         self.workbook['Sheet1']['AB9'] = 'qwer'
