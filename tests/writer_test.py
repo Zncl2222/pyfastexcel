@@ -289,9 +289,9 @@ def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_except
     excel = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
     if expected_exception is not None:
         with pytest.raises(expected_exception):
-            excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
+            excel.merge_cell(sheet, top_left_cell, bottom_right_cell)
     else:
-        excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
+        excel.merge_cell(sheet, top_left_cell, bottom_right_cell)
         assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet].merge_cells
 
 
