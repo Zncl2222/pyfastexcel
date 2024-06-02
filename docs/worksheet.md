@@ -212,5 +212,5 @@ The cell can be merge through the function
 | `bottom_right_cell` | str       | The index of the bottom right cell|
 
 ```python title='Merge Cells'
-ws.set_merge_cell('A1', 'B2')
+ws.merge_cell('A1', 'B2')
 ```

@@ -143,5 +143,5 @@ The cell can be merge through the function
 | `bottom_right_cell` | str       | The index of the bottom right cell|
 
 ```python title='Merge Cells'
-wb.set_merge_cell('New Sheet', 'A1', 'B2')
+wb.merge_cell('New Sheet', 'A1', 'B2')
 ```
