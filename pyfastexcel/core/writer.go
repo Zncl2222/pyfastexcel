@@ -165,6 +165,10 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 			file.NewSheet(sheet)
 			sheetCount++
 		}
+		autoFilters := data[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
+		for _, filter := range autoFilters {
+			file.AutoFilter(sheet, filter.(string), []excelize.AutoFilterOptions{})
+		}
 		streamWriter, _ := file.NewStreamWriter(sheet)
 
 		// CellWidtrh should be set before SetRow
