@@ -2,6 +2,7 @@ import pytest
 from openpyxl_style_writer import CustomStyle
 
 from pyfastexcel.utils import (
+    _separate_alpha_numeric,
     column_to_index,
     deprecated_warning,
     index_to_column,
@@ -76,3 +77,29 @@ def test_set_custom_style():
 
 def test_deprecated_warning():
     deprecated_warning('This is a Test')
+
+
+@pytest.mark.parametrize(
+    'index, error_type',
+    [
+        (';', ValueError),
+        ('~~', ValueError),
+    ],
+)
+def test_seperate_alpha_numeric_error(index, error_type):
+    with pytest.raises(error_type):
+        _separate_alpha_numeric(index)
+
+
+@pytest.mark.parametrize(
+    'index, alpha, num',
+    [
+        ('A1', 'A', '1'),
+        ('XD6', 'XD', '6'),
+        ('ZZ999', 'ZZ', '999'),
+    ],
+)
+def test_seperate_alpha_numeric(index, alpha, num):
+    a, n = _separate_alpha_numeric(index)
+    assert a == alpha
+    assert n == num

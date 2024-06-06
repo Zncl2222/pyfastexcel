@@ -48,9 +48,15 @@ def validate_and_format_value(
     return (value, 'DEFAULT_STYLE') if set_default_style else value
 
 
-def separate_alpha_numeric(input_string: str):
+def _separate_alpha_numeric(input_string: str) -> tuple[str, str]:
+    '''
+    Separate the alpha and numeric part of a string.
+    Return alpha_part at first index and num_part at second index.
+    '''
     alpha_part = re.findall(r'[a-zA-Z]+', input_string)
     num_part = re.findall(r'[0-9]+', input_string)
+    if len(alpha_part) == 0 or len(num_part) == 0:
+        raise ValueError(f'Invalid input string {input_string}.')
     return alpha_part[0], num_part[0]
 
 
@@ -91,13 +97,7 @@ def index_to_column(index: int) -> str:
 
 
 def excel_index_to_list_index(index: str) -> tuple[int, int]:
-    alpha, num = separate_alpha_numeric(index)
+    alpha, num = _separate_alpha_numeric(index)
     column = column_to_index(alpha)
     row = int(num)
     return row - 1, column - 1
-
-
-def extract_numeric_part(cell_location: str) -> str | None:
-    numeric_part = re.search(r'\d+', cell_location)
-    if numeric_part:
-        return numeric_part.group()

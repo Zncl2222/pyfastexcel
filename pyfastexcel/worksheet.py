@@ -6,11 +6,10 @@ from openpyxl_style_writer import CustomStyle
 
 from .style import StyleManager
 from .utils import (
+    _separate_alpha_numeric,
     column_to_index,
     deprecated_warning,
     excel_index_to_list_index,
-    extract_numeric_part,
-    separate_alpha_numeric,
     validate_and_format_value,
     validate_and_register_style,
 )
@@ -207,8 +206,8 @@ class WorkSheet:
         Returns:
             None
         """
-        top_alpha, top_number = separate_alpha_numeric(top_left_cell)
-        bottom_alpha, bottom_number = separate_alpha_numeric(bottom_right_cell)
+        top_alpha, top_number = _separate_alpha_numeric(top_left_cell)
+        bottom_alpha, bottom_number = _separate_alpha_numeric(bottom_right_cell)
         top_idx = column_to_index(top_alpha)
         bottom_idx = column_to_index(bottom_alpha)
 
@@ -339,8 +338,8 @@ class WorkSheet:
             raise TypeError('Key should be a string or slice.')
 
     def _get_cell_by_slice(self, cell_slice: slice) -> list[tuple]:
-        start_row = extract_numeric_part(cell_slice.start)
-        stop_row = extract_numeric_part(cell_slice.stop)
+        _, start_row = _separate_alpha_numeric(cell_slice.start)
+        _, stop_row = _separate_alpha_numeric(cell_slice.stop)
         if start_row != stop_row:
             raise ValueError('Only support row-wise slicing.')
         return self.data[int(start_row) - 1]
@@ -350,8 +349,8 @@ class WorkSheet:
         return self.data[row][col]
 
     def _extract_slice_indices(self, cell_slice: slice) -> tuple[int, int, int]:
-        start_row = extract_numeric_part(cell_slice.start)
-        stop_row = extract_numeric_part(cell_slice.stop)
+        _, start_row = _separate_alpha_numeric(cell_slice.start)
+        _, stop_row = _separate_alpha_numeric(cell_slice.stop)
         if start_row != stop_row:
             raise ValueError('Only support row-wise slicing.')
         start_row, start_col = excel_index_to_list_index(cell_slice.start)
