@@ -214,3 +214,19 @@ The cell can be merge through the function
 ```python title='Merge Cells'
 ws.merge_cell('A1', 'B2')
 ```
+
+## AutoFilter
+
+Create an auto filter in a worksheet.
+
+### Parameters
+
+| Parameter      | Data Type | Description                       |
+|----------------|-----------|-----------------------------------|
+| `target_range` | str       | The range where the auto filter will be applied. |
+
+### Example
+
+```python title='Auto Filter'
+ws.auto_filter("A1:C1")
+```

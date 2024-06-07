@@ -145,3 +145,20 @@ The cell can be merge through the function
 ```python title='Merge Cells'
 wb.merge_cell('New Sheet', 'A1', 'B2')
 ```
+
+## AutoFilter
+
+Create an auto filter in a worksheet.
+
+### Parameters
+
+| Parameter      | Data Type | Description                       |
+|----------------|-----------|-----------------------------------|
+| `sheet`        | str       | The sheet to applied auto filter  |
+| `target_range` | str       | The range where the auto filter will be applied. |
+
+### Example
+
+```python title='Auto Filter'
+wb.auto_filter("New Sheet", "A1:C1")
+```
