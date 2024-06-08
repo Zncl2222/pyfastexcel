@@ -101,3 +101,15 @@ def excel_index_to_list_index(index: str) -> tuple[int, int]:
     column = column_to_index(alpha)
     row = int(num)
     return row - 1, column - 1
+
+
+def _validate_excel_index(index: str) -> bool:
+    alpha, num = _separate_alpha_numeric(index)
+    num = int(num)
+    if not all(c in string.ascii_uppercase for c in alpha):
+        raise ValueError(f'Invalid column ({alpha}). Column should be in uppercase.')
+    if not _is_valid_column(alpha):
+        raise ValueError(f"Invalid column ({alpha}). Maximum Column is 'XFD'.")
+    if num < 1 or num > 16384:
+        raise ValueError(f'Invalid index ({num}). Index should less and equal to 16384.')
+    return True

@@ -118,7 +118,8 @@ func testExport(t *testing.T) {
 				],
 				"Height": {"3": 252},
 				"Width": {"1": 25, "2": 26, "3": 6},
-				"MergeCells": [["A1", "A2"], ["B2","C3"]]
+				"MergeCells": [["A1", "A2"], ["B2","C3"]],
+				"AutoFilter": []
 			}
 		}
 	}`

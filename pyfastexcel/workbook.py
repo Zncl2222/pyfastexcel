@@ -102,3 +102,7 @@ class Workbook(ExcelDriver):
     def merge_cell(self, sheet: str, top_left_cell: str, bottom_right_cell: str) -> None:
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_merge_cell(top_left_cell, bottom_right_cell)
+
+    def auto_filter(self, sheet: str, target_range: str) -> None:
+        self._check_if_sheet_exists(sheet)
+        self.workbook[sheet].auto_filter(target_range)

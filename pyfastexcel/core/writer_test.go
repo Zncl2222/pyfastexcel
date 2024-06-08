@@ -78,6 +78,7 @@ func init() {
 				"Height":     map[string]int{"3": 252},
 				"Width":      map[string]int{"1": 25, "2": 26, "3": 6},
 				"MergeCells": []interface{}{},
+				"AutoFilter": []interface{}{},
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -89,6 +90,7 @@ func init() {
 				},
 				"Height":     map[string]int{"3": 252},
 				"MergeCells": [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
+				"AutoFilter": []interface{}{},
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -100,6 +102,7 @@ func init() {
 				},
 				"Width":      map[string]int{"1": 25, "2": 26, "3": 6},
 				"MergeCells": []interface{}{},
+				"AutoFilter": []interface{}{},
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -110,6 +113,7 @@ func init() {
 					{{"Data4", "style1"}, {"Data5", "style1"}, {"Data6", "style1"}},
 				},
 				"MergeCells": [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
+				"AutoFilter": []interface{}{"A1:C1"},
 			},
 		},
 	}
@@ -147,6 +151,7 @@ func TestWriteExcel2(t *testing.T) {
 				{{"Data4", "style1"}, {"Data5", "style1"}, {"Data6", "style1"}},
 			},
 			"MergeCells": [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
+			"AutoFilter": []interface{}{"A1:C1"},
 		},
 	}
 	jsonData, err := json.Marshal(data)

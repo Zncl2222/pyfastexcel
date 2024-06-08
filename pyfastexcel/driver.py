@@ -69,13 +69,6 @@ class ExcelDriver:
     def sheet_list(self):
         return self._sheet_list
 
-    @classmethod
-    def reset_style_configs(cls):
-        cls.REGISTERED_STYLES = {'DEFAULT_STYLE': cls.DEFAULT_STYLE}
-        cls._STYLE_NAME_MAP = {}
-        cls._STYLE_ID = 0
-        cls._style_map = {}
-
     def save(self, path: str = './pyfastexcel.xlsx') -> None:
         if not hasattr(self, 'decoded_bytes'):
             self.read_lib_and_create_excel()
@@ -83,7 +76,7 @@ class ExcelDriver:
         with open(path, 'wb') as file:
             file.write(self.decoded_bytes)
 
-    def __getitem__(self, key: str) -> tuple:
+    def __getitem__(self, key: str) -> WorkSheet:
         return self.workbook[key]
 
     def _check_if_sheet_exists(self, sheet_name: str) -> None:

@@ -7,6 +7,7 @@ from openpyxl_style_writer import CustomStyle
 from .style import StyleManager
 from .utils import (
     _separate_alpha_numeric,
+    _validate_excel_index,
     column_to_index,
     deprecated_warning,
     excel_index_to_list_index,
@@ -72,6 +73,7 @@ class WorkSheet:
         self.merge_cells = []
         self.width = {}
         self.height = {}
+        self.auto_filter_set = set()
 
     def cell(
         self,
@@ -233,6 +235,26 @@ class WorkSheet:
 
         self.merge_cells.append((top_left_cell, bottom_right_cell))
 
+    def auto_filter(self, target_range: str) -> None:
+        """
+        Sets the auto filter for the specified range.
+
+        Args:
+            target_range (str): The target range to set the auto filter.
+
+        Raises:
+            ValueError: If the target range is invalid.
+
+        Returns:
+            None
+        """
+        if ':' not in target_range:
+            raise ValueError('Invalid target range. Target range should be in the format "A1:B2".')
+        target_list = target_range.split(':')
+        _validate_excel_index(target_list[0])
+        _validate_excel_index(target_list[1])
+        self.auto_filter_set.add(target_range)
+
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)
         data_col_len = len(self.data[0])
@@ -261,6 +283,7 @@ class WorkSheet:
             'MergeCells': self.merge_cells,
             'Width': self.width,
             'Height': self.height,
+            'AutoFilter': self.auto_filter_set,
         }
         return self.sheet
 
@@ -271,6 +294,7 @@ class WorkSheet:
             'MergeCells': [],
             'Width': {},
             'Height': {},
+            'AutoFilter': set(),
         }
 
     def _validate_value_and_set_default(self, value: Any):

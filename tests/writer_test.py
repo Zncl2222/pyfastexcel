@@ -173,6 +173,9 @@ class PyFastExcelStreamExample(StreamWriter, StyleCollections):
         self.row_append(['1', 2, 3])
         self.create_row()
 
+        # AutoFilter
+        self.auto_filter('Sheet1', 'A1:C1')
+
 
 def test_set_data_with_index():
     excel_example = PyFastExcelStreamExample([[None] * 1000 for _ in range(1000)])
@@ -291,7 +294,8 @@ def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_except
         with pytest.raises(expected_exception):
             excel.merge_cell(sheet, top_left_cell, bottom_right_cell)
     else:
-        excel.merge_cell(sheet, top_left_cell, bottom_right_cell)
+        # set_merge_cell will be remove in v1.0.0, use merge_cell instead
+        excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
         assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet].merge_cells
 
 

@@ -373,3 +373,39 @@ def test_set_style_error(target, expected_output):
 
     with pytest.raises(expected_output):
         ws.set_style(target, 'bold_font_style')
+
+
+@pytest.mark.parametrize(
+    'data_range, expected_result',
+    [
+        ('A1:J1', set(['A1:J1'])),
+        ('B1:J5', set(['B1:J5'])),
+        ('C2:D5', set(['C2:D5'])),
+    ],
+)
+def test_auto_filter(data_range, expected_result):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws[0] = [f'col{i}' for i in range(10)]
+    row = 1
+    for i in range(1, 9):
+        ws[i] = [row * (j + 1) for j in range(10)]
+        row += 1
+
+    ws.auto_filter(data_range)
+    assert ws.auto_filter_set == expected_result
+
+
+@pytest.mark.parametrize(
+    'data_range, expected_result',
+    [
+        ('A1J1', ValueError),
+        ('5', ValueError),
+        ('AAAAA', ValueError),
+    ],
+)
+def test_auto_filter_failed(data_range, expected_result):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    with pytest.raises(expected_result):
+        ws.auto_filter(data_range)
