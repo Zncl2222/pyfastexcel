@@ -48,6 +48,15 @@ class ExcelDriver:
         'Language': 'en-Us',
         'Version': '',
     }
+    _PROTECT_ALGORITHM = (
+        'XOR',
+        'MD4',
+        'MD5',
+        'SHA-1',
+        'SHA-256',
+        'SHA-384',
+        'SHA-512',
+    )
 
     def __init__(self):
         """
@@ -63,6 +72,7 @@ class ExcelDriver:
         self.sheet = 'Sheet1'
         self._sheet_list = tuple(['Sheet1'])
         self._dict_wb = {}
+        self.protection = {}
         self.style = StyleManager()
 
     @property
@@ -104,6 +114,7 @@ class ExcelDriver:
             'content': self._dict_wb,
             'file_props': self.file_props,
             'style': self.style._style_map,
+            'protection': self.protection,
         }
         json_data = msgspec.json.encode(results)
         create_excel = pyfastexcel.Export
