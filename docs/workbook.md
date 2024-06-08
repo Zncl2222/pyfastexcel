@@ -162,3 +162,24 @@ Create an auto filter in a worksheet.
 ```python title='Auto Filter'
 wb.auto_filter("New Sheet", "A1:C1")
 ```
+
+## WorkBook Protection
+
+Protect a workbook with a password using various encryption algorithms.
+The available options for the algorithm are XOR, MD4, MD5, SHA-1,
+SHA-256, SHA-384, and SHA-512.
+
+### Parameters
+
+| Parameter      | Data Type | Description                                   |
+|----------------|-----------|-----------------------------------------------|
+| `algorithm`    | str       | The encryption algorithm to use for protection. |
+| `password`     | str       | The password to protect the workbook.         |
+| `lock_structure` | bool      | Whether to lock the workbook structure.       |
+| `lock_windows` | bool      | Whether to lock the workbook windows.         |
+
+### Example
+
+```python title='WorkBook Protection'
+wb.protect_workbook("XOR", "12345", True, False)
+```
