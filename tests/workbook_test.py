@@ -409,3 +409,28 @@ def test_auto_filter_failed(data_range, expected_result):
     ws = wb['Sheet1']
     with pytest.raises(expected_result):
         ws.auto_filter(data_range)
+
+
+@pytest.mark.parametrize(
+    'algorithm, expected_result',
+    [
+        ('qwe', ValueError),
+        (123, ValueError),
+        ('XOR', None),
+        ('MD4', None),
+        ('MD5', None),
+        ('SHA-1', None),
+        ('SHA-256', None),
+        ('SHA-384', None),
+        ('SHA-512', None),
+    ],
+)
+def test_protect_workbook(algorithm, expected_result):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws['A1'] = 'test'
+    if expected_result is None:
+        wb.protect_workbook(algorithm, '12345', True, False)
+    else:
+        with pytest.raises(expected_result):
+            wb.protect_workbook(algorithm, '12345', True, False)
