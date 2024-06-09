@@ -66,6 +66,12 @@ func init() {
 			"Created":        "",
 			"Modified":       "",
 		},
+		"protection": map[string]interface{}{
+			"algorithm":      "XOR",
+			"password":       "12345",
+			"lock_structure": true,
+			"lock_windows":   false,
+		},
 		"content": map[string]interface{}{
 			"TestingSheet2": map[string]interface{}{
 				"Header": [][]string{

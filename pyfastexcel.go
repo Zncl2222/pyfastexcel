@@ -91,6 +91,7 @@ func testExport(t *testing.T) {
 				"CustomNumFmt": "0.00"
 			}
 		},
+		"protection": {},
 		"file_props": {
 			"Title": "Test Excel File",
 			"Creator": "Test User",

@@ -47,6 +47,9 @@ func WriteExcel(data string) string {
 	file := excelize.NewFile()
 	styleMap = CreateStyle(file, strJson["style"].(map[string]interface{}))
 	setFileProps(file, strJson["file_props"].(map[string]interface{}))
+	if len(strJson["protection"].(map[string]interface{})) != 0 {
+		setProtection(file, strJson["protection"].(map[string]interface{}))
+	}
 	writeContentBySheet(file, strJson["content"].(map[string]interface{}))
 
 	// Save data in buffer and encode binary data to base64
@@ -81,6 +84,24 @@ func setFileProps(file *excelize.File, config map[string]interface{}) {
 		Version:        config["Version"].(string),
 	})
 
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+// setProtection protect workbook with password
+//
+// Args:
+//
+//	file (*excelize.File): The Excel file object.
+//	config (map[string]interface{}): Map containing key-value pairs for protection properties.
+func setProtection(file *excelize.File, config map[string]interface{}) {
+	err := file.ProtectWorkbook(&excelize.WorkbookProtectionOptions{
+		AlgorithmName: config["algorithm"].(string),
+		Password:      config["password"].(string),
+		LockStructure: config["lock_structure"].(bool),
+		LockWindows:   config["lock_windows"].(bool),
+	})
 	if err != nil {
 		fmt.Println(err)
 	}

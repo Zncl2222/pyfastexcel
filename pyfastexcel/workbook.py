@@ -85,6 +85,22 @@ class Workbook(ExcelDriver):
             raise ValueError(f'Invalid file property: {key}')
         self.file_props[key] = value
 
+    def protect_workbook(
+        self,
+        algorithm: str,
+        password: str,
+        lock_structure: bool = False,
+        lock_windows: bool = False,
+    ):
+        if algorithm not in self._PROTECT_ALGORITHM:
+            raise ValueError(
+                f'Invalid algorithm, the options are {self._PROTECT_ALGORITHM}',
+            )
+        self.protection['algorithm'] = algorithm
+        self.protection['password'] = password
+        self.protection['lock_structure'] = lock_structure
+        self.protection['lock_windows'] = lock_windows
+
     def set_cell_width(self, sheet: str, col: str | int, value: int) -> None:
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_cell_width(col, value)
