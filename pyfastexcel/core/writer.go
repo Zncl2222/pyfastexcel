@@ -162,6 +162,19 @@ func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
 	}
 }
 
+// setAutoFilter applies an auto filter to a specific sheet in an Excel file using the provided Excelize file.
+//
+// Args:
+//
+//	file (*excelize.File): The Excelize file.
+//	sheet (string): The name of the sheet to apply the auto filter.
+//	autoFilters ([]interface{}): A slice of cell ranges where the auto filter will be applied.
+func setAutoFilter(file *excelize.File, sheet string, autoFilters []interface{}) {
+	for _, filter := range autoFilters {
+		file.AutoFilter(sheet, filter.(string), []excelize.AutoFilterOptions{})
+	}
+}
+
 // writeContentBySheet writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
@@ -186,10 +199,11 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 			file.NewSheet(sheet)
 			sheetCount++
 		}
+
+		// Set AutoFilters
 		autoFilters := data[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
-		for _, filter := range autoFilters {
-			file.AutoFilter(sheet, filter.(string), []excelize.AutoFilterOptions{})
-		}
+		setAutoFilter(file, sheet, autoFilters)
+
 		streamWriter, _ := file.NewStreamWriter(sheet)
 
 		// CellWidtrh should be set before SetRow
