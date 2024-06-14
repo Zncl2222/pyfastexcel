@@ -58,7 +58,7 @@ class ExcelDriver:
         'SHA-512',
     )
 
-    def __init__(self):
+    def __init__(self, plain_data: list[list[str]] = None):
         """
         Initializes the PyExcelizeDriver.
 
@@ -66,7 +66,7 @@ class ExcelDriver:
         current sheet, and style mappings.
         """
         self.workbook = {
-            'Sheet1': WorkSheet(),
+            'Sheet1': WorkSheet(plain_data=plain_data),
         }
         self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'

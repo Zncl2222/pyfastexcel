@@ -43,7 +43,7 @@ class Workbook(ExcelDriver):
         self._sheet_list = tuple(self.workbook.keys())
         self.sheet = self._sheet_list[0]
 
-    def create_sheet(self, sheet_name: str) -> None:
+    def create_sheet(self, sheet_name: str, plain_data: list[list] = None) -> None:
         """
         Creates a new sheet, and set it as current self.sheet.
 
@@ -52,7 +52,7 @@ class Workbook(ExcelDriver):
         """
         if self.workbook.get(sheet_name) is not None:
             raise ValueError(f'Sheet {sheet_name} already exists.')
-        self.workbook[sheet_name] = WorkSheet()
+        self.workbook[sheet_name] = WorkSheet(plain_data=plain_data)
         self.sheet = sheet_name
         self._sheet_list = tuple([x for x in self._sheet_list] + [sheet_name])
 
