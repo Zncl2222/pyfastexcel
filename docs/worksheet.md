@@ -15,9 +15,27 @@ ws = wb['Sheet1']
 
 You can also create a new `WorkSheet` by calling the `create_sheet(sheet_name: str)` function:
 
+| Parameter           | Data Type    | Description                                     |
+|---------------------|--------------|-------------------------------------------------|
+| `sheet_name`        | `str`        | Sheet Name                                      |
+| `plain_data`        | `list[list]` (Optional) | Row and Column to write the excel without style |
+
 ```python title="Create a new WorkSheet"
 wb.create_sheet('New Sheet')
 ws_new = wb['New Sheet']
+```
+
+If you don't need any style for the excel. You could also write the excel without any style with the following code **(This is the fastest way to write the excel)**:
+
+```python
+from pyfastexcel import Workbook
+
+
+data = [[1, 2, 3], [4, 5, 6, 7, 8]]
+# This will write the data into the default sheet 'Sheet1'
+wb = Workbook()
+wb.create_sheet('New Sheet', plain_data=data)
+wb.save('plain_data.xlsx')
 ```
 
 ## Assign a value to a cell

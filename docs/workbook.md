@@ -38,10 +38,24 @@ wb.read_lib_and_create_excel()
 wb.save(file_name)
 ```
 
-!!! note "Note"
-    `read_lib_and_create_excel()` should be called before saving the file.
-    This is the interface between Python and Golang. Without this step,
-    the Excel file won't be created.
+!!! note="Note"
+    `wb.save()` now will call `read_lib_and_create_excel()` automatically.
+
+If you don't need any style for the excel. You could also write the excel without any style with the following code **(This is the fastest way to write the excel)**:
+
+| Parameter           | Data Type    | Description                                     |
+|---------------------|--------------|-------------------------------------------------|
+| `plain_data`        | `list[list]` | Row and Column to write the excel without style |
+
+```python
+from pyfastexcel import Workbook
+
+
+data = [[1, 2, 3], [4, 5, 6, 7, 8]]
+# This will write the data into the default sheet 'Sheet1'
+wb = Workbook(plain_data=data)
+wb.save('plain_data.xlsx')
+```
 
 ## Create the WorkSheet
 
