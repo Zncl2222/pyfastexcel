@@ -216,30 +216,28 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 		// Write Data
 		startedRow := 1
 		excelData := sheetData["Data"].([]interface{})
+		if sheetData["NoStyle"] == false {
+			for i, rowData := range excelData {
+				for j, cellData := range rowData.([]interface{}) {
+					excelData[i].([]interface{})[j] = createCell(cellData.([]interface{}))
+				}
+			}
+		}
+
 		for i, rowData := range excelData {
 			row := rowData.([]interface{})
-			processedRow := make([]interface{}, len(row))
-			for j, cellData := range row {
-				cell := cellData.([]interface{})
-				processedRow[j] = createCell(cell)
-			}
-
-			cell, err := excelize.CoordinatesToCellName(1, i+startedRow)
-			if err != nil {
-				panic(err)
-			}
+			cell, _ := excelize.CoordinatesToCellName(1, i+startedRow)
 
 			// Write cell with Height if rowHeightMap key found
 			if rowHeight, ok := rowHeightMap[strconv.Itoa(i+startedRow)]; ok {
-				if err := streamWriter.SetRow(cell, processedRow, rowHeight); err != nil {
+				if err := streamWriter.SetRow(cell, row, rowHeight); err != nil {
 					fmt.Println(err)
 				}
 			} else {
-				if err := streamWriter.SetRow(cell, processedRow); err != nil {
+				if err := streamWriter.SetRow(cell, row); err != nil {
 					fmt.Println(err)
 				}
 			}
-
 		}
 
 		if err := streamWriter.Flush(); err != nil {

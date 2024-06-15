@@ -85,6 +85,7 @@ func init() {
 				"Width":      map[string]int{"1": 25, "2": 26, "3": 6},
 				"MergeCells": []interface{}{},
 				"AutoFilter": []interface{}{},
+				"NoStyle":    false,
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -97,6 +98,7 @@ func init() {
 				"Height":     map[string]int{"3": 252},
 				"MergeCells": [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
 				"AutoFilter": []interface{}{},
+				"NoStyle":    false,
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -109,6 +111,7 @@ func init() {
 				"Width":      map[string]int{"1": 25, "2": 26, "3": 6},
 				"MergeCells": []interface{}{},
 				"AutoFilter": []interface{}{},
+				"NoStyle":    false,
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -120,6 +123,7 @@ func init() {
 				},
 				"MergeCells": [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
 				"AutoFilter": []interface{}{"A1:C1"},
+				"NoStyle":    false,
 			},
 		},
 	}

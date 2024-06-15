@@ -59,7 +59,7 @@ class WorkSheet:
             index. Raises TypeError if index_supported is False.
     """
 
-    def __init__(self):
+    def __init__(self, plain_data: list[list[str]] = None):
         """
         Initializes a WorkSheet instance.
 
@@ -74,6 +74,15 @@ class WorkSheet:
         self.width = {}
         self.height = {}
         self.auto_filter_set = set()
+
+        if plain_data is not None:
+            if not isinstance(plain_data, list):
+                raise TypeError('PlainData should be a 2D-list.')
+            for row in plain_data:
+                if not isinstance(row, list):
+                    raise TypeError('PlainData should be a 2D-list.')
+            self.data = plain_data
+            self.sheet['NoStyle'] = True
 
     def cell(
         self,
@@ -295,6 +304,7 @@ class WorkSheet:
             'Width': {},
             'Height': {},
             'AutoFilter': set(),
+            'NoStyle': False,
         }
 
     def _validate_value_and_set_default(self, value: Any):

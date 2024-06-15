@@ -434,3 +434,30 @@ def test_protect_workbook(algorithm, expected_result):
     else:
         with pytest.raises(expected_result):
             wb.protect_workbook(algorithm, '12345', True, False)
+
+
+def test_workbook_plain_data():
+    plain_data = [[1, 2, 3, 4, 5], [6, 2, 9, 10]]
+    wb = Workbook(plain_data=plain_data)
+    wb.read_lib_and_create_excel()
+
+    with pytest.raises(TypeError):
+        Workbook(plain_data='failed')
+
+    with pytest.raises(TypeError):
+        Workbook(plain_data=['failed'])
+
+
+def test_worksheet_plain_data():
+    plain_data = [[1, 2, 3, 4, 5], [6, 2, 9, 10]]
+    wb = Workbook()
+    wb.create_sheet('New Sheet', plain_data=plain_data)
+    wb.read_lib_and_create_excel()
+
+    plain_data = 12
+    with pytest.raises(TypeError):
+        wb.create_sheet('New Sheet2', plain_data=plain_data)
+
+    plain_data = '123'
+    with pytest.raises(TypeError):
+        wb.create_sheet('New Sheet3', plain_data=plain_data)
