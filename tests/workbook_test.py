@@ -461,3 +461,14 @@ def test_worksheet_plain_data():
     plain_data = '123'
     with pytest.raises(TypeError):
         wb.create_sheet('New Sheet3', plain_data=plain_data)
+
+    with pytest.raises(ValueError):
+        wb.create_sheet('neew', plain_data=plain_data, pre_allocate='123')
+
+
+def test_pre_allocate():
+    pre_allocate = {'n_rows': 1000, 'n_cols': 20}
+    wb = Workbook(pre_allocate=pre_allocate)
+
+    wb.create_sheet('new', pre_allocate=pre_allocate)
+    wb.read_lib_and_create_excel()
