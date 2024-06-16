@@ -9,6 +9,11 @@ through the Workbook class.
 By default, pyfastexcel creates `Sheet1` as the default sheet when the workbook is created.
 You can access the worksheet through an index, as shown in the code snippet below:
 
+| Parameter           | Data Type    | Description                                     |
+|---------------------|--------------|-------------------------------------------------|
+| `pre_allocate`      | `dict[str, int]` | Pre-allocate the memory space of given row and column numbers |
+| `plain_data`        | `list[list]` | Row and Column to write the excel without style |
+
 ```python
 from pyfastexcel import Workbook
 
@@ -41,11 +46,20 @@ wb.save(file_name)
 !!! note="Note"
     `wb.save()` now will call `read_lib_and_create_excel()` automatically.
 
-If you don't need any style for the excel. You could also write the excel without any style with the following code **(This is the fastest way to write the excel)**:
+If you know the dimension of the data you want to write. You can use `pre_allocate`
+to pre_allocate the memory space of the pyfastexcel to improve the performance.
 
-| Parameter           | Data Type    | Description                                     |
-|---------------------|--------------|-------------------------------------------------|
-| `plain_data`        | `list[list]` | Row and Column to write the excel without style |
+```python
+from pyfastexcel import Workbook
+
+
+pre_allocate = {'n_rows': 1000, 'n_cols': 10}
+# This will pre_allocate the memory space of the pyfastexcel
+wb = Workbook(pre_allocate=pre_allocate)
+wb.save('pre_allocate.xlsx')
+```
+
+If you don't need any style for the excel. You could also write the excel without any style with the following code **(This is the fastest way to write the excel)**:
 
 ```python
 from pyfastexcel import Workbook
@@ -56,6 +70,9 @@ data = [[1, 2, 3], [4, 5, 6, 7, 8]]
 wb = Workbook(plain_data=data)
 wb.save('plain_data.xlsx')
 ```
+
+!!! note="Note"
+    "You can only specify either `pre_allocate` or `plain_data` at a time, not both.
 
 ## Create the WorkSheet
 
