@@ -59,7 +59,7 @@ class WorkSheet:
             index. Raises TypeError if index_supported is False.
     """
 
-    def __init__(self, plain_data: list[list[str]] = None):
+    def __init__(self, pre_allocated: dict[str, int] = None, plain_data: list[list[str]] = None):
         """
         Initializes a WorkSheet instance.
 
@@ -74,6 +74,14 @@ class WorkSheet:
         self.width = {}
         self.height = {}
         self.auto_filter_set = set()
+        import time
+
+        s = time.perf_counter()
+        if pre_allocated:
+            self.data = [[None] * pre_allocated['col_numbers']] * pre_allocated['row_numbers']
+        e = time.perf_counter()
+        print('total = ', e - s)
+        self.ttt = 0
 
         if plain_data is not None:
             if not isinstance(plain_data, list):
@@ -267,6 +275,10 @@ class WorkSheet:
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)
         data_col_len = len(self.data[0])
+
+        if data_row_len > target_row and len(self.data[target_row]) > target_col:
+            return
+
         # Case when the memory space of self.data row is enough
         # but the memory space of the target_col is not enough
         if data_row_len > target_row:
