@@ -43,16 +43,26 @@ class Workbook(ExcelDriver):
         self._sheet_list = tuple(self.workbook.keys())
         self.sheet = self._sheet_list[0]
 
-    def create_sheet(self, sheet_name: str, plain_data: list[list] = None) -> None:
+    def create_sheet(
+        self,
+        sheet_name: str,
+        pre_allocate: dict[str, int] = None,
+        plain_data: list[list] = None,
+    ) -> None:
         """
         Creates a new sheet, and set it as current self.sheet.
 
         Args:
             sheet_name (str): The name of the new sheet.
+            pre_allocate (dict[str, int], optional): A dictionary containing
+                'n_rows' and 'n_cols' keys specifying the dimensions
+                for pre-allocating data in new sheet.
+            plain_data (list[list[str]], optional): A 2D list of strings
+                representing initial data to populate new sheet.
         """
         if self.workbook.get(sheet_name) is not None:
             raise ValueError(f'Sheet {sheet_name} already exists.')
-        self.workbook[sheet_name] = WorkSheet(plain_data=plain_data)
+        self.workbook[sheet_name] = WorkSheet(pre_allocate=pre_allocate, plain_data=plain_data)
         self.sheet = sheet_name
         self._sheet_list = tuple([x for x in self._sheet_list] + [sheet_name])
 
