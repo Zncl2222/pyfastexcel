@@ -76,7 +76,7 @@ If you prefer to build the package manually, follow these steps:
 
 ## Usage
 
-The index assignment is now avaliable in `Workbook` and the `FastWriter`.
+The index assignment is now avaliable in `Workbook` and the `StreamWriter`.
 Here is the example usage:
 
 ```python
@@ -122,8 +122,8 @@ if __name__ == '__main__':
 
 ```
 
-You can also using the `FastWriter` or `NormalWriter` which was the
-subclass of `Workbook` to write excel row by row, see the more in documentations [quickstart](https://pyfastexcel.readthedocs.io/en/stable/quickstart/).
+You can also using the `StreamWriter` which was the
+subclass of `Workbook` to write excel row by row, see more in [StreamWriter](https://pyfastexcel.readthedocs.io/en/stable/writer/).
 
 ## Documentation
 
