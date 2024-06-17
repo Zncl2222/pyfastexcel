@@ -6,6 +6,12 @@ The Worksheet is the core component of the application. It stores cell values, f
 
 The default `WorkSheet` 'Sheet1' is created when the `Workbook` is created. You can access the `WorkSheet` through an index, as shown in the code snippet below:
 
+| Parameter           | Data Type    | Description                                     |
+|---------------------|--------------|-------------------------------------------------|
+| `sheet_name`        | `str`        | Sheet Name                                      |
+| `pre_allocate`      | `dict[str, int]` | Pre-allocate the memory space of given row and column numbers |
+| `plain_data`        | `list[list]` (Optional) | Row and Column to write the excel without style |
+
 ```python title="Access the default WorkSheet"
 from pyfastexcel import Workbook
 
@@ -15,14 +21,23 @@ ws = wb['Sheet1']
 
 You can also create a new `WorkSheet` by calling the `create_sheet(sheet_name: str)` function:
 
-| Parameter           | Data Type    | Description                                     |
-|---------------------|--------------|-------------------------------------------------|
-| `sheet_name`        | `str`        | Sheet Name                                      |
-| `plain_data`        | `list[list]` (Optional) | Row and Column to write the excel without style |
 
 ```python title="Create a new WorkSheet"
 wb.create_sheet('New Sheet')
 ws_new = wb['New Sheet']
+```
+
+If you know the dimension of the data you want to write. You can use `pre_allocate`
+to pre_allocate the memory space of the pyfastexcel to improve the performance.
+
+```python
+from pyfastexcel import Workbook
+
+
+pre_allocate = {'n_rows': 1000, 'n_cols': 10}
+# This will pre_allocate the memory space of the pyfastexcel
+wb = Workbook(pre_allocate=pre_allocate)
+wb.save('pre_allocate.xlsx')
 ```
 
 If you don't need any style for the excel. You could also write the excel without any style with the following code **(This is the fastest way to write the excel)**:
@@ -37,6 +52,9 @@ wb = Workbook()
 wb.create_sheet('New Sheet', plain_data=data)
 wb.save('plain_data.xlsx')
 ```
+
+!!! note="Note"
+    "You can only specify either `pre_allocate` or `plain_data` at a time, not both.
 
 ## Assign a value to a cell
 

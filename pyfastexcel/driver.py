@@ -58,15 +58,22 @@ class ExcelDriver:
         'SHA-512',
     )
 
-    def __init__(self, plain_data: list[list[str]] = None):
+    def __init__(self, pre_allocate: dict[str, int] = None, plain_data: list[list[str]] = None):
         """
-        Initializes the PyExcelizeDriver.
+        Initializes the Workbook with default settings and initializes Sheet1.
 
-        It initializes the Excel data, file properties, default sheet,
-        current sheet, and style mappings.
+        It initializes the workbook structure with Sheet1 as the default sheet,
+        sets default file properties, initializes current sheet and sheet list,
+        and initializes dictionaries for workbook and protection settings.
+
+        Args:
+            pre_allocate (dict[str, int], optional): A dictionary containing 'n_rows' and 'n_cols'
+                keys specifying the dimensions for pre-allocating data in Sheet1.
+            plain_data (list[list[str]], optional): A 2D list of strings representing initial data
+                to populate Sheet1.
         """
         self.workbook = {
-            'Sheet1': WorkSheet(plain_data=plain_data),
+            'Sheet1': WorkSheet(pre_allocate=pre_allocate, plain_data=plain_data),
         }
         self.file_props = self._get_default_file_props()
         self.sheet = 'Sheet1'

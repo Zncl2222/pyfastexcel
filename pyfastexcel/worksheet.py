@@ -59,13 +59,33 @@ class WorkSheet:
             index. Raises TypeError if index_supported is False.
     """
 
-    def __init__(self, plain_data: list[list[str]] = None):
+    def __init__(self, pre_allocate: dict[str, int] = None, plain_data: list[list[str]] = None):
         """
-        Initializes a WorkSheet instance.
+        Initializes a WorkSheet instance with optional pre-allocation of data or initialization
+        with plain data.
 
         Args:
-            index_supported (bool, optional): A flag indicating whether
-                index-based access is supported. Defaults to False.
+            pre_allocate (dict[str, int], optional): A dictionary containing 'n_rows' and 'n_cols'
+                keys specifying the dimensions for pre-allocating data.
+                This can enhancement the performance when you need to write a large excel
+            plain_data (list[list[str]], optional): A 2D list of strings representing the
+                initial data to populate the worksheet.
+
+        Notes:
+            If both `pre_allocate` and `plain_data` are provided, `plain_data` takes precedence.
+
+        Attributes:
+            sheet (dict): Default sheet settings.
+            data (list[list]): The main data structure holding worksheet contents.
+            header (list): List of header row items.
+            merge_cells (list): List of merged cell coordinates.
+            width (dict): Column widths.
+            height (dict): Row heights.
+            auto_filter_set (set): Set of auto-filter settings.
+
+        Raises:
+            TypeError: If `plain_data` is provided but is not a valid 2D list of strings.
+
         """
         self.sheet = self._get_default_sheet()
         self.data = [[('', 'DEFAULT_STYLE')]]
@@ -75,12 +95,30 @@ class WorkSheet:
         self.height = {}
         self.auto_filter_set = set()
 
+        if plain_data is not None and pre_allocate is not None:
+            raise ValueError(
+                "You can only specify either 'pre_allocate' or 'plain_data' at a time, not both.",
+            )
+
+        if pre_allocate is not None:
+            if (
+                not isinstance(pre_allocate, dict)
+                or 'n_rows' not in pre_allocate
+                or 'n_cols' not in pre_allocate
+            ):
+                raise TypeError('Invalid pre_allocate dictionary format.')
+            if not isinstance(pre_allocate['n_rows'], int) or not isinstance(
+                pre_allocate['n_cols'],
+                int,
+            ):
+                raise TypeError('n_rows and n_cols must be integers.')
+            self.data = [[None] * pre_allocate['n_cols'] for _ in range(pre_allocate['n_rows'])]
+
         if plain_data is not None:
-            if not isinstance(plain_data, list):
-                raise TypeError('PlainData should be a 2D-list.')
-            for row in plain_data:
-                if not isinstance(row, list):
-                    raise TypeError('PlainData should be a 2D-list.')
+            if not isinstance(plain_data, list) or any(
+                not isinstance(row, list) for row in plain_data
+            ):
+                raise TypeError('plain_data should be a valid 2D list of strings.')
             self.data = plain_data
             self.sheet['NoStyle'] = True
 
@@ -267,6 +305,10 @@ class WorkSheet:
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)
         data_col_len = len(self.data[0])
+
+        if data_row_len > target_row and len(self.data[target_row]) > target_col:
+            return
+
         # Case when the memory space of self.data row is enough
         # but the memory space of the target_col is not enough
         if data_row_len > target_row:
