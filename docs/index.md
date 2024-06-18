@@ -8,15 +8,6 @@
 [![codecov](https://codecov.io/gh/Zncl2222/pyfastexcel/graph/badge.svg?token=6I03AWUUWL)](https://codecov.io/gh/Zncl2222/pyfastexcel)
 [![Documentation Status](https://readthedocs.org/projects/pyfastexcel/badge/?version=stable)](https://pyfastexcel.readthedocs.io/en/stable/?badge=stable)
 
----
-**Date:**         May 10, 2024
-
-**Version:**      0.0.7
-
-**Project Link:** <https://github.com/Zncl2222/pyfastexcel>
-
----
-
 This package enables high-performance Excel writing by integrating with the
 streaming API from the golang package
 [excelize](https://github.com/qax-os/excelize). Users can leverage this
@@ -133,5 +124,6 @@ columns (Total 1500000 cells). To see more benchmark results, please
 see the [benchmark](https://pyfastexcel.readthedocs.io/en/stable/benchmark/).
 
 <dev align='center'>
-    <img src='../images/50000+30_horizontal.png' width="80%" height="45%" >
+    <img src='./images/50000_30_horizontal_Windows11.png'
+        width="80%" height="45%" >
 </dev>
