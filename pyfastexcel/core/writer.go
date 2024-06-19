@@ -175,6 +175,35 @@ func setAutoFilter(file *excelize.File, sheet string, autoFilters []interface{})
 	}
 }
 
+// setPanes configures the pane settings for a specific sheet in an Excel file using the provided Excelize file.
+//
+// Args:
+//
+//	file (*excelize.File): The Excelize file.
+//	sheet (string): The name of the sheet to configure the panes.
+//	panes (map[string]interface{}): A map containing the pane settings, including freeze, split, x_split, y_split, top_left_cell, active_pane, and selection.
+func setPanes(file *excelize.File, sheet string, panes map[string]interface{}) {
+	if len(panes) != 0 {
+		var selection []excelize.Selection
+		for _, val := range panes["selection"].([]interface{}) {
+			selection = append(selection, excelize.Selection{
+				SQRef:      val.(map[string]interface{})["sq_ref"].(string),
+				ActiveCell: val.(map[string]interface{})["active_cell"].(string),
+				Pane:       val.(map[string]interface{})["pane"].(string),
+			})
+		}
+		file.SetPanes(sheet, &excelize.Panes{
+			Freeze:      panes["freeze"].(bool),
+			Split:       panes["split"].(bool),
+			XSplit:      int(panes["x_split"].(float64)),
+			YSplit:      int(panes["y_split"].(float64)),
+			TopLeftCell: panes["top_left_cell"].(string),
+			ActivePane:  panes["active_pane"].(string),
+			Selection:   selection,
+		})
+	}
+}
+
 // writeContentBySheet writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
@@ -199,6 +228,10 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 			file.NewSheet(sheet)
 			sheetCount++
 		}
+
+		// Set Panes
+		panes := data[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
+		setPanes(file, sheet, panes)
 
 		// Set AutoFilters
 		autoFilters := data[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
