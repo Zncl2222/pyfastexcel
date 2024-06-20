@@ -219,6 +219,9 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 		if sheetData["NoStyle"] == false {
 			for i, rowData := range excelData {
 				for j, cellData := range rowData.([]interface{}) {
+					if cellData == nil {
+						continue
+					}
 					excelData[i].([]interface{})[j] = createCell(cellData.([]interface{}))
 				}
 			}
