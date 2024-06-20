@@ -335,6 +335,7 @@ class WorkSheet:
             'Width': self.width,
             'Height': self.height,
             'AutoFilter': self.auto_filter_set,
+            'NoStyle': self.sheet['NoStyle'],
         }
         return self.sheet
 
