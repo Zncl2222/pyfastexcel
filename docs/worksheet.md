@@ -266,3 +266,50 @@ Create an auto filter in a worksheet.
 ```python title='Auto Filter'
 ws.auto_filter("A1:C1")
 ```
+
+## Set Panes
+
+Configure the pane settings for a specific sheet in an Excel file using the provided Excelize file.
+
+### Parameters
+
+| Parameter      | Data Type                | Description                                     |
+|----------------|--------------------------|-------------------------------------------------|
+| `freeze`       | bool                     | Determines if the panes are frozen.              |
+| `split`        | bool                     | Determines if the panes are split.               |
+| `x_split`      | int                      | The horizontal position where the panes are split, or the column index that should be frozen. |
+| `y_split`      | int                      | The vertical position where the panes are split, or the row index that should be frozen.  |
+| `top_left_cell`| str                      | The cell at the top left of the visible window.   |
+| `active_pane`  | str                      | The active pane.                                 |
+| `selection`    | list[dict[str, str]]     | The selection settings for panes.                |
+
+!!! note "Key of selection"
+    The key of the selection is `sq_ref`, `active_cell`, and `pane`. `sq_ref` and `active_cell`
+    should be a cell reference, and `pane` should be one of the `topLeft`, `topRight`, `bottomLeft`, and `bottomRight`.
+
+!!! note "Options of active_pane"
+    The options for `active_pane` and are `topLeft`, `topRight`, `bottomLeft`, and `bottomRight`.
+
+!!! note "Note"
+    When `freeze` is set to `true`, `x_split` and `y_split` represent the column or row index where the panes are
+    frozen. When `split` is set to `true`, `x_split` and `y_split` represent the pixel position where the panes are split.
+
+### Example
+
+```python title='Panes Configuration'
+ws.set_panes(
+    freeze=True,
+    split=False,
+    x_split=0,
+    y_split=0,
+    top_left_cell="A1",
+    active_pane="topRight",
+    selection=[
+        {
+            "sq_ref": "A1",
+            "active_cell": "A1",
+            "pane": "topRight",
+        }
+    ],
+)
+```
