@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pyfastexcel.driver import ExcelDriver, WorkSheet
 from pyfastexcel.utils import deprecated_warning
 
@@ -132,3 +134,25 @@ class Workbook(ExcelDriver):
     def auto_filter(self, sheet: str, target_range: str) -> None:
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].auto_filter(target_range)
+
+    def set_panes(
+        self,
+        sheet: str,
+        freeze: bool = False,
+        split: bool = False,
+        x_split: int = 0,
+        y_split: int = 0,
+        top_left_cell: str = '',
+        active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = '',
+        selection: list[dict[str, str]] = None,
+    ) -> None:
+        self._check_if_sheet_exists(sheet)
+        self.workbook[sheet].set_panes(
+            freeze=freeze,
+            split=split,
+            x_split=x_split,
+            y_split=y_split,
+            top_left_cell=top_left_cell,
+            active_pane=active_pane,
+            selection=selection,
+        )

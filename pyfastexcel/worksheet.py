@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from openpyxl_style_writer import CustomStyle
 
@@ -93,6 +93,7 @@ class WorkSheet:
         self.merge_cells = []
         self.width = {}
         self.height = {}
+        self.panes = {}
         self.auto_filter_set = set()
 
         if plain_data is not None and pre_allocate is not None:
@@ -302,6 +303,37 @@ class WorkSheet:
         _validate_excel_index(target_list[1])
         self.auto_filter_set.add(target_range)
 
+    def set_panes(
+        self,
+        freeze: bool = False,
+        split: bool = False,
+        x_split: int = 0,
+        y_split: int = 0,
+        top_left_cell: str = '',
+        active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = '',
+        selection: list[dict[str, str]] = None,
+    ) -> None:
+        if x_split < 0 or y_split < 0:
+            raise ValueError('Split position should be positive.')
+        if top_left_cell != '':
+            _validate_excel_index(top_left_cell)
+        if active_pane not in ['bottomLeft', 'bottomRight', 'topLeft', 'topRight', '']:
+            raise ValueError(
+                'Invalid active pane. The options are bottomLeft, bottomRight, topLeft, topRight.',
+            )
+
+        if selection is None:
+            selection = []
+        self.panes = {
+            'freeze': freeze,
+            'split': split,
+            'x_split': x_split,
+            'y_split': y_split,
+            'top_left_cell': top_left_cell,
+            'active_pane': active_pane,
+            'selection': selection,
+        }
+
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)
         data_col_len = len(self.data[0])
@@ -336,6 +368,7 @@ class WorkSheet:
             'Height': self.height,
             'AutoFilter': self.auto_filter_set,
             'NoStyle': self.sheet['NoStyle'],
+            'Panes': self.panes,
         }
         return self.sheet
 
@@ -347,6 +380,7 @@ class WorkSheet:
             'Width': {},
             'Height': {},
             'AutoFilter': set(),
+            'Panes': {},
             'NoStyle': False,
         }
 

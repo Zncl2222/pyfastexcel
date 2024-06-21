@@ -471,4 +471,113 @@ def test_pre_allocate():
     wb = Workbook(pre_allocate=pre_allocate)
 
     wb.create_sheet('new', pre_allocate=pre_allocate)
+
+    with pytest.raises(TypeError):
+        wb.create_sheet('new1', pre_allocate={})
+    with pytest.raises(TypeError):
+        wb.create_sheet('new1', pre_allocate={'n_rows': [], 'n_cols': 20})
+    with pytest.raises(TypeError):
+        wb.create_sheet('new1', pre_allocate={'n_rows': 10, 'n_cols': 'asdf'})
+
+
+def test_freeze_set_panes():
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws[0] = [1, 2, 3]
+    ws[1] = [4, 5, 6]
+
+    ws.set_panes(
+        freeze=True,
+        x_split=6,
+        top_left_cell='H1',
+        active_pane='topRight',
+    )
+
     wb.read_lib_and_create_excel()
+
+
+def test_split_set_panes():
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws[0] = [1, 2, 3]
+    ws[1] = [4, 5, 6]
+
+    wb.set_panes(
+        'Sheet1',
+        split=True,
+        x_split=6200,
+        y_split=9999,
+        top_left_cell='N11',
+        active_pane='bottomLeft',
+        selection=[{'sq_ref': 'G36', 'active_cell': 'G36', 'pane': 'topRight'}],
+    )
+
+    ws.set_panes(
+        split=True,
+        x_split=6200,
+        y_split=9999,
+        top_left_cell='N11',
+        active_pane='bottomLeft',
+        selection=[{'sq_ref': 'G36', 'active_cell': 'G36', 'pane': 'topRight'}],
+    )
+
+    wb.read_lib_and_create_excel()
+
+
+@pytest.mark.parametrize(
+    'top_left_cell, expected_result',
+    [
+        ('qwe', ValueError),
+        (123, TypeError),
+        ('XFDDDD1', ValueError),
+        ('X99999999999999', ValueError),
+    ],
+)
+def test_set_panes_failed_top_left_cell(top_left_cell, expected_result):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    with pytest.raises(expected_result):
+        ws.set_panes(
+            top_left_cell=top_left_cell,
+        )
+
+
+@pytest.mark.parametrize(
+    'x_split, expected_result',
+    [
+        (-15, ValueError),
+        (-999, ValueError),
+    ],
+)
+def test_set_panes_failed_x_split_and_y_split(x_split, expected_result):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    with pytest.raises(expected_result):
+        ws.set_panes(
+            x_split=x_split,
+        )
+
+    with pytest.raises(expected_result):
+        ws.set_panes(
+            y_split=x_split,
+        )
+
+
+@pytest.mark.parametrize(
+    'active_pane, expected_result',
+    [
+        ('qwe', ValueError),
+        (787, ValueError),
+        ('hqllw', ValueError),
+    ],
+)
+def test_set_panes_failed_active_pane(active_pane, expected_result):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    with pytest.raises(expected_result):
+        ws.set_panes(
+            active_pane=active_pane,
+        )
