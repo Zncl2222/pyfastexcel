@@ -15,24 +15,9 @@ repos:
     hooks:
     -   id: setup-cfg-fmt
         args: [--include-version-classifiers]
--   repo: https://github.com/asottile/add-trailing-comma
-    rev: v3.1.0
-    hooks:
-    -   id: add-trailing-comma
-        args: [--py36-plus]
--   repo: https://github.com/psf/black
-    rev: 23.11.0
-    hooks:
-    -   id: black
-        args: [--line-length=100, --skip-string-normalization]
--   repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
-    hooks:
-    -   id: flake8
-        language_version: python3
-        args: [--max-line-length=100, --extend-ignore=E203]
--   repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-    -   id: isort
-        args: ["--profile", "black", "--filter-files"]
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.4.10
+  hooks:
+    - id: ruff
+      args: [ --fix ]
+    - id: ruff-format
