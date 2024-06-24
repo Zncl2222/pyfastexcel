@@ -92,11 +92,11 @@ func TestCreateStyle(t *testing.T) {
 		"style2": 2,
 	}
 	expectedStyles2 := map[string]int{
-		"style1": 1,
 		"style2": 2,
+		"style1": 1,
 	}
 
-	if ! (reflect.DeepEqual(styleMap, expectedStyles) || reflect.DeepEqual(styleMap, expectedStyles2)) {
+	if !(reflect.DeepEqual(styleMap, expectedStyles) || reflect.DeepEqual(styleMap, expectedStyles2)) {
 		t.Errorf("Expected style map %#v, but got %#v", expectedStyles, styleMap)
 	}
 }

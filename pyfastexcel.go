@@ -122,6 +122,7 @@ func testExport(t *testing.T) {
 				"MergeCells": [["A1", "A2"], ["B2","C3"]],
 				"AutoFilter": [],
 				"Panes":      {},
+				"DataValidation": [],
 				"NoStyle": "false"
 			}
 		}
