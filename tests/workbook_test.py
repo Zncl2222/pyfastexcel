@@ -188,8 +188,8 @@ def test_worksheet_row_get_and_set(index, value_list, expected_output):
     [
         ([('1', '2', '3')]),
         (('1', 3, 2)),
-        (('1')),
-        ((1)),
+        (tuple(['1'])),
+        (tuple([1])),
     ],
 )
 def test_set_worksheet_with_wrong_format(cell_value):
