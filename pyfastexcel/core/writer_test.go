@@ -81,12 +81,13 @@ func init() {
 					{{"Data1", "style1"}, {"Data2", "style1"}, {"Data3", "style1"}},
 					{{"Data4", "style1"}, {"Data5", "style1"}, {"Data6", "style1"}},
 				},
-				"Height":     map[string]int{"3": 252},
-				"Width":      map[string]int{"1": 25, "2": 26, "3": 6},
-				"MergeCells": []interface{}{},
-				"AutoFilter": []interface{}{},
-				"Panes":      map[string]interface{}{},
-				"NoStyle":    false,
+				"Height":         map[string]int{"3": 252},
+				"Width":          map[string]int{"1": 25, "2": 26, "3": 6},
+				"MergeCells":     []interface{}{},
+				"AutoFilter":     []interface{}{},
+				"Panes":          map[string]interface{}{},
+				"DataValidation": []interface{}{},
+				"NoStyle":        false,
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -100,7 +101,11 @@ func init() {
 				"MergeCells": [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
 				"AutoFilter": []interface{}{},
 				"Panes":      map[string]interface{}{},
-				"NoStyle":    false,
+				"DataValidation": []interface{}{map[string]interface{}{
+					"sq_ref":    "A1",
+					"set_range": "B1",
+					"drop_list": []string{"123", "qwe"}}},
+				"NoStyle": false,
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -110,11 +115,12 @@ func init() {
 					{{"Data1", "style1"}, {"Data2", "style1"}, {"Data3", "style1"}},
 					{{"Data4", "style1"}, {"Data5", "style1"}, {"Data6", "style1"}},
 				},
-				"Width":      map[string]int{"1": 25, "2": 26, "3": 6},
-				"MergeCells": []interface{}{},
-				"AutoFilter": []interface{}{},
-				"Panes":      map[string]interface{}{},
-				"NoStyle":    false,
+				"Width":          map[string]int{"1": 25, "2": 26, "3": 6},
+				"MergeCells":     []interface{}{},
+				"AutoFilter":     []interface{}{},
+				"Panes":          map[string]interface{}{},
+				"DataValidation": []interface{}{map[string]interface{}{"sq_ref": "A1", "sqref_drop_list": "A1:B1"}},
+				"NoStyle":        false,
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -127,7 +133,13 @@ func init() {
 				"MergeCells": [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
 				"AutoFilter": []interface{}{"A1:C1"},
 				"Panes":      map[string]interface{}{},
-				"NoStyle":    false,
+				"DataValidation": []interface{}{map[string]interface{}{
+					"sq_ref":      "A1",
+					"error_title": "err_test",
+					"error_body":  "err_body",
+					"input_title": "input_test",
+					"input_body":  "input_body"}},
+				"NoStyle": false,
 			},
 		},
 	}
@@ -164,10 +176,11 @@ func TestWriteExcel2(t *testing.T) {
 				{{"Data1", "style1"}, {"Data2", "style1"}, {"Data3", "style1"}},
 				{{"Data4", "style1"}, {"Data5", "style1"}, {"Data6", "style1"}},
 			},
-			"MergeCells": [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
-			"AutoFilter": []interface{}{"A1:C1"},
-			"Panes":      map[string]interface{}{},
-			"NoStyle":    false,
+			"MergeCells":     [][]interface{}{{"A1", "A2"}, {"B2", "C3"}},
+			"AutoFilter":     []interface{}{"A1:C1"},
+			"Panes":          map[string]interface{}{},
+			"DataValidation": []interface{}{},
+			"NoStyle":        false,
 		},
 	}
 	jsonData, err := json.Marshal(data)

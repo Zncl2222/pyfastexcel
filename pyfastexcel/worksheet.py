@@ -95,6 +95,7 @@ class WorkSheet:
         self.height = {}
         self.panes = {}
         self.auto_filter_set = set()
+        self.data_validation_set = []
 
         if plain_data is not None and pre_allocate is not None:
             raise ValueError(
@@ -334,6 +335,78 @@ class WorkSheet:
             'selection': selection,
         }
 
+    def set_data_validation(
+        self,
+        sq_ref: str = '',
+        set_range: list[int | float] = None,
+        input_msg: list[str] = None,
+        drop_list: list[str] | str = None,
+        error_msg: list[str] = None,
+    ):
+        """
+        Set data validation for the specified range.
+
+        Args:
+            sq_ref (str): The range to set the data validation.
+            set_range (list[int | float]): The range of values to set the data validation.
+            input (list[str]): The input message for the data validation.
+            drop_list (list[str] | str): The drop list for the data validation.
+            error (list[str]): The error message for the data validation.
+
+        Raises:
+            ValueError: If the range is invalid.
+
+        Returns:
+            None
+        """
+        if ':' in sq_ref:
+            sq_ref_list = sq_ref.split(':')
+            _validate_excel_index(sq_ref_list[0])
+            _validate_excel_index(sq_ref_list[1])
+        else:
+            _validate_excel_index(sq_ref)
+
+        drop_list_key = 'drop_list'
+        if isinstance(drop_list, str):
+            if ':' not in drop_list:
+                raise ValueError(
+                    'Invalid drop list. Sequential Reference'
+                    'Drop list should be in the format "A1:B2".',
+                )
+            drop_list_split = drop_list.split(':')
+            _validate_excel_index(drop_list_split[0])
+            _validate_excel_index(drop_list_split[1])
+            drop_list_key = 'sqref_drop_list'
+        elif drop_list is not None:
+            if not isinstance(drop_list, list):
+                raise ValueError('Drop list should be a list of strings.')
+            drop_list = [str(x) for x in drop_list]
+
+        dv = {}
+        dv['sq_ref'] = sq_ref
+        if set_range is not None:
+            if not isinstance(set_range, list) or len(set_range) != 2:
+                raise ValueError('Set range should be a list of two elements. Like [1, 10].')
+            dv['set_range'] = set_range
+        if input_msg is not None:
+            if not isinstance(input_msg, list) or len(input_msg) != 2:
+                raise ValueError(
+                    'Input message should be a list of two elements. Like ["Title", "Body"].',
+                )
+            dv['input_title'] = input_msg[0]
+            dv['input_body'] = input_msg[1]
+        if drop_list is not None:
+            dv[drop_list_key] = drop_list
+        if error_msg is not None:
+            if not isinstance(error_msg, list) or len(error_msg) != 2:
+                raise ValueError(
+                    'Error message should be a list of two elements. Like ["Title", "Body"].',
+                )
+            dv['error_title'] = error_msg[0]
+            dv['error_body'] = error_msg[1]
+
+        self.data_validation_set.append(dv)
+
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)
         data_col_len = len(self.data[0])
@@ -367,8 +440,9 @@ class WorkSheet:
             'Width': self.width,
             'Height': self.height,
             'AutoFilter': self.auto_filter_set,
-            'NoStyle': self.sheet['NoStyle'],
             'Panes': self.panes,
+            'DataValidation': self.data_validation_set,
+            'NoStyle': self.sheet['NoStyle'],
         }
         return self.sheet
 
@@ -381,6 +455,7 @@ class WorkSheet:
             'Height': {},
             'AutoFilter': set(),
             'Panes': {},
+            'DataValidation': [],
             'NoStyle': False,
         }
 

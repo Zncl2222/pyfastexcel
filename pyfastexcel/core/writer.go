@@ -204,6 +204,65 @@ func setPanes(file *excelize.File, sheet string, panes map[string]interface{}) {
 	}
 }
 
+// setDataValidation configures the data validation rules for a specific sheet in an Excel file using the provided Excelize file.
+//
+// Args:
+//
+//	file (*excelize.File): The Excelize file.
+//	sheet (string): The name of the sheet to configure the data validation rules.
+//	validation ([]interface{}): A slice containing the data validation settings,
+//		each represented as a map with keys like sq_ref, set_range_start, set_range_stop,
+//		input_title, input_body, error_title, error_body, drop_list, and sqref_drop_list.
+func setDataValidation(file *excelize.File, sheet string, validation []interface{}) {
+	dv := excelize.NewDataValidation(true)
+	for _, v := range validation {
+		dv.SetSqref(v.(map[string]interface{})["sq_ref"].(string))
+
+		_, setRangeStart := v.(map[string]interface{})["set_range_start"]
+		_, setRangeStope := v.(map[string]interface{})["set_range_stop"]
+		if setRangeStart && setRangeStope {
+			dv.SetRange(
+				v.(map[string]interface{})["set_range_start"],
+				v.(map[string]interface{})["set_range_stop"],
+				excelize.DataValidationTypeWhole,
+				excelize.DataValidationOperatorBetween,
+			)
+		}
+
+		_, inputTitle := v.(map[string]interface{})["input_title"]
+		_, inputBody := v.(map[string]interface{})["input_body"]
+		if inputTitle && inputBody {
+			dv.SetInput(
+				v.(map[string]interface{})["input_title"].(string),
+				v.(map[string]interface{})["input_body"].(string),
+			)
+		}
+
+		_, errorTitle := v.(map[string]interface{})["error_title"]
+		_, errorBody := v.(map[string]interface{})["error_body"]
+		if errorTitle && errorBody {
+			dv.SetError(
+				excelize.DataValidationErrorStyleStop,
+				v.(map[string]interface{})["error_title"].(string),
+				v.(map[string]interface{})["error_body"].(string),
+			)
+		}
+
+		if _, ok := v.(map[string]interface{})["drop_list"]; ok {
+			dropList := make([]string, len(v.(map[string]interface{})["drop_list"].([]interface{})))
+			for _, dropItem := range v.(map[string]interface{})["drop_list"].([]interface{}) {
+				dropList = append(dropList, dropItem.(string))
+			}
+			dv.SetDropList(dropList)
+		}
+		if _, ok := v.(map[string]interface{})["sqref_drop_list"]; ok {
+			dv.SetSqrefDropList(v.(map[string]interface{})["sqref_drop_list"].(string))
+		}
+
+		file.AddDataValidation(sheet, dv)
+	}
+}
+
 // writeContentBySheet writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
@@ -228,6 +287,9 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 			file.NewSheet(sheet)
 			sheetCount++
 		}
+
+		// Set DataValidations
+		setDataValidation(file, sheet, sheetData["DataValidation"].([]interface{}))
 
 		// Set Panes
 		panes := data[sheet].(map[string]interface{})["Panes"].(map[string]interface{})

@@ -156,3 +156,21 @@ class Workbook(ExcelDriver):
             active_pane=active_pane,
             selection=selection,
         )
+
+    def set_data_validation(
+        self,
+        sheet: str,
+        sq_ref: str = '',
+        set_range: list[int | float] = None,
+        input_msg: list[str] = None,
+        drop_list: list[str] | str = None,
+        error_msg: list[str] = None,
+    ):
+        self._check_if_sheet_exists(sheet)
+        self.workbook[sheet].set_data_validation(
+            sq_ref=sq_ref,
+            set_range=set_range,
+            input_msg=input_msg,
+            drop_list=drop_list,
+            error_msg=error_msg,
+        )

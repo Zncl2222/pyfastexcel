@@ -581,3 +581,108 @@ def test_set_panes_failed_active_pane(active_pane, expected_result):
         ws.set_panes(
             active_pane=active_pane,
         )
+
+
+@pytest.mark.parametrize(
+    'sq_ref, set_range, drop_list, input_msg, error_msg',
+    [
+        (
+            'A1',
+            [2, 9],
+            ['2', 3, 4, 5],
+            ['input_title', 'input_body'],
+            ['error_title', 'error_body'],
+        ),
+        ('A1', [2, 9], ['2', 3, 4, 5], ['input_title', 'input_body'], ''),
+        ('A1:A5', [2, 9], 'B1:B5', '', ['error_title', 'error_body']),
+    ],
+)
+def test_set_data_validation(sq_ref, set_range, drop_list, input_msg, error_msg):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws['B1'] = 'B1'
+    ws['B2'] = 'B2'
+    ws['B3'] = 'B3'
+    ws['B4'] = 'B4'
+    ws['B5'] = 'B5'
+    kwargs = {}
+    if set_range:
+        kwargs['set_range'] = set_range
+    if drop_list:
+        kwargs['drop_list'] = drop_list
+    if input_msg:
+        kwargs['input_msg'] = input_msg
+    if error_msg:
+        kwargs['error_msg'] = error_msg
+
+    ws.set_data_validation(
+        sq_ref=sq_ref,
+        **kwargs,
+    )
+    wb.set_data_validation(
+        'Sheet1',
+        sq_ref=sq_ref,
+        **kwargs,
+    )
+
+
+@pytest.mark.parametrize(
+    'drop_list, expected_resp',
+    [
+        ('A2', ValueError),
+        ('XFD11', ValueError),
+        (123, ValueError),
+    ],
+)
+def test_set_data_validation_drop_list_error(drop_list, expected_resp):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    with pytest.raises(expected_resp):
+        ws.set_data_validation(
+            sq_ref='A1',
+            drop_list=drop_list,
+        )
+
+
+@pytest.mark.parametrize(
+    'set_range, expected_resp',
+    [
+        ('A2', ValueError),
+        ([], ValueError),
+        (12, ValueError),
+    ],
+)
+def test_set_data_validation__set_range_error(set_range, expected_resp):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    with pytest.raises(expected_resp):
+        ws.set_data_validation(
+            sq_ref='A1',
+            set_range=set_range,
+        )
+
+
+@pytest.mark.parametrize(
+    'input_msg, error_msg, expected_resp',
+    [
+        ('title', 'title', ValueError),
+        (1, 'title', ValueError),
+        ('title', 2, ValueError),
+    ],
+)
+def test_set_data_validation_msg_error(input_msg, error_msg, expected_resp):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    with pytest.raises(expected_resp):
+        ws.set_data_validation(
+            sq_ref='A1',
+            error_msg=error_msg,
+        )
+
+    with pytest.raises(expected_resp):
+        ws.set_data_validation(
+            sq_ref='A1',
+            input_msg=input_msg,
+        )

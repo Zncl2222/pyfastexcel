@@ -313,3 +313,37 @@ ws.set_panes(
     ],
 )
 ```
+
+## Set Data Validation
+
+Set data validation for a specified range in a worksheet.
+
+### Parameters
+
+| Parameter      | Data Type                | Description                                                             |
+|----------------|--------------------------|-------------------------------------------------------------------------|
+| `sq_ref`       | str                      | The range to set the data validation.                                   |
+| `set_range`    | list[int or float]       | The range of values to set the data validation.                         |
+| `input_msg`    | list[str]                | The input message for the data validation. Must be a list with two elements: [Title, Body]. |
+| `drop_list`    | list[str] or str         | The drop list for the data validation. Can be a list of strings or a range in the format "A1:B2".  |
+| `error_msg`    | list[str]                | The error message for the data validation. Must be a list with two elements: [Title, Body]. |
+
+
+### Example
+
+```python title='Set Data Validation'
+# Example 1: Setting data validation with a specified range, input message, drop-down list, and error message
+ws.set_data_validation(
+    sq_ref="A1:B2",
+    set_range=[1, 10],
+    input_msg=["Input Title", "Input Body"],
+    drop_list=["Option1", "Option2", "Option3"],
+    error_msg=["Error Title", "Error Body"]
+)
+
+# Example 2: Setting data validation with a drop-down list based on cell values
+ws.set_data_validation(
+    sq_ref="A1:B2",
+    drop_list="C1:C5",
+)
+```
