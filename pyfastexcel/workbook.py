@@ -174,3 +174,25 @@ class Workbook(ExcelDriver):
             drop_list=drop_list,
             error_msg=error_msg,
         )
+
+    def add_comment(
+        self,
+        sheet: str,
+        cell: str,
+        author: str,
+        text: str | dict[str, str] | list[str | dict[str, str]],
+    ) -> None:
+        """
+        Adds a comment to the specified cell.
+        Args:
+            sheet (str): The name of the sheet.
+            cell (str): The cell location to add the comment.
+            author (str): The author of the comment.
+            text (str | dict[str, str] | list[str | dict[str, str]]): The text of the comment.
+        Raises:
+            ValueError: If the cell location is invalid.
+        Returns:
+            None
+        """
+        self._check_if_sheet_exists(sheet)
+        self.workbook[sheet].add_comment(cell, author, text)
