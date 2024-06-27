@@ -686,3 +686,42 @@ def test_set_data_validation_msg_error(input_msg, error_msg, expected_resp):
             sq_ref='A1',
             input_msg=input_msg,
         )
+
+
+@pytest.mark.parametrize(
+    'cell, author, text',
+    [
+        ('A1', 'Author', 'qqwwee'),
+        ('B4', 'qwe', [{'text': 'tqer', 'bold': True, 'color': 'FF0000'}]),
+        (
+            'B9',
+            'aaa',
+            [{'text': 'tqer', 'bold': True, 'color': 'FF0000'}, {'text': 'hello', 'italic': True}],
+        ),
+        ('B9', 'aaa', [{'text': 'tqer', 'bold': True}, 'qweasd']),
+        ('B9', 'aaa', {'text': 'tqer', 'bold': True}),
+    ],
+)
+def test_add_comment(cell, author, text):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    wb.add_comment('Sheet1', cell, author, text)
+    ws.add_comment(cell, author, text)
+    wb.read_lib_and_create_excel()
+
+
+@pytest.mark.parametrize(
+    'text',
+    [(12321), ([['qwd']]), ([1102]), ({'qwe': 123}), ([{'qq': 'ad'}])],
+)
+def test_add_comment_failed_text(text):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    with pytest.raises(ValueError):
+        ws.add_comment(
+            'A1',
+            'author',
+            text,
+        )
