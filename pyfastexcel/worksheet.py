@@ -94,6 +94,7 @@ class WorkSheet:
         self.width = {}
         self.height = {}
         self.panes = {}
+        self.comment = []
         self.auto_filter_set = set()
         self.data_validation_set = []
 
@@ -407,6 +408,39 @@ class WorkSheet:
 
         self.data_validation_set.append(dv)
 
+    def add_comment(
+        self,
+        cell: str,
+        author: str,
+        text: str | dict[str, str] | list[str | dict[str, str]],
+    ) -> None:
+        """
+        Adds a comment to the specified cell.
+        Args:
+            cell (str): The cell location to add the comment.
+            author (str): The author of the comment.
+            text (str | dict[str, str] | list[str | dict[str, str]]): The text of the comment.
+        Raises:
+            ValueError: If the cell location is invalid.
+        Returns:
+            None
+        """
+        _validate_excel_index(cell)
+        text = [text] if isinstance(text, str) else text if isinstance(text, list) else [text]
+        if all(isinstance(item, (dict, str)) for item in text):
+            for idx, item in enumerate(text):
+                if isinstance(item, str):
+                    text[idx] = {'text': item}
+                else:
+                    if 'text' not in item:
+                        raise ValueError('Comment text should contain the key "text".')
+                    text[idx] = {
+                        k[0].upper() + k[1:] if k != 'text' else k: v for k, v in item.items()
+                    }
+        else:
+            raise ValueError('Comment text should be a string or a list of dictionaries.')
+        self.comment.append({'cell': cell, 'author': author, 'paragraph': text})
+
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)
         data_col_len = len(self.data[0])
@@ -443,6 +477,7 @@ class WorkSheet:
             'Panes': self.panes,
             'DataValidation': self.data_validation_set,
             'NoStyle': self.sheet['NoStyle'],
+            'Comment': self.comment,
         }
         return self.sheet
 
@@ -457,6 +492,7 @@ class WorkSheet:
             'Panes': {},
             'DataValidation': [],
             'NoStyle': False,
+            'Comment': [],
         }
 
     def _validate_value_and_set_default(self, value: Any):

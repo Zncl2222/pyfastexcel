@@ -123,6 +123,7 @@ func testExport(t *testing.T) {
 				"AutoFilter": [],
 				"Panes":      {},
 				"DataValidation": [],
+				"Comment":    [],
 				"NoStyle": "false"
 			}
 		}

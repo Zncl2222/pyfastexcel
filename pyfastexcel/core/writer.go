@@ -263,6 +263,36 @@ func setDataValidation(file *excelize.File, sheet string, validation []interface
 	}
 }
 
+// addComment adds comments to specific cells in an Excel file using the provided Excelize file.
+//
+// Args:
+//
+// file (*excelize.File): The Excelize file.
+// sheet (string): The name of the sheet to add the comments.
+// comment ([]interface{}): An array containing the comment data, including the cell, author, and paragraph.
+func addComment(file *excelize.File, sheet string, comment []interface{}) {
+	for _, c := range comment {
+		paragraph := make([]excelize.RichTextRun, 0)
+		commentData := c.(map[string]interface{})
+		for _, p := range commentData["paragraph"].([]interface{}) {
+			fontStyle := getFontStyle(p.(map[string]interface{}))
+			paragraph = append(
+				paragraph,
+				excelize.RichTextRun{
+					Text: p.(map[string]interface{})["text"].(string),
+					Font: fontStyle,
+				},
+			)
+		}
+		file.AddComment(sheet, excelize.Comment{
+			Cell:      commentData["cell"].(string),
+			Author:    commentData["author"].(string),
+			Paragraph: paragraph,
+		},
+		)
+	}
+}
+
 // writeContentBySheet writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
@@ -290,6 +320,9 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 
 		// Set DataValidations
 		setDataValidation(file, sheet, sheetData["DataValidation"].([]interface{}))
+
+		// Add Comment
+		addComment(file, sheet, sheetData["Comment"].([]interface{}))
 
 		// Set Panes
 		panes := data[sheet].(map[string]interface{})["Panes"].(map[string]interface{})

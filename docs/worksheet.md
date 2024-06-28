@@ -328,7 +328,6 @@ Set data validation for a specified range in a worksheet.
 | `drop_list`    | list[str] or str         | The drop list for the data validation. Can be a list of strings or a range in the format "A1:B2".  |
 | `error_msg`    | list[str]                | The error message for the data validation. Must be a list with two elements: [Title, Body]. |
 
-
 ### Example
 
 ```python title='Set Data Validation'
@@ -347,3 +346,62 @@ ws.set_data_validation(
     drop_list="C1:C5",
 )
 ```
+
+## Add Comment
+
+Adds a comment to the specified cell.
+
+### Parameters
+
+| Parameter  | Data Type                                 | Description                                           |
+|------------|-------------------------------------------|-------------------------------------------------------|
+| `cell`     | `str`                                       | The cell location to add the comment.                 |
+| `author`   | `str`                                       | The author of the comment.                            |
+| `text`     | `str` or `dict[str, str]` or `list[str or dict[str, str]]` | The text of the comment, and it's font style|
+
+### Example
+
+```python title='Add Comment'
+# Add a comment to cell A1, and use string as the comment text
+ws.add_comment("A1", "pyfastexcel", "This is a comment.")
+
+# Add a comment to cell A1, and use dictionary as the comment text and set the font style
+ws.add_comment("A1", "pyfastexcel", {"text": "This is a comment.", 'bold': True, 'italic': True})
+
+# Add a comment to cell A1, and use list of dictionary as the comment text and set the font style
+# This will create "This is a comment" with bold and italic font style, and "This is another comment" with bold and red color font style.
+ws.add_comment(
+    "A1",
+    "pyfastexcel",
+    [
+        {
+            "text": "This is a comment.",
+            'bold': True,
+            'italic': True
+        },
+        {
+            "text": "This is another comment.",
+            'bold': True,
+            'color': 'FF0000'
+        }
+    ]
+)
+```
+
+Here is the `key words of the comment when using the dictionary`:
+
+| Key            | Data Type | Description                       |
+|----------------|-----------|-----------------------------------|
+| `text`         | str       | The text of the comment.          |
+| `size`         | int       | The font size of the comment text. |
+| `name`         | str       | The font name of the comment text. |
+| `bold`         | bool      | Sets the comment text to bold. |
+| `italic`       | bool      | Sets the comment text to italic. |
+| `underline`    | str       | Sets the underline style of the comment text. |
+| `strike`       | bool      | Sets whether the comment text is strike through. |
+| `vertAlign`    | str       | Sets the vertical alignment of the comment text. |
+| `color`        | str       | Sets the font color of the comment text. |
+
+
+!!! note "Note"
+    The `text` parameter can be a string, a dictionary, or a list of dictionaries. If it is a string, it will be treated as the comment text. If it is a dictionary, it should contain the key `text` with the comment's text as the corresponding value. If it is a list of dictionaries, each dictionary should contain the key `text` with the comment's text as the corresponding value.

@@ -87,7 +87,11 @@ func init() {
 				"AutoFilter":     []interface{}{},
 				"Panes":          map[string]interface{}{},
 				"DataValidation": []interface{}{},
-				"NoStyle":        false,
+				"Comment": []interface{}{map[string]interface{}{
+					"cell":      "A1",
+					"author":    "author",
+					"paragraph": []interface{}{map[string]interface{}{"text": "text", "bold": true}}}},
+				"NoStyle": false,
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -106,6 +110,7 @@ func init() {
 					"set_range": "B1",
 					"drop_list": []string{"123", "qwe"}}},
 				"NoStyle": false,
+				"Comment": []interface{}{},
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -120,6 +125,7 @@ func init() {
 				"AutoFilter":     []interface{}{},
 				"Panes":          map[string]interface{}{},
 				"DataValidation": []interface{}{map[string]interface{}{"sq_ref": "A1", "sqref_drop_list": "A1:B1"}},
+				"Comment":        []interface{}{},
 				"NoStyle":        false,
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
@@ -139,6 +145,7 @@ func init() {
 					"error_body":  "err_body",
 					"input_title": "input_test",
 					"input_body":  "input_body"}},
+				"Comment": []interface{}{},
 				"NoStyle": false,
 			},
 		},
@@ -180,6 +187,7 @@ func TestWriteExcel2(t *testing.T) {
 			"AutoFilter":     []interface{}{"A1:C1"},
 			"Panes":          map[string]interface{}{},
 			"DataValidation": []interface{}{},
+			"Comment":        []interface{}{},
 			"NoStyle":        false,
 		},
 	}
