@@ -20,10 +20,9 @@ class ExcelDriver:
     A driver class to write data to Excel files using custom styles.
 
     ### Attributes:
-        BORDER_TO_INDEX (dict[str, int]): Mapping of border styles to excelize's
-        corresponding index.
         _FILE_PROPS (dict[str, str]): Default file properties for the Excel
         file.
+        _PROTECT_ALGORITHM (tuple[str]): Algorithm for the workbook protection
 
     ### Methods:
         __init__(): Initializes the ExcelDriver.

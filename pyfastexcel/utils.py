@@ -61,6 +61,9 @@ def _separate_alpha_numeric(input_string: str) -> tuple[str, str]:
 
 
 def _is_valid_column(column: str) -> bool:
+    """
+    Validate the alphabet part of the column.
+    """
     column = column.upper()
     index = 0
     for c in column:
@@ -69,6 +72,9 @@ def _is_valid_column(column: str) -> bool:
 
 
 def column_to_index(column: str) -> int:
+    """
+    Translate the column name to the column index.
+    """
     if not isinstance(column, str):
         raise TypeError(f'Invalid type ({type(column)}). Column should be a string.')
     if len(column) > 3:
@@ -85,6 +91,9 @@ def column_to_index(column: str) -> int:
 
 
 def index_to_column(index: int) -> str:
+    """
+    Translate the index to the column name.
+    """
     if not isinstance(index, int):
         raise TypeError(f'Invalid type ({type(index)}). Index should be a string.')
     if index < 1 or index > 16384:
@@ -96,14 +105,17 @@ def index_to_column(index: int) -> str:
     return name
 
 
-def excel_index_to_list_index(index: str) -> tuple[int, int]:
+def cell_reference_to_index(index: str) -> tuple[int, int]:
+    """
+    Return the row and column index of the given Excel cell reference.
+    """
     alpha, num = _separate_alpha_numeric(index)
     column = column_to_index(alpha)
     row = int(num)
     return row - 1, column - 1
 
 
-def _validate_excel_index(index: str) -> bool:
+def _validate_cell_reference(index: str) -> bool:
     alpha, num = _separate_alpha_numeric(index)
     num = int(num)
     if not all(c in string.ascii_uppercase for c in alpha):
