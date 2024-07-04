@@ -7,10 +7,10 @@ from openpyxl_style_writer import CustomStyle
 from .style import StyleManager
 from .utils import (
     _separate_alpha_numeric,
-    _validate_excel_index,
+    _validate_cell_reference,
     column_to_index,
     deprecated_warning,
-    excel_index_to_list_index,
+    cell_reference_to_index,
     validate_and_format_value,
     validate_and_register_style,
 )
@@ -195,7 +195,7 @@ class WorkSheet:
 
     def _apply_style_to_string_target(self, target: str, style: str):
         if ':' not in target:
-            row, col = excel_index_to_list_index(target)
+            row, col = cell_reference_to_index(target)
             self.data[row][col] = (self.data[row][col][0], style)
         else:
             target_slice = target.split(':')
@@ -301,8 +301,8 @@ class WorkSheet:
         if ':' not in target_range:
             raise ValueError('Invalid target range. Target range should be in the format "A1:B2".')
         target_list = target_range.split(':')
-        _validate_excel_index(target_list[0])
-        _validate_excel_index(target_list[1])
+        _validate_cell_reference(target_list[0])
+        _validate_cell_reference(target_list[1])
         self.auto_filter_set.add(target_range)
 
     def set_panes(
@@ -318,7 +318,7 @@ class WorkSheet:
         if x_split < 0 or y_split < 0:
             raise ValueError('Split position should be positive.')
         if top_left_cell != '':
-            _validate_excel_index(top_left_cell)
+            _validate_cell_reference(top_left_cell)
         if active_pane not in ['bottomLeft', 'bottomRight', 'topLeft', 'topRight', '']:
             raise ValueError(
                 'Invalid active pane. The options are bottomLeft, bottomRight, topLeft, topRight.',
@@ -362,10 +362,10 @@ class WorkSheet:
         """
         if ':' in sq_ref:
             sq_ref_list = sq_ref.split(':')
-            _validate_excel_index(sq_ref_list[0])
-            _validate_excel_index(sq_ref_list[1])
+            _validate_cell_reference(sq_ref_list[0])
+            _validate_cell_reference(sq_ref_list[1])
         else:
-            _validate_excel_index(sq_ref)
+            _validate_cell_reference(sq_ref)
 
         drop_list_key = 'drop_list'
         if isinstance(drop_list, str):
@@ -375,8 +375,8 @@ class WorkSheet:
                     'Drop list should be in the format "A1:B2".',
                 )
             drop_list_split = drop_list.split(':')
-            _validate_excel_index(drop_list_split[0])
-            _validate_excel_index(drop_list_split[1])
+            _validate_cell_reference(drop_list_split[0])
+            _validate_cell_reference(drop_list_split[1])
             drop_list_key = 'sqref_drop_list'
         elif drop_list is not None:
             if not isinstance(drop_list, list):
@@ -425,7 +425,7 @@ class WorkSheet:
         Returns:
             None
         """
-        _validate_excel_index(cell)
+        _validate_cell_reference(cell)
         text = [text] if isinstance(text, str) else text if isinstance(text, list) else [text]
         if all(isinstance(item, (dict, str)) for item in text):
             for idx, item in enumerate(text):
@@ -567,7 +567,7 @@ class WorkSheet:
         return self.data[int(start_row) - 1]
 
     def _get_cell_by_location(self, key: str) -> tuple:
-        row, col = excel_index_to_list_index(key)
+        row, col = cell_reference_to_index(key)
         return self.data[row][col]
 
     def _extract_slice_indices(self, cell_slice: slice) -> tuple[int, int, int]:
@@ -575,8 +575,8 @@ class WorkSheet:
         _, stop_row = _separate_alpha_numeric(cell_slice.stop)
         if start_row != stop_row:
             raise ValueError('Only support row-wise slicing.')
-        start_row, start_col = excel_index_to_list_index(cell_slice.start)
-        _, col_stop = excel_index_to_list_index(cell_slice.stop)
+        start_row, start_col = cell_reference_to_index(cell_slice.start)
+        _, col_stop = cell_reference_to_index(cell_slice.stop)
         self._expand_row_and_cols(start_row, col_stop)
         return start_row, start_col, col_stop
 
@@ -596,7 +596,7 @@ class WorkSheet:
         self.data[row] = value
 
     def _set_cell_by_location(self, key: str, value: Any) -> None:
-        row, col = excel_index_to_list_index(key)
+        row, col = cell_reference_to_index(key)
         value = self._validate_value_and_set_default(value)
         try:
             self.data[row][col] = value

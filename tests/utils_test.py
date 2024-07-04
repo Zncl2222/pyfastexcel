@@ -3,7 +3,7 @@ from openpyxl_style_writer import CustomStyle
 
 from pyfastexcel.utils import (
     _separate_alpha_numeric,
-    _validate_excel_index,
+    _validate_cell_reference,
     column_to_index,
     deprecated_warning,
     index_to_column,
@@ -118,6 +118,6 @@ def test_seperate_alpha_numeric(index, alpha, num):
         ('A16385', ValueError),
     ],
 )
-def test_validate_excel_index(index, error_type):
+def test_validate_cell_reference(index, error_type):
     with pytest.raises(error_type):
-        _validate_excel_index(index)
+        _validate_cell_reference(index)
