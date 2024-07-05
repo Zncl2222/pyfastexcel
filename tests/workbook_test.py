@@ -106,6 +106,45 @@ def test_invalid_assignment(input_data, expected_exception):
             ],
         ),
         (slice('A1', 'G100'), [1, 2, 3], ValueError),
+        (
+            'A1:E1',
+            [2, 6, 7, 8, 9],
+            [
+                (2, 'DEFAULT_STYLE'),
+                (6, 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (8, 'DEFAULT_STYLE'),
+                (9, 'DEFAULT_STYLE'),
+            ],
+        ),
+        (
+            'B6:F6',
+            ['qwe', 6, 7, -8, 'hello'],
+            [
+                ('', 'DEFAULT_STYLE'),
+                ('qwe', 'DEFAULT_STYLE'),
+                (6, 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (-8, 'DEFAULT_STYLE'),
+                ('hello', 'DEFAULT_STYLE'),
+            ],
+        ),
+        (
+            'E100:I100',
+            [('qwe', 'bold_font_style'), 6, 7, -8, 'hello'],
+            [
+                ('', 'DEFAULT_STYLE'),
+                ('', 'DEFAULT_STYLE'),
+                ('', 'DEFAULT_STYLE'),
+                ('', 'DEFAULT_STYLE'),
+                ('qwe', 'bold_font_style'),
+                (6, 'DEFAULT_STYLE'),
+                (7, 'DEFAULT_STYLE'),
+                (-8, 'DEFAULT_STYLE'),
+                ('hello', 'DEFAULT_STYLE'),
+            ],
+        ),
+        ('A1:G100', [1, 2, 3], ValueError),
     ],
 )
 def test_workbook_slice(row_slice, value_list, expected_output):

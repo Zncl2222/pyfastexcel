@@ -8,6 +8,7 @@ from pyfastexcel.utils import (
     deprecated_warning,
     index_to_column,
     set_custom_style,
+    transfer_string_slice_to_slice,
 )
 
 
@@ -121,3 +122,16 @@ def test_seperate_alpha_numeric(index, alpha, num):
 def test_validate_cell_reference(index, error_type):
     with pytest.raises(error_type):
         _validate_cell_reference(index)
+
+
+@pytest.mark.parametrize(
+    'target, expected_results',
+    [
+        ('A1:B1', slice('A1', 'B1')),
+        ('XFC1:XFD1', slice('XFC1', 'XFD1')),
+        ('A12312:B12312', slice('A12312', 'B12312')),
+    ],
+)
+def test_transfer_string_slice_to_slice(target, expected_results):
+    res = transfer_string_slice_to_slice(target)
+    assert res == expected_results
