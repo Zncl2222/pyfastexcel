@@ -48,6 +48,17 @@ def validate_and_format_value(
     return (value, 'DEFAULT_STYLE') if set_default_style else value
 
 
+def transfer_string_slice_to_slice(string_slice: str) -> slice:
+    '''
+    Transfer a string slice to a slice object.
+    For example, 'A1:B2' will be transfered to slice(1, 2, 1).
+    '''
+    start, end = string_slice.split(':')
+    alpha_start, row_start = _separate_alpha_numeric(start)
+    alpha_end, row_end = _separate_alpha_numeric(end)
+    return slice(f'{alpha_start}{row_start}', f'{alpha_end}{row_end}')
+
+
 def _separate_alpha_numeric(input_string: str) -> tuple[str, str]:
     '''
     Separate the alpha and numeric part of a string.
