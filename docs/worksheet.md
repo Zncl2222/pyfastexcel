@@ -110,6 +110,8 @@ set_custom_style('bold_style', bold_style)
 
 # Assign a value to a cell with default_style
 ws['A1':'D1'] = [1, 2, 3, 4]
+# Assign a value to a cell with string slice
+ws['E1:G1'] = [1, 2, 3]
 # Assign a value to a cell with custom_style
 ws['A2':'D2'] = [
     (2, 'bold_style'),
