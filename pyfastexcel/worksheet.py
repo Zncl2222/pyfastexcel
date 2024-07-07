@@ -13,6 +13,7 @@ from .utils import (
     cell_reference_to_index,
     validate_and_format_value,
     validate_and_register_style,
+    transfer_string_slice_to_slice,
 )
 
 
@@ -185,7 +186,11 @@ class WorkSheet:
             style = StyleManager._STYLE_NAME_MAP[style]
 
         if isinstance(target, str):
-            self._apply_style_to_string_target(target, style)
+            if ':' in target:
+                target = transfer_string_slice_to_slice(target)
+                self._apply_style_to_slice_target(target, style)
+            else:
+                self._apply_style_to_string_target(target, style)
         elif isinstance(target, slice):
             self._apply_style_to_slice_target(target, style)
         elif isinstance(target, list) and len(target) == 2:
@@ -194,13 +199,8 @@ class WorkSheet:
             raise TypeError('Target should be a string, slice, or list[row, index].')
 
     def _apply_style_to_string_target(self, target: str, style: str):
-        if ':' not in target:
-            row, col = cell_reference_to_index(target)
-            self.data[row][col] = (self.data[row][col][0], style)
-        else:
-            target_slice = target.split(':')
-            target = slice(target_slice[0], target_slice[1])
-            self._apply_style_to_slice_target(target, style)
+        row, col = cell_reference_to_index(target)
+        self.data[row][col] = (self.data[row][col][0], style)
 
     def _apply_style_to_slice_target(self, target: slice, style: str):
         start_row, start_col, col_stop = self._extract_slice_indices(target)
@@ -547,6 +547,9 @@ class WorkSheet:
         elif isinstance(key, int):
             return self.data[key]
         elif isinstance(key, str):
+            if ':' in key:
+                target = transfer_string_slice_to_slice(key)
+                return self._get_cell_by_slice(target)
             return self._get_cell_by_location(key)
 
     def __setitem__(self, key: str | slice | int, value: Any) -> None:
@@ -555,7 +558,11 @@ class WorkSheet:
         elif isinstance(key, int):
             self._set_row_by_index(key, value)
         elif isinstance(key, str):
-            self._set_cell_by_location(key, value)
+            if ':' in key:
+                target = transfer_string_slice_to_slice(key)
+                self._set_cell_by_slice(target, value)
+            else:
+                self._set_cell_by_location(key, value)
         else:
             raise TypeError('Key should be a string or slice.')
 
