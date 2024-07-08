@@ -3,11 +3,34 @@ from __future__ import annotations
 import re
 import string
 import warnings
+from dataclasses import dataclass
 from typing import Any, Literal
 
 from openpyxl_style_writer import CustomStyle
 
 warnings.simplefilter('always', DeprecationWarning)
+
+
+@dataclass
+class CommentText:
+    text: str
+    size: int | None = None
+    name: str | None = None
+    bold: bool | None = None
+    italic: bool | None = None
+    underline: Literal['single', 'double'] | None = None
+    strike: bool | None = None
+    vertAlign: str | None = None
+    color: str | None = None
+
+    def to_dict(self):
+        result = {
+            k[0].upper() + k[1:]: v
+            for k, v in self.__dict__.items()
+            if v is not None and k != 'text'
+        }
+        result['text'] = self.text
+        return result
 
 
 def deprecated_warning(msg: str):
