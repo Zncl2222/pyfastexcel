@@ -4,6 +4,7 @@ import pytest
 from openpyxl_style_writer import CustomStyle
 
 from pyfastexcel import Workbook
+from pyfastexcel.utils import CommentText
 
 style_for_set_custom_style = CustomStyle(font_color='fcfcfc')
 
@@ -737,8 +738,9 @@ def test_set_data_validation_msg_error(input_msg, error_msg, expected_resp):
             'aaa',
             [{'text': 'tqer', 'bold': True, 'color': 'FF0000'}, {'text': 'hello', 'italic': True}],
         ),
-        ('B9', 'aaa', [{'text': 'tqer', 'bold': True}, 'qweasd']),
-        ('B9', 'aaa', {'text': 'tqer', 'bold': True}),
+        ('B9', 'aaa', [CommentText(text='tqer', bold=True, color='FF0000')]),
+        ('B9', 'aaa', CommentText(text='tqer', italic=True)),
+        ('A1', 'Author', CommentText(text='qwer12')),
     ],
 )
 def test_add_comment(cell, author, text):

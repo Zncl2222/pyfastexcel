@@ -135,3 +135,14 @@ def test_validate_cell_reference(index, error_type):
 def test_transfer_string_slice_to_slice(target, expected_results):
     res = transfer_string_slice_to_slice(target)
     assert res == expected_results
+
+
+def test_comment_text():
+    from pyfastexcel.utils import CommentText
+
+    c = CommentText(text='test', size=11)
+    c = c.to_dict()
+
+    assert isinstance(c, dict)
+    assert 'text' in c
+    assert 'Size' in c
