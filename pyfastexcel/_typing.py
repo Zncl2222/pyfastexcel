@@ -13,4 +13,11 @@ class CommentTextDict(TypedDict, total=False):
     color: Optional[str]
 
 
+class SelectionDict(TypedDict, total=False):
+    sq_ref: str
+    active_cell: str
+    pane: str
+
+
 CommentTextStructure = str | list[str] | CommentTextDict | list[CommentTextDict]
+SetPanesSelection = list[SelectionDict]

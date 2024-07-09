@@ -33,6 +33,13 @@ class CommentText:
         return result
 
 
+@dataclass
+class Selection:
+    sq_ref: str
+    active_cell: str
+    pane: str
+
+
 def deprecated_warning(msg: str):
     warnings.warn(
         msg,

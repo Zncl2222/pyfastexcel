@@ -5,9 +5,10 @@ from typing import Any, Literal, Optional
 from openpyxl_style_writer import CustomStyle
 
 from .style import StyleManager
-from ._typing import CommentTextStructure
+from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import (
     CommentText,
+    Selection,
     _separate_alpha_numeric,
     _validate_cell_reference,
     column_to_index,
@@ -319,7 +320,7 @@ class WorkSheet:
         y_split: int = 0,
         top_left_cell: str = '',
         active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = '',
-        selection: Optional[list[dict[str, str]]] = None,
+        selection: Optional[SetPanesSelection | list[Selection]] = None,
     ) -> None:
         if x_split < 0 or y_split < 0:
             raise ValueError('Split position should be positive.')
