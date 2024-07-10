@@ -364,6 +364,17 @@ Adds a comment to the specified cell.
 ### Example
 
 ```python title='Add Comment'
+from pyfastexcel.utils import CommentText
+
+# Add a comment to cell A1 with CommentText Instance
+comment_text = CommentText(text='Comment', bold=True)
+ws.add_comment("A1", "pyfastexcel", comment_text)
+
+# Add a comment to cell A1 with list of CommentText Instance
+comment_text = CommentText(text='Comment', bold=True)
+comment_text2 = CommentText(text=' Comment two', color='00ff00')
+ws.add_comment("A1", "pyfastexcel", [comment_text, comment_text2])
+
 # Add a comment to cell A1, and use string as the comment text
 ws.add_comment("A1", "pyfastexcel", "This is a comment.")
 
