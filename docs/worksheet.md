@@ -299,6 +299,22 @@ Configure the pane settings for a specific sheet in an Excel file using the prov
 ### Example
 
 ```python title='Panes Configuration'
+from pyfastexcel.utils import Selection
+
+# Set panes with Selection instance
+ws.set_panes(
+    freeze=True,
+    split=False,
+    x_split=0,
+    y_split=0,
+    top_left_cell="A1",
+    active_pane="topRight",
+    selection=[
+        Selection(sq_ref="A1", active_cell="A1", pane="topRight")
+    ],
+)
+
+# Set panes's selection with dict
 ws.set_panes(
     freeze=True,
     split=False,
