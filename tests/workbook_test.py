@@ -4,6 +4,8 @@ import pytest
 from openpyxl_style_writer import CustomStyle
 
 from pyfastexcel import Workbook
+from pyfastexcel.utils import CommentText, Selection
+from pyfastexcel._typing import SelectionDict
 
 style_for_set_custom_style = CustomStyle(font_color='fcfcfc')
 
@@ -535,7 +537,15 @@ def test_freeze_set_panes():
     wb.read_lib_and_create_excel()
 
 
-def test_split_set_panes():
+@pytest.mark.parametrize(
+    'selection,',
+    [
+        ([{'sq_ref': 'G36', 'active_cell': 'G36', 'pane': 'topRight'}]),
+        ([SelectionDict(sq_ref='G36', active_cell='G36', pane='topRight')]),
+        ([Selection(sq_ref='G36', active_cell='G36', pane='topRight')]),
+    ],
+)
+def test_split_set_panes(selection):
     wb = Workbook()
     ws = wb['Sheet1']
     ws[0] = [1, 2, 3]
@@ -548,7 +558,7 @@ def test_split_set_panes():
         y_split=9999,
         top_left_cell='N11',
         active_pane='bottomLeft',
-        selection=[{'sq_ref': 'G36', 'active_cell': 'G36', 'pane': 'topRight'}],
+        selection=selection,
     )
 
     ws.set_panes(
@@ -557,7 +567,7 @@ def test_split_set_panes():
         y_split=9999,
         top_left_cell='N11',
         active_pane='bottomLeft',
-        selection=[{'sq_ref': 'G36', 'active_cell': 'G36', 'pane': 'topRight'}],
+        selection=selection,
     )
 
     wb.read_lib_and_create_excel()
@@ -737,8 +747,9 @@ def test_set_data_validation_msg_error(input_msg, error_msg, expected_resp):
             'aaa',
             [{'text': 'tqer', 'bold': True, 'color': 'FF0000'}, {'text': 'hello', 'italic': True}],
         ),
-        ('B9', 'aaa', [{'text': 'tqer', 'bold': True}, 'qweasd']),
-        ('B9', 'aaa', {'text': 'tqer', 'bold': True}),
+        ('B9', 'aaa', [CommentText(text='tqer', bold=True, color='FF0000')]),
+        ('B9', 'aaa', CommentText(text='tqer', italic=True, vert_align='bottom')),
+        ('A1', 'Author', CommentText(text='qwer12')),
     ],
 )
 def test_add_comment(cell, author, text):

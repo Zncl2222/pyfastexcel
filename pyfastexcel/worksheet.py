@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, Optional, List
 
 from openpyxl_style_writer import CustomStyle
 
 from .style import StyleManager
+from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import (
+    CommentText,
+    Selection,
     _separate_alpha_numeric,
     _validate_cell_reference,
     column_to_index,
@@ -60,7 +63,11 @@ class WorkSheet:
             index. Raises TypeError if index_supported is False.
     """
 
-    def __init__(self, pre_allocate: dict[str, int] = None, plain_data: list[list[str]] = None):
+    def __init__(
+        self,
+        pre_allocate: Optional[dict[str, int]] = None,
+        plain_data: Optional[list[list[str]]] = None,
+    ):
         """
         Initializes a WorkSheet instance with optional pre-allocation of data or initialization
         with plain data.
@@ -313,7 +320,7 @@ class WorkSheet:
         y_split: int = 0,
         top_left_cell: str = '',
         active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = '',
-        selection: list[dict[str, str]] = None,
+        selection: Optional[SetPanesSelection | list[Selection]] = None,
     ) -> None:
         if x_split < 0 or y_split < 0:
             raise ValueError('Split position should be positive.')
@@ -339,10 +346,10 @@ class WorkSheet:
     def set_data_validation(
         self,
         sq_ref: str = '',
-        set_range: list[int | float] = None,
-        input_msg: list[str] = None,
-        drop_list: list[str] | str = None,
-        error_msg: list[str] = None,
+        set_range: Optional[list[int | float]] = None,
+        input_msg: Optional[list[str]] = None,
+        drop_list: Optional[list[str] | str] = None,
+        error_msg: Optional[list[str]] = None,
     ):
         """
         Set data validation for the specified range.
@@ -412,7 +419,7 @@ class WorkSheet:
         self,
         cell: str,
         author: str,
-        text: str | dict[str, str] | list[str | dict[str, str]],
+        text: CommentTextStructure | CommentText | List[CommentText],
     ) -> None:
         """
         Adds a comment to the specified cell.
@@ -426,7 +433,13 @@ class WorkSheet:
             None
         """
         _validate_cell_reference(cell)
-        text = [text] if isinstance(text, str) else text if isinstance(text, list) else [text]
+        text = (
+            [text]
+            if isinstance(text, (str, CommentText))
+            else text
+            if isinstance(text, list)
+            else [text]
+        )
         if all(isinstance(item, (dict, str)) for item in text):
             for idx, item in enumerate(text):
                 if isinstance(item, str):
@@ -437,6 +450,8 @@ class WorkSheet:
                     text[idx] = {
                         k[0].upper() + k[1:] if k != 'text' else k: v for k, v in item.items()
                     }
+        elif all(isinstance(item, CommentText) for item in text):
+            text = [t.to_dict() for t in text]
         else:
             raise ValueError('Comment text should be a string or a list of dictionaries.')
         self.comment.append({'cell': cell, 'author': author, 'paragraph': text})

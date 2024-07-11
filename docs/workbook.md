@@ -246,6 +246,23 @@ Configure the pane settings for a specific sheet in an Excel file using the prov
 ### Example
 
 ```python title='Panes Configuration'
+from pyfastexcel.utils import Selection
+
+# Set panes with Selection instance
+wb.set_panes(
+    "Sheet1",
+    freeze=True,
+    split=False,
+    x_split=0,
+    y_split=0,
+    top_left_cell="A1",
+    active_pane="topRight",
+    selection=[
+        Selection(sq_ref="A1", active_cell="A1", pane="topRight")
+    ],
+)
+
+# Set panes's selection with dict
 wb.set_panes(
     "Sheet1",
     freeze=True,
@@ -316,6 +333,17 @@ Adds a comment to the specified cell.
 ### Example
 
 ```python title='Add Comment'
+from pyfastexcel.utils import CommentText
+
+# Add a comment to cell A1 with CommentText Instance
+comment_text = CommentText(text='Comment', bold=True)
+wb.add_comment("Sheet1", "A1", "pyfastexcel", comment_text)
+
+# Add a comment to cell A1 with list of CommentText Instance
+comment_text = CommentText(text='Comment', bold=True)
+comment_text2 = CommentText(text=' Comment two', color='00ff00')
+wb.add_comment("Sheet1", "A1", "pyfastexcel", [comment_text, comment_text2])
+
 # Add a comment to cell A1, and use string as the comment text
 wb.add_comment("Sheet1", "A1", "pyfastexcel", "This is a comment.")
 
