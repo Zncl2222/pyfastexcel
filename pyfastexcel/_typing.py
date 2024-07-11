@@ -1,4 +1,6 @@
-from typing import Literal, TypedDict, Optional
+from __future__ import annotations
+
+from typing import Literal, TypedDict, Optional, List, Union
 
 
 class CommentTextDict(TypedDict, total=False):
@@ -9,7 +11,7 @@ class CommentTextDict(TypedDict, total=False):
     italic: Optional[bool]
     underline: Optional[Literal['single', 'double']]
     strike: Optional[bool]
-    vertAlign: Optional[str]
+    vert_align: Optional[str]
     color: Optional[str]
 
 
@@ -19,5 +21,5 @@ class SelectionDict(TypedDict, total=False):
     pane: str
 
 
-CommentTextStructure = str | list[str] | CommentTextDict | list[CommentTextDict]
-SetPanesSelection = list[SelectionDict]
+CommentTextStructure = Union[str, List[str], CommentTextDict, List[CommentTextDict]]
+SetPanesSelection = List[SelectionDict]

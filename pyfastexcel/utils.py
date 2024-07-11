@@ -20,7 +20,7 @@ class CommentText:
     italic: bool | None = None
     underline: Literal['single', 'double'] | None = None
     strike: bool | None = None
-    vertAlign: str | None = None
+    vert_align: str | None = None
     color: str | None = None
 
     def to_dict(self):
@@ -29,6 +29,7 @@ class CommentText:
             for k, v in self.__dict__.items()
             if v is not None and k != 'text'
         }
+        result['VertAlign'] = result['Vert_align']
         result['text'] = self.text
         return result
 
@@ -38,6 +39,13 @@ class Selection:
     sq_ref: str
     active_cell: str
     pane: str
+
+    def to_dict(self):
+        return {
+            'sq_ref': self.sq_ref,
+            'active_cell': self.active_cell,
+            'pane': self.pane,
+        }
 
 
 def deprecated_warning(msg: str):

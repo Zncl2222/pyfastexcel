@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, List
 
 from openpyxl_style_writer import CustomStyle
 
@@ -419,7 +419,7 @@ class WorkSheet:
         self,
         cell: str,
         author: str,
-        text: CommentTextStructure | CommentText | list[CommentText],
+        text: CommentTextStructure | CommentText | List[CommentText],
     ) -> None:
         """
         Adds a comment to the specified cell.
