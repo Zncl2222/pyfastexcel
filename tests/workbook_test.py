@@ -541,8 +541,8 @@ def test_freeze_set_panes():
     'selection,',
     [
         ([{'sq_ref': 'G36', 'active_cell': 'G36', 'pane': 'topRight'}]),
-        (SelectionDict(sq_ref='G36', active_cell='G36', pane='topRight')),
-        (Selection(sq_ref='G36', active_cell='G36', pane='topRight')),
+        ([SelectionDict(sq_ref='G36', active_cell='G36', pane='topRight')]),
+        ([Selection(sq_ref='G36', active_cell='G36', pane='topRight')]),
     ],
 )
 def test_split_set_panes(selection):
@@ -748,7 +748,7 @@ def test_set_data_validation_msg_error(input_msg, error_msg, expected_resp):
             [{'text': 'tqer', 'bold': True, 'color': 'FF0000'}, {'text': 'hello', 'italic': True}],
         ),
         ('B9', 'aaa', [CommentText(text='tqer', bold=True, color='FF0000')]),
-        ('B9', 'aaa', CommentText(text='tqer', italic=True)),
+        ('B9', 'aaa', CommentText(text='tqer', italic=True, vert_align='bottom')),
         ('A1', 'Author', CommentText(text='qwer12')),
     ],
 )
