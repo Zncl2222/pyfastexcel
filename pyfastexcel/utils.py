@@ -29,7 +29,8 @@ class CommentText:
             for k, v in self.__dict__.items()
             if v is not None and k != 'text'
         }
-        result['VertAlign'] = result['Vert_align']
+        if result.get('Vert_align') is not None:
+            result['VertAlign'] = result['Vert_align']
         result['text'] = self.text
         return result
 
