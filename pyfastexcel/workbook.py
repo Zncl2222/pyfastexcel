@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Optional
 
 from pyfastexcel.driver import ExcelDriver, WorkSheet
 from pyfastexcel.utils import deprecated_warning
@@ -196,3 +196,19 @@ class Workbook(ExcelDriver):
         """
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].add_comment(cell, author, text)
+
+    def group_columns(
+        self,
+        sheet: str,
+        start_col: str,
+        end_col: Optional[str] = None,
+        outline_level: int = 1,
+        hidden: bool = False,
+    ):
+        self._check_if_sheet_exists(sheet)
+        self.workbook[sheet].group_columns(
+            start_col,
+            end_col,
+            outline_level,
+            hidden,
+        )

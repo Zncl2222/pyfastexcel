@@ -4,9 +4,11 @@ import base64
 import ctypes
 import sys
 from datetime import datetime, timezone
+from io import BytesIO
 from pathlib import Path
 
 import msgspec
+from openpyxl import load_workbook
 from openpyxl_style_writer import CustomStyle
 
 from .style import StyleManager
@@ -113,8 +115,11 @@ class ExcelDriver:
         self._create_style()
 
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
+        set_group_columns = False
         for sheet in self._sheet_list:
             self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
+            if len(self.workbook[sheet].grouped_columns) != 0:
+                set_group_columns = True
 
         results = {
             'content': self._dict_wb,
@@ -132,7 +137,32 @@ class ExcelDriver:
         self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
         free_pointer(byte_data)
         StyleManager.reset_style_configs()
+
+        # Due to Streaming API of Excelize can't group column currently
+        # So implement this function by openpyxl
+        if set_group_columns:
+            self.decoded_bytes = self._set_group_columns()
+
         return self.decoded_bytes
+
+    def _set_group_columns(self):
+        wb = load_workbook(BytesIO(self.decoded_bytes))
+        for sheet in self._sheet_list:
+            grouped_columns = self.workbook[sheet].grouped_columns
+            ws = wb[sheet]
+            for col in grouped_columns:
+                ws.column_dimensions.group(
+                    col['start_col'],
+                    col['end_col'],
+                    outline_level=col['outline_level'],
+                    hidden=col['hidden'],
+                )
+        # Save the workbook to a BytesIO stream
+        excel_stream = BytesIO()
+        wb.save(excel_stream)
+        decoded_bytes = excel_stream.getvalue()
+        excel_stream.close()
+        return decoded_bytes
 
     def _read_lib(self, lib_path: str) -> ctypes.CDLL:
         """
