@@ -333,6 +333,11 @@ class WorkSheet:
 
         if selection is None:
             selection = []
+        elif not isinstance(selection, list):
+            selection = [selection]
+
+        selection = [item.to_dict() for item in selection if isinstance(item, Selection)]
+
         self.panes = {
             'freeze': freeze,
             'split': split,
