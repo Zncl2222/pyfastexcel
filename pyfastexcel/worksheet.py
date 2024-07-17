@@ -105,6 +105,7 @@ class WorkSheet:
         self.comment = []
         self.auto_filter_set = set()
         self.data_validation_set = []
+        self.grouped_columns = []
 
         if plain_data is not None and pre_allocate is not None:
             raise ValueError(
@@ -460,6 +461,22 @@ class WorkSheet:
         else:
             raise ValueError('Comment text should be a string or a list of dictionaries.')
         self.comment.append({'cell': cell, 'author': author, 'paragraph': text})
+
+    def group_columns(
+        self,
+        start_col: str,
+        end_col: Optional[str] = None,
+        outline_level: int = 1,
+        hidden: bool = False,
+    ):
+        self.grouped_columns.append(
+            {
+                'start_col': start_col,
+                'end_col': end_col,
+                'outline_level': outline_level,
+                'hidden': hidden,
+            }
+        )
 
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)

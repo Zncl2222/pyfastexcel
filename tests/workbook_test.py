@@ -775,3 +775,32 @@ def test_add_comment_failed_text(text):
             'author',
             text,
         )
+
+
+@pytest.mark.parametrize(
+    'start, end, level, hidden',
+    [
+        ('A', 'A', 1, True),
+        ('A', 'C', 12, True),
+        ('A', 'D', 3, True),
+        ('A', 'XD', 1, True),
+        ('A', 'A', 1, False),
+        ('A', 'C', 12, False),
+        ('A', 'D', 3, False),
+        ('A', 'XD', 1, False),
+    ],
+)
+def test_group_column(start, end, level, hidden):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws.group_columns(start, end, level, hidden)
+    wb.read_lib_and_create_excel()
+
+    wb.create_sheet('Sheet2')
+    ws2 = wb['Sheet2']
+    ws2.group_columns(start, end, level, hidden)
+    wb.read_lib_and_create_excel()
+
+    wb.create_sheet('Sheet3')
+    wb.group_columns('Sheet3', start, end, level, hidden)
+    wb.read_lib_and_create_excel()
