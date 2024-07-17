@@ -434,3 +434,27 @@ Here is the `key words of the comment when using the dictionary`:
 
 !!! note "Note"
     The `text` parameter can be a string, a dictionary, or a list of dictionaries. If it is a string, it will be treated as the comment text. If it is a dictionary, it should contain the key `text` with the comment's text as the corresponding value. If it is a list of dictionaries, each dictionary should contain the key `text` with the comment's text as the corresponding value.
+
+## Group Columns
+
+Group columns in a worksheet. This function is currently implemented using `openpyxl`.
+It is not recommended to use this function when dealing with large files.
+
+!!! note "Note"
+    `Excelize` currently does not support column grouping in Streaming mode.
+    As a temporary solution, this function is implemented with `openpyxl`.
+    The process requires calling `load_workbook` after `pyfastexcel` writes
+    the data, which may cause performance issues for very large Excel files.
+
+### Parameters
+
+| Parameter      | Data Type        | Description                                      |
+|----------------|------------------|------------------------------------------------- |
+| `start_col`    | str              | The cell reference where grouping starts.        |
+| `end_col`      | Optional[str]    | The cell reference where grouping ends.          |
+| `outline_level`| int              | The level of grouping.                           |
+| `hidden`       | bool             | Whether to hide the group or not.                |
+
+```python
+ws.group_columns('A', 'C', 1, False)
+```
