@@ -106,6 +106,7 @@ class WorkSheet:
         self.auto_filter_set = set()
         self.data_validation_set = []
         self.grouped_columns = []
+        self.grouped_rows = []
 
         if plain_data is not None and pre_allocate is not None:
             raise ValueError(
@@ -473,6 +474,22 @@ class WorkSheet:
             {
                 'start_col': start_col,
                 'end_col': end_col,
+                'outline_level': outline_level,
+                'hidden': hidden,
+            }
+        )
+
+    def group_rows(
+        self,
+        start_row: int,
+        end_row: Optional[int] = None,
+        outline_level: int = 1,
+        hidden: bool = False,
+    ):
+        self.grouped_rows.append(
+            {
+                'start_row': start_row,
+                'end_row': end_row,
                 'outline_level': outline_level,
                 'hidden': hidden,
             }

@@ -212,3 +212,19 @@ class Workbook(ExcelDriver):
             outline_level,
             hidden,
         )
+
+    def group_rows(
+        self,
+        sheet: str,
+        start_row: int,
+        end_row: Optional[int] = None,
+        outline_level: int = 1,
+        hidden: bool = False,
+    ):
+        self._check_if_sheet_exists(sheet)
+        self.workbook[sheet].group_rows(
+            start_row,
+            end_row,
+            outline_level,
+            hidden,
+        )

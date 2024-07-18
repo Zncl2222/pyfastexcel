@@ -116,10 +116,13 @@ class ExcelDriver:
 
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
         set_group_columns = False
+        set_row_columns = False
         for sheet in self._sheet_list:
             self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
             if len(self.workbook[sheet].grouped_columns) != 0:
                 set_group_columns = True
+            if len(self.workbook[sheet].grouped_rows) != 0:
+                set_row_columns = True
 
         results = {
             'content': self._dict_wb,
@@ -140,12 +143,12 @@ class ExcelDriver:
 
         # Due to Streaming API of Excelize can't group column currently
         # So implement this function by openpyxl
-        if set_group_columns:
-            self.decoded_bytes = self._set_group_columns()
+        if set_group_columns or set_row_columns:
+            self.decoded_bytes = self._set_group_columns_and_group_rows()
 
         return self.decoded_bytes
 
-    def _set_group_columns(self):
+    def _set_group_columns_and_group_rows(self):
         wb = load_workbook(BytesIO(self.decoded_bytes))
         for sheet in self._sheet_list:
             grouped_columns = self.workbook[sheet].grouped_columns
@@ -157,6 +160,15 @@ class ExcelDriver:
                     outline_level=col['outline_level'],
                     hidden=col['hidden'],
                 )
+            grouped_rows = self.workbook[sheet].grouped_rows
+            for row in grouped_rows:
+                ws.row_dimensions.group(
+                    row['start_row'],
+                    row['end_row'],
+                    outline_level=row['outline_level'],
+                    hidden=row['hidden'],
+                )
+
         # Save the workbook to a BytesIO stream
         excel_stream = BytesIO()
         wb.save(excel_stream)
