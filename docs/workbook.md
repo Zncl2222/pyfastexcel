@@ -413,3 +413,28 @@ It is not recommended to use this function when dealing with large files.
 ```python
 wb.group_columns('Sheet1', 'A', 'C', 1, False)
 ```
+
+## Group Rows
+
+Group Rows in a worksheet. This function is currently implemented using `openpyxl`.
+It is not recommended to use this function when dealing with large files.
+
+!!! note "Note"
+    `Excelize` currently does not support column grouping in Streaming mode.
+    As a temporary solution, this function is implemented with `openpyxl`.
+    The process requires calling `load_workbook` after `pyfastexcel` writes
+    the data, which may cause performance issues for very large Excel files.
+
+### Parameters
+
+| Parameter      | Data Type        | Description                                      |
+|----------------|------------------|------------------------------------------------- |
+| `sheet`        | str              | The name of sheet.                               |
+| `start_row`    | int              | The row reference where grouping starts.         |
+| `end_row`      | Optional[int]    | The row reference where grouping ends.           |
+| `outline_level`| int              | The level of grouping.                           |
+| `hidden`       | bool             | Whether to hide the group or not.                |
+
+```python
+wb.group_rows('Sheet1', 1, 3, 1, False)
+```
