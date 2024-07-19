@@ -543,6 +543,7 @@ def test_freeze_set_panes():
         ([{'sq_ref': 'G36', 'active_cell': 'G36', 'pane': 'topRight'}]),
         ([SelectionDict(sq_ref='G36', active_cell='G36', pane='topRight')]),
         ([Selection(sq_ref='G36', active_cell='G36', pane='topRight')]),
+        (Selection(sq_ref='G36', active_cell='G36', pane='topRight')),
     ],
 )
 def test_split_set_panes(selection):
@@ -803,4 +804,35 @@ def test_group_column(start, end, level, hidden):
 
     wb.create_sheet('Sheet3')
     wb.group_columns('Sheet3', start, end, level, hidden)
+    wb.read_lib_and_create_excel()
+
+
+@pytest.mark.parametrize(
+    'start, end, level, hidden',
+    [
+        (1, 1, 1, True),
+        (1, 3, 12, True),
+        (1, 4, 3, True),
+        (1, 2445, 1, True),
+        (1, 1, 1, False),
+        (1, 3, 12, False),
+        (1, 4, 3, False),
+        (1, 2445, 1, False),
+        (1, None, 1, False),
+        (1, None, 1, False),
+    ],
+)
+def test_group_row(start, end, level, hidden):
+    wb = Workbook()
+    ws = wb['Sheet1']
+    ws.group_rows(start, end, level, hidden)
+    wb.read_lib_and_create_excel()
+
+    wb.create_sheet('Sheet2')
+    ws2 = wb['Sheet2']
+    ws2.group_rows(start, end, level, hidden)
+    wb.read_lib_and_create_excel()
+
+    wb.create_sheet('Sheet3')
+    wb.group_rows('Sheet3', start, end, level, hidden)
     wb.read_lib_and_create_excel()
