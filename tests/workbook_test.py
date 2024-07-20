@@ -779,60 +779,78 @@ def test_add_comment_failed_text(text):
 
 
 @pytest.mark.parametrize(
-    'start, end, level, hidden',
+    'start, end, level, hidden, engine',
     [
-        ('A', 'A', 1, True),
-        ('A', 'C', 12, True),
-        ('A', 'D', 3, True),
-        ('A', 'XD', 1, True),
-        ('A', 'A', 1, False),
-        ('A', 'C', 12, False),
-        ('A', 'D', 3, False),
-        ('A', 'XD', 1, False),
+        ('A', 'A', 1, True, 'openpyxl'),
+        ('A', 'C', 12, True, 'openpyxl'),
+        ('A', 'D', 3, True, 'openpyxl'),
+        ('A', 'XD', 1, True, 'openpyxl'),
+        ('A', 'A', 1, False, 'openpyxl'),
+        ('A', 'C', 12, False, 'openpyxl'),
+        ('A', 'D', 3, False, 'openpyxl'),
+        ('A', 'XD', 1, False, 'openpyxl'),
+        ('A', 'A', 1, True, 'pyfastexcel'),
+        ('A', 'C', 12, True, 'pyfastexcel'),
+        ('A', 'D', 3, True, 'pyfastexcel'),
+        ('A', 'XD', 1, True, 'pyfastexcel'),
+        ('A', 'A', 1, False, 'pyfastexcel'),
+        ('A', 'C', 12, False, 'pyfastexcel'),
+        ('A', 'D', 3, False, 'pyfastexcel'),
+        ('A', 'XD', 1, False, 'pyfastexcel'),
     ],
 )
-def test_group_column(start, end, level, hidden):
+def test_group_column_openpyxl(start, end, level, hidden, engine):
     wb = Workbook()
     ws = wb['Sheet1']
-    ws.group_columns(start, end, level, hidden)
+    ws.group_columns(start, end, level, hidden, engine=engine)
     wb.read_lib_and_create_excel()
 
     wb.create_sheet('Sheet2')
     ws2 = wb['Sheet2']
-    ws2.group_columns(start, end, level, hidden)
+    ws2.group_columns(start, end, level, hidden, engine=engine)
     wb.read_lib_and_create_excel()
 
     wb.create_sheet('Sheet3')
-    wb.group_columns('Sheet3', start, end, level, hidden)
+    wb.group_columns('Sheet3', start, end, level, hidden, engine=engine)
     wb.read_lib_and_create_excel()
 
 
 @pytest.mark.parametrize(
-    'start, end, level, hidden',
+    'start, end, level, hidden, engine',
     [
-        (1, 1, 1, True),
-        (1, 3, 12, True),
-        (1, 4, 3, True),
-        (1, 2445, 1, True),
-        (1, 1, 1, False),
-        (1, 3, 12, False),
-        (1, 4, 3, False),
-        (1, 2445, 1, False),
-        (1, None, 1, False),
-        (1, None, 1, False),
+        (1, 1, 1, True, 'openpyxl'),
+        (1, 3, 12, True, 'openpyxl'),
+        (1, 4, 3, True, 'openpyxl'),
+        (1, 2445, 1, True, 'openpyxl'),
+        (1, 1, 1, False, 'openpyxl'),
+        (1, 3, 12, False, 'openpyxl'),
+        (1, 4, 3, False, 'openpyxl'),
+        (1, 2445, 1, False, 'openpyxl'),
+        (1, None, 1, False, 'openpyxl'),
+        (1, None, 1, False, 'openpyxl'),
+        (1, 1, 1, True, 'pyfastexcel'),
+        (1, 3, 12, True, 'pyfastexcel'),
+        (1, 4, 3, True, 'pyfastexcel'),
+        (1, 2445, 1, True, 'pyfastexcel'),
+        (1, 1, 1, False, 'pyfastexcel'),
+        (1, 3, 12, False, 'pyfastexcel'),
+        (1, 4, 3, False, 'pyfastexcel'),
+        (1, 2445, 1, False, 'pyfastexcel'),
+        (1, None, 1, False, 'pyfastexcel'),
+        (1, None, 1, False, 'pyfastexcel'),
     ],
 )
-def test_group_row(start, end, level, hidden):
+def test_group_row_openpyxl(start, end, level, hidden, engine):
     wb = Workbook()
     ws = wb['Sheet1']
-    ws.group_rows(start, end, level, hidden)
+    ws.group_rows(start, end, level, hidden, engine=engine)
     wb.read_lib_and_create_excel()
 
     wb.create_sheet('Sheet2')
     ws2 = wb['Sheet2']
-    ws2.group_rows(start, end, level, hidden)
+    ws2.group_rows(start, end, level, hidden, engine=engine)
     wb.read_lib_and_create_excel()
 
     wb.create_sheet('Sheet3')
-    wb.group_rows('Sheet3', start, end, level, hidden)
+    wb.group_rows('Sheet3', start, end, level, hidden, engine=engine)
     wb.read_lib_and_create_excel()

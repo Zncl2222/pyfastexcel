@@ -457,6 +457,47 @@ func mergeCellNormalWriter(file *excelize.File, sheet string, cell []interface{}
 	}
 }
 
+// setCellWidthNormalWriter sets the width of columns in an Excel worksheet using the provided file.
+//
+// Args:
+//
+//	file (*excelize.File): The excelize file.
+//	sheet (string): The name of the worksheet.
+//	config (map[string]interface{}): A map containing column width configurations, where the key is the column
+//	    index as a string and the value is the width as a float64.
+func setCellWidthNormalWriter(file *excelize.File, sheet string, config map[string]interface{}) {
+	if config["Width"] == nil {
+		return
+	}
+	if width := config["Width"].(map[string]interface{}); width != nil {
+		for col := range width {
+			colIndex, _ := strconv.Atoi(col)
+			colName, _ := excelize.ColumnNumberToName(colIndex)
+			file.SetColWidth(sheet, colName, colName, width[col].(float64))
+		}
+	}
+}
+
+// setCellHeightNormalWriter sets the height of rows in an Excel worksheet using the provided file.
+//
+// Args:
+//
+//	file (*excelize.File): The excelize file.
+//	sheet (string): The name of the worksheet.
+//	config (map[string]interface{}): A map containing row height configurations, where the key is the row
+//	    index as a string and the value is the height as a float64.
+func setCellHeightNormalWriter(file *excelize.File, sheet string, config map[string]interface{}) {
+	if config["Height"] == nil {
+		return
+	}
+	if height := config["Height"].(map[string]interface{}); height != nil {
+		for row := range height {
+			rowIndex, _ := strconv.Atoi(row)
+			file.SetRowHeight(sheet, rowIndex, height[row].(float64))
+		}
+	}
+}
+
 // normalWriter writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
@@ -497,21 +538,16 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 		setAutoFilter(file, sheet, autoFilters)
 
 		// Set Cell Width and Height
-		height := sheetData["Height"].(map[string]interface{})
-		for row := range height {
-			rowIndex, _ := strconv.Atoi(row)
-			file.SetRowHeight(sheet, rowIndex, height[row].(float64))
-		}
-		width := sheetData["Width"].(map[string]interface{})
-		for col := range width {
-			colIndex, _ := strconv.Atoi(col)
-			colName, _ := excelize.ColumnNumberToName(colIndex)
-			file.SetColWidth(sheet, colName, colName, width[col].(float64))
-		}
+		setCellWidthNormalWriter(file, sheet, sheetData)
+		setCellHeightNormalWriter(file, sheet, sheetData)
 
 		// Group col and row
-		groupRow(file, sheet, sheetData["GroupedRow"].([]interface{}))
-		groupCol(file, sheet, sheetData["GroupedCol"].([]interface{}))
+		if sheetData["GroupedRow"] != nil {
+			groupRow(file, sheet, sheetData["GroupedRow"].([]interface{}))
+		}
+		if sheetData["GroupedCol"] != nil {
+			groupCol(file, sheet, sheetData["GroupedCol"].([]interface{}))
+		}
 
 		// Write Data
 		startedRow := 1
