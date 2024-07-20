@@ -50,7 +50,12 @@ func WriteExcel(data string) string {
 	if len(strJson["protection"].(map[string]interface{})) != 0 {
 		setProtection(file, strJson["protection"].(map[string]interface{}))
 	}
-	writeContentBySheet(file, strJson["content"].(map[string]interface{}))
+
+	if strJson["engine"] == "normalWriter" {
+		normalWriter(file, strJson["content"].(map[string]interface{}))
+	} else {
+		streamWriter(file, strJson["content"].(map[string]interface{}))
+	}
 
 	// Save data in buffer and encode binary data to base64
 	buffer, _ := file.WriteToBuffer()
@@ -293,13 +298,13 @@ func addComment(file *excelize.File, sheet string, comment []interface{}) {
 	}
 }
 
-// writeContentBySheet writes content to different sheets in the Excel file based on provided data.
+// streamWriter writes content to different sheets in the Excel file based on provided data.
 //
 // Args:
 //
 //	file (*excelize.File): The Excel file object.
 //	data (map[string]interface{}): Map containing data for each sheet.
-func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
+func streamWriter(file *excelize.File, data map[string]interface{}) {
 	sheetCount := 1
 	hasSheet1 := false
 	for s := range data {
@@ -373,6 +378,156 @@ func writeContentBySheet(file *excelize.File, data map[string]interface{}) {
 
 		if err := streamWriter.Flush(); err != nil {
 			fmt.Println(err)
+		}
+	}
+}
+
+// groupRow groups rows in an Excel worksheet using the provided file.
+//
+// Args:
+//
+//	file (*excelize.File): The excelize file.
+//	sheet (string): The name of the worksheet.
+//	group ([]interface{}): A slice of row groups, where each group is represented
+//	    as a map containing "start_row" (float64), "end_row" (float64, optional),
+//	    "outline_level" (float64), and "hidden" (bool).
+func groupRow(file *excelize.File, sheet string, group []interface{}) {
+	var endRow int
+	for _, g := range group {
+		startRow := int(g.(map[string]interface{})["start_row"].(float64))
+		_, ok := g.(map[string]interface{})["end_row"].(float64)
+		outlineLevel := uint8(g.(map[string]interface{})["outline_level"].(float64))
+		hidden := g.(map[string]interface{})["hidden"].(bool)
+		if !ok {
+			endRow = startRow
+		} else {
+			endRow = int(g.(map[string]interface{})["end_row"].(float64))
+		}
+		for i := startRow; i <= endRow; i++ {
+			file.SetRowOutlineLevel(sheet, i, outlineLevel)
+			if hidden {
+				file.SetRowVisible(sheet, i, false)
+			}
+		}
+	}
+
+}
+
+// groupCol groups columns in an Excel worksheet using the provided file.
+//
+// Args:
+//
+//	file (*excelize.File): The excelize file.
+//	sheet (string): The name of the worksheet.
+//	group ([]interface{}): A slice of column groups, where each group is represented
+//	    as a map containing "start_col" (string), "end_col" (string, optional),
+//	    "outline_level" (float64), and "hidden" (bool).
+func groupCol(file *excelize.File, sheet string, group []interface{}) {
+	for _, g := range group {
+		startCol := g.(map[string]interface{})["start_col"].(string)
+		endCol, ok := g.(map[string]interface{})["end_col"].(string)
+		outlineLevel := uint8(g.(map[string]interface{})["outline_level"].(float64))
+		hidden := g.(map[string]interface{})["hidden"].(bool)
+		if !ok {
+			endCol = startCol
+		}
+		startColNum, _ := excelize.ColumnNameToNumber(startCol)
+		endColNum, _ := excelize.ColumnNameToNumber(endCol)
+		for i := startColNum; i <= endColNum; i++ {
+			col, _ := excelize.ColumnNumberToName(i)
+			file.SetColOutlineLevel(sheet, col, outlineLevel)
+		}
+		file.SetColVisible(sheet, startCol+":"+endCol, hidden)
+	}
+}
+
+// mergeCellNormalWriter merges cells in an Excel worksheet using the provided file.
+//
+// Args:
+//
+//	file (*excelize.File): The excelize file.
+//	cell ([]interface{}): A slice of cell ranges to merge, where each cell range is
+//	    represented as a pair of strings (top-left and bottom-right cells).
+func mergeCellNormalWriter(file *excelize.File, sheet string, cell []interface{}) {
+	for _, col := range cell {
+		cellRange := col.([]interface{})
+		topLeft := cellRange[0].(string)
+		bottomRight := cellRange[1].(string)
+		file.MergeCell(sheet, topLeft, bottomRight)
+	}
+}
+
+// normalWriter writes content to different sheets in the Excel file based on provided data.
+//
+// Args:
+//
+//	file (*excelize.File): The Excel file object.
+//	data (map[string]interface{}): Map containing data for each sheet.
+func normalWriter(file *excelize.File, data map[string]interface{}) {
+	sheetCount := 1
+	hasSheet1 := false
+	for s := range data {
+		if s == "Sheet1" {
+			hasSheet1 = true
+		}
+	}
+	for sheet := range data {
+		sheetData := data[sheet].(map[string]interface{})
+		// Create Sheet and Wrtie Header
+		if !hasSheet1 && sheetCount == 1 {
+			file.SetSheetName("Sheet1", sheet)
+			hasSheet1 = true
+		} else {
+			file.NewSheet(sheet)
+			sheetCount++
+		}
+
+		// Set DataValidations
+		setDataValidation(file, sheet, sheetData["DataValidation"].([]interface{}))
+
+		// Add Comment
+		addComment(file, sheet, sheetData["Comment"].([]interface{}))
+
+		// Set Panes
+		panes := data[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
+		setPanes(file, sheet, panes)
+
+		// Set AutoFilters
+		autoFilters := data[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
+		setAutoFilter(file, sheet, autoFilters)
+
+		// Set Cell Width and Height
+		height := sheetData["Height"].(map[string]interface{})
+		for row := range height {
+			rowIndex, _ := strconv.Atoi(row)
+			file.SetRowHeight(sheet, rowIndex, height[row].(float64))
+		}
+		width := sheetData["Width"].(map[string]interface{})
+		for col := range width {
+			colIndex, _ := strconv.Atoi(col)
+			colName, _ := excelize.ColumnNumberToName(colIndex)
+			file.SetColWidth(sheet, colName, colName, width[col].(float64))
+		}
+
+		// Group col and row
+		groupRow(file, sheet, sheetData["GroupedRow"].([]interface{}))
+		groupCol(file, sheet, sheetData["GroupedCol"].([]interface{}))
+
+		// Write Data
+		startedRow := 1
+		excelData := sheetData["Data"].([]interface{})
+		for i, rowData := range excelData {
+			row := rowData.([]interface{})
+			var valSlice []interface{}
+			rowCell, _ := excelize.CoordinatesToCellName(1, i+startedRow)
+
+			for col, item := range row {
+				valSlice = append(valSlice, item.([]interface{})[0])
+				colCell, _ := excelize.CoordinatesToCellName(col+startedRow, i+startedRow)
+				file.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
+			}
+
+			file.SetSheetRow(sheet, rowCell, &valSlice)
 		}
 	}
 }

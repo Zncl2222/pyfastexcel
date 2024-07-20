@@ -204,6 +204,7 @@ class Workbook(ExcelDriver):
         end_col: Optional[str] = None,
         outline_level: int = 1,
         hidden: bool = False,
+        engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].group_columns(
@@ -211,6 +212,7 @@ class Workbook(ExcelDriver):
             end_col,
             outline_level,
             hidden,
+            engine,
         )
 
     def group_rows(
@@ -220,6 +222,7 @@ class Workbook(ExcelDriver):
         end_row: Optional[int] = None,
         outline_level: int = 1,
         hidden: bool = False,
+        engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].group_rows(
@@ -227,4 +230,5 @@ class Workbook(ExcelDriver):
             end_row,
             outline_level,
             hidden,
+            engine,
         )
