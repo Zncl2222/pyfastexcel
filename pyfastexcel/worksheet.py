@@ -20,7 +20,284 @@ from .utils import (
 )
 
 
-class WorkSheet:
+class WorkSheetBase:
+    """
+    The base worksheet class for private functions and utilities.
+    """
+
+    def __init__(
+        self,
+        pre_allocate: Optional[dict[str, int]] = None,
+        plain_data: Optional[list[list[str]]] = None,
+    ):
+        """
+        Initializes a WorkSheet instance with optional pre-allocation of data or initialization
+        with plain data.
+
+        Args:
+            pre_allocate (dict[str, int], optional): A dictionary containing 'n_rows' and 'n_cols'
+                keys specifying the dimensions for pre-allocating data.
+                This can enhancement the performance when you need to write a large excel
+            plain_data (list[list[str]], optional): A 2D list of strings representing the
+                initial data to populate the worksheet.
+
+        Notes:
+            If both `pre_allocate` and `plain_data` are provided, `plain_data` takes precedence.
+
+        Attributes:
+            sheet (dict): Default sheet settings.
+            data (list[list]): The main data structure holding worksheet contents.
+            header (list): List of header row items.
+            merge_cells (list): List of merged cell coordinates.
+            width (dict): Column widths.
+            height (dict): Row heights.
+            auto_filter_set (set): Set of auto-filter settings.
+            data_validation_list (list): list of dv settings.
+            grouped_columns (list): list of settings to group columns.
+            grouped_rows (list): list of settings to group rows.
+
+        Raises:
+            TypeError: If `plain_data` is provided but is not a valid 2D list of strings.
+
+        """
+        self.sheet = self._get_default_sheet()
+        self.data = [[('', 'DEFAULT_STYLE')]]
+        self.header = []
+        self.merge_cells = []
+        self.width = {}
+        self.height = {}
+        self.panes = {}
+        self.comment = []
+        self.auto_filter_set = set()
+        self.data_validation_list = []
+        self.grouped_columns = []
+        self.grouped_rows = []
+        # Using pyfastexcel to write as default
+        self.engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
+
+        if plain_data is not None and pre_allocate is not None:
+            raise ValueError(
+                "You can only specify either 'pre_allocate' or 'plain_data' at a time, not both.",
+            )
+
+        if pre_allocate is not None:
+            if (
+                not isinstance(pre_allocate, dict)
+                or 'n_rows' not in pre_allocate
+                or 'n_cols' not in pre_allocate
+            ):
+                raise TypeError('Invalid pre_allocate dictionary format.')
+            if not isinstance(pre_allocate['n_rows'], int) or not isinstance(
+                pre_allocate['n_cols'],
+                int,
+            ):
+                raise TypeError('n_rows and n_cols must be integers.')
+            self.data = [[None] * pre_allocate['n_cols'] for _ in range(pre_allocate['n_rows'])]
+
+        if plain_data is not None:
+            if not isinstance(plain_data, list) or any(
+                not isinstance(row, list) for row in plain_data
+            ):
+                raise TypeError('plain_data should be a valid 2D list of strings.')
+            self.data = plain_data
+            self.sheet['NoStyle'] = True
+
+    def _apply_style_to_string_target(self, target: str, style: str) -> None:
+        row, col = cell_reference_to_index(target)
+        self.data[row][col] = (self.data[row][col][0], style)
+
+    def _apply_style_to_slice_target(self, target: slice, style: str) -> None:
+        start_row, start_col, col_stop = self._extract_slice_indices(target)
+        for col in range(start_col, col_stop + 1):
+            self.data[start_row][col] = (self.data[start_row][col][0], style)
+
+    def _apply_style_to_list_target(self, target: list[int, int], style: str) -> None:
+        row = target[0]
+        col = target[1]
+        if not isinstance(row, int) or not isinstance(col, int):
+            raise TypeError('Target should be a list of integers.')
+        if row < 0 or row > 1048576:
+            raise ValueError(f'Invalid row index: {row}')
+        if col < 0 or col > 16384:
+            raise ValueError(f'Invalid column index: {col}')
+        self.data[row][col] = (self.data[row][col][0], style)
+
+    def _expand_row_and_cols(self, target_row: int, target_col: int) -> None:
+        data_row_len = len(self.data)
+        data_col_len = len(self.data[0])
+
+        if data_row_len > target_row and len(self.data[target_row]) > target_col:
+            return
+
+        # Case when the memory space of self.data row is enough
+        # but the memory space of the target_col is not enough
+        if data_row_len > target_row:
+            if data_col_len <= target_col:
+                self.data[target_row].extend(
+                    [('', 'DEFAULT_STYLE') for _ in range(target_col + 1 - data_col_len)],
+                )
+        else:
+            current_row = max(data_row_len, target_row + 1)
+            current_col = max(data_col_len, target_col + 1)
+            default_value = ('', 'DEFAULT_STYLE')
+            self.data.extend(
+                [
+                    [default_value for _ in range(current_col)]
+                    for _ in range(current_row - data_row_len)
+                ],
+            )
+
+    def _transfer_to_dict(self) -> dict[str, Any]:
+        self.sheet = {
+            'Header': self.header,
+            'Data': self.data,
+            'MergeCells': self.merge_cells,
+            'Width': self.width,
+            'Height': self.height,
+            'AutoFilter': self.auto_filter_set,
+            'Panes': self.panes,
+            'DataValidation': self.data_validation_list,
+            'NoStyle': self.sheet['NoStyle'],
+            'Comment': self.comment,
+            'GroupedRow': self.grouped_rows,
+            'GroupedCol': self.grouped_columns,
+        }
+        return self.sheet
+
+    def _get_default_sheet(self) -> dict[str, dict[str, list]]:
+        return {
+            'Header': [],
+            'Data': [],
+            'MergeCells': [],
+            'Width': {},
+            'Height': {},
+            'AutoFilter': set(),
+            'Panes': {},
+            'DataValidation': [],
+            'NoStyle': False,
+            'Comment': [],
+            'GroupedRow': [],
+            'GroupedCol': [],
+        }
+
+    def _validate_value_and_set_default(self, value: Any):
+        """
+        Validates the input value and ensures it is a tuple with the correct
+        format.
+
+        If the input value is not a tuple, it is converted to a tuple with
+        the value as the first element and the string 'DEFAULT_STYLE' as the
+        second element.
+
+        If the input value is a tuple, it checks if the second element is a
+        string or a CustomStyle object. If not, it raises a TypeError.
+
+        Args:
+            value (Any): The value to be validated and formatted.
+
+        Returns:
+            Tuple[str, Union[str, CustomStyle]]: A tuple with the value as the
+            first element and the style as the second element. The style can be
+            either a string or a CustomStyle object.
+
+        Raises:
+            TypeError: If the second element of the input tuple is not a string
+            or a CustomStyle object.
+        """
+        if not isinstance(value, tuple):
+            value = validate_and_format_value(value)
+        else:
+            if len(value) != 2:
+                raise ValueError(
+                    'Cell value should be a tuple with two element like (value, style).',
+                )
+            if not isinstance(value[1], (str, CustomStyle)):
+                raise TypeError(
+                    'Style should be a string or CustomStyle object.',
+                )
+            # The case that user do not register the Custom Style by 'Class attributes'
+            # or set_cumston_style function.
+            if (
+                isinstance(value[1], CustomStyle)
+                and StyleManager._STYLE_NAME_MAP.get(value[1]) is None
+            ):
+                validate_and_register_style(value[1])
+                style = StyleManager._STYLE_NAME_MAP[value[1]]
+                value = (value[0], style)
+        return value
+
+    def __getitem__(self, key: str | slice) -> tuple | list[tuple]:
+        if isinstance(key, slice):
+            return self._get_cell_by_slice(key)
+        elif isinstance(key, int):
+            return self.data[key]
+        elif isinstance(key, str):
+            if ':' in key:
+                target = transfer_string_slice_to_slice(key)
+                return self._get_cell_by_slice(target)
+            return self._get_cell_by_location(key)
+
+    def __setitem__(self, key: str | slice | int, value: Any) -> None:
+        if isinstance(key, slice):
+            self._set_cell_by_slice(key, value)
+        elif isinstance(key, int):
+            self._set_row_by_index(key, value)
+        elif isinstance(key, str):
+            if ':' in key:
+                target = transfer_string_slice_to_slice(key)
+                self._set_cell_by_slice(target, value)
+            else:
+                self._set_cell_by_location(key, value)
+        else:
+            raise TypeError('Key should be a string or slice.')
+
+    def _get_cell_by_slice(self, cell_slice: slice) -> list[tuple]:
+        _, start_row = _separate_alpha_numeric(cell_slice.start)
+        _, stop_row = _separate_alpha_numeric(cell_slice.stop)
+        if start_row != stop_row:
+            raise ValueError('Only support row-wise slicing.')
+        return self.data[int(start_row) - 1]
+
+    def _get_cell_by_location(self, key: str) -> tuple:
+        row, col = cell_reference_to_index(key)
+        return self.data[row][col]
+
+    def _extract_slice_indices(self, cell_slice: slice) -> tuple[int, int, int]:
+        _, start_row = _separate_alpha_numeric(cell_slice.start)
+        _, stop_row = _separate_alpha_numeric(cell_slice.stop)
+        if start_row != stop_row:
+            raise ValueError('Only support row-wise slicing.')
+        start_row, start_col = cell_reference_to_index(cell_slice.start)
+        _, col_stop = cell_reference_to_index(cell_slice.stop)
+        self._expand_row_and_cols(start_row, col_stop)
+        return start_row, start_col, col_stop
+
+    def _set_cell_by_slice(self, cell_slice: slice, value: Any) -> None:
+        start_row, start_col, col_stop = self._extract_slice_indices(cell_slice)
+        for idx, col in enumerate(range(start_col, col_stop + 1)):
+            val = self._validate_value_and_set_default(value[idx])
+            self.data[start_row][col] = val
+
+    def _set_row_by_index(self, row: int, value: Any) -> None:
+        if row < 0 or row > 1048575:
+            raise ValueError(f'Invalid row index: {row}')
+        if not isinstance(value, list):
+            raise ValueError('Value should be a list.')
+        value = [self._validate_value_and_set_default(v) for v in value]
+        self._expand_row_and_cols(row, len(value) - 1)
+        self.data[row] = value
+
+    def _set_cell_by_location(self, key: str, value: Any) -> None:
+        row, col = cell_reference_to_index(key)
+        value = self._validate_value_and_set_default(value)
+        try:
+            self.data[row][col] = value
+        except IndexError:
+            self._expand_row_and_cols(row, col)
+            self.data[row][col] = value
+
+
+class WorkSheet(WorkSheetBase):
     """
     A class representing a worksheet in a spreadsheet. Remember to call
     _transfer_to_dict before turning the worksheet to JSON.
@@ -62,79 +339,6 @@ class WorkSheet:
             If index_supported is True, sets the cell value at the specified
             index. Raises TypeError if index_supported is False.
     """
-
-    def __init__(
-        self,
-        pre_allocate: Optional[dict[str, int]] = None,
-        plain_data: Optional[list[list[str]]] = None,
-    ):
-        """
-        Initializes a WorkSheet instance with optional pre-allocation of data or initialization
-        with plain data.
-
-        Args:
-            pre_allocate (dict[str, int], optional): A dictionary containing 'n_rows' and 'n_cols'
-                keys specifying the dimensions for pre-allocating data.
-                This can enhancement the performance when you need to write a large excel
-            plain_data (list[list[str]], optional): A 2D list of strings representing the
-                initial data to populate the worksheet.
-
-        Notes:
-            If both `pre_allocate` and `plain_data` are provided, `plain_data` takes precedence.
-
-        Attributes:
-            sheet (dict): Default sheet settings.
-            data (list[list]): The main data structure holding worksheet contents.
-            header (list): List of header row items.
-            merge_cells (list): List of merged cell coordinates.
-            width (dict): Column widths.
-            height (dict): Row heights.
-            auto_filter_set (set): Set of auto-filter settings.
-
-        Raises:
-            TypeError: If `plain_data` is provided but is not a valid 2D list of strings.
-
-        """
-        self.sheet = self._get_default_sheet()
-        self.data = [[('', 'DEFAULT_STYLE')]]
-        self.header = []
-        self.merge_cells = []
-        self.width = {}
-        self.height = {}
-        self.panes = {}
-        self.comment = []
-        self.auto_filter_set = set()
-        self.data_validation_set = []
-        self.grouped_columns = []
-        self.grouped_rows = []
-        self.engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
-
-        if plain_data is not None and pre_allocate is not None:
-            raise ValueError(
-                "You can only specify either 'pre_allocate' or 'plain_data' at a time, not both.",
-            )
-
-        if pre_allocate is not None:
-            if (
-                not isinstance(pre_allocate, dict)
-                or 'n_rows' not in pre_allocate
-                or 'n_cols' not in pre_allocate
-            ):
-                raise TypeError('Invalid pre_allocate dictionary format.')
-            if not isinstance(pre_allocate['n_rows'], int) or not isinstance(
-                pre_allocate['n_cols'],
-                int,
-            ):
-                raise TypeError('n_rows and n_cols must be integers.')
-            self.data = [[None] * pre_allocate['n_cols'] for _ in range(pre_allocate['n_rows'])]
-
-        if plain_data is not None:
-            if not isinstance(plain_data, list) or any(
-                not isinstance(row, list) for row in plain_data
-            ):
-                raise TypeError('plain_data should be a valid 2D list of strings.')
-            self.data = plain_data
-            self.sheet['NoStyle'] = True
 
     def cell(
         self,
@@ -207,26 +411,6 @@ class WorkSheet:
             self._apply_style_to_list_target(target, style)
         else:
             raise TypeError('Target should be a string, slice, or list[row, index].')
-
-    def _apply_style_to_string_target(self, target: str, style: str):
-        row, col = cell_reference_to_index(target)
-        self.data[row][col] = (self.data[row][col][0], style)
-
-    def _apply_style_to_slice_target(self, target: slice, style: str):
-        start_row, start_col, col_stop = self._extract_slice_indices(target)
-        for col in range(start_col, col_stop + 1):
-            self.data[start_row][col] = (self.data[start_row][col][0], style)
-
-    def _apply_style_to_list_target(self, target: list[int, int], style: str):
-        row = target[0]
-        col = target[1]
-        if not isinstance(row, int) or not isinstance(col, int):
-            raise TypeError('Target should be a list of integers.')
-        if row < 0 or row > 1048576:
-            raise ValueError(f'Invalid row index: {row}')
-        if col < 0 or col > 16384:
-            raise ValueError(f'Invalid column index: {col}')
-        self.data[row][col] = (self.data[row][col][0], style)
 
     def set_cell_width(self, col: str | int, value: int) -> None:
         if isinstance(col, str):
@@ -421,7 +605,7 @@ class WorkSheet:
             dv['error_title'] = error_msg[0]
             dv['error_body'] = error_msg[1]
 
-        self.data_validation_set.append(dv)
+        self.data_validation_list.append(dv)
 
     def add_comment(
         self,
@@ -499,177 +683,3 @@ class WorkSheet:
             }
         )
         self.engine = engine
-
-    def _expand_row_and_cols(self, target_row: int, target_col: int):
-        data_row_len = len(self.data)
-        data_col_len = len(self.data[0])
-
-        if data_row_len > target_row and len(self.data[target_row]) > target_col:
-            return
-
-        # Case when the memory space of self.data row is enough
-        # but the memory space of the target_col is not enough
-        if data_row_len > target_row:
-            if data_col_len <= target_col:
-                self.data[target_row].extend(
-                    [('', 'DEFAULT_STYLE') for _ in range(target_col + 1 - data_col_len)],
-                )
-        else:
-            current_row = max(data_row_len, target_row + 1)
-            current_col = max(data_col_len, target_col + 1)
-            default_value = ('', 'DEFAULT_STYLE')
-            self.data.extend(
-                [
-                    [default_value for _ in range(current_col)]
-                    for _ in range(current_row - data_row_len)
-                ],
-            )
-
-    def _transfer_to_dict(self) -> None:
-        self.sheet = {
-            'Header': self.header,
-            'Data': self.data,
-            'MergeCells': self.merge_cells,
-            'Width': self.width,
-            'Height': self.height,
-            'AutoFilter': self.auto_filter_set,
-            'Panes': self.panes,
-            'DataValidation': self.data_validation_set,
-            'NoStyle': self.sheet['NoStyle'],
-            'Comment': self.comment,
-            'GroupedRow': self.grouped_rows,
-            'GroupedCol': self.grouped_columns,
-        }
-        return self.sheet
-
-    def _get_default_sheet(self) -> dict[str, dict[str, list]]:
-        return {
-            'Header': [],
-            'Data': [],
-            'MergeCells': [],
-            'Width': {},
-            'Height': {},
-            'AutoFilter': set(),
-            'Panes': {},
-            'DataValidation': [],
-            'NoStyle': False,
-            'Comment': [],
-            'GroupedRow': [],
-            'GroupedCol': [],
-        }
-
-    def _validate_value_and_set_default(self, value: Any):
-        """
-        Validates the input value and ensures it is a tuple with the correct
-        format.
-
-        If the input value is not a tuple, it is converted to a tuple with
-        the value as the first element and the string 'DEFAULT_STYLE' as the
-        second element.
-
-        If the input value is a tuple, it checks if the second element is a
-        string or a CustomStyle object. If not, it raises a TypeError.
-
-        Args:
-            value (Any): The value to be validated and formatted.
-
-        Returns:
-            Tuple[str, Union[str, CustomStyle]]: A tuple with the value as the
-            first element and the style as the second element. The style can be
-            either a string or a CustomStyle object.
-
-        Raises:
-            TypeError: If the second element of the input tuple is not a string
-            or a CustomStyle object.
-        """
-        if not isinstance(value, tuple):
-            value = validate_and_format_value(value)
-        else:
-            if len(value) != 2:
-                raise ValueError(
-                    'Cell value should be a tuple with two element like (value, style).',
-                )
-            if not isinstance(value[1], (str, CustomStyle)):
-                raise TypeError(
-                    'Style should be a string or CustomStyle object.',
-                )
-            # The case that user do not register the Custom Style by 'Class attributes'
-            # or set_cumston_style function.
-            if (
-                isinstance(value[1], CustomStyle)
-                and StyleManager._STYLE_NAME_MAP.get(value[1]) is None
-            ):
-                validate_and_register_style(value[1])
-                style = StyleManager._STYLE_NAME_MAP[value[1]]
-                value = (value[0], style)
-        return value
-
-    def __getitem__(self, key: str | slice) -> tuple | list[tuple]:
-        if isinstance(key, slice):
-            return self._get_cell_by_slice(key)
-        elif isinstance(key, int):
-            return self.data[key]
-        elif isinstance(key, str):
-            if ':' in key:
-                target = transfer_string_slice_to_slice(key)
-                return self._get_cell_by_slice(target)
-            return self._get_cell_by_location(key)
-
-    def __setitem__(self, key: str | slice | int, value: Any) -> None:
-        if isinstance(key, slice):
-            self._set_cell_by_slice(key, value)
-        elif isinstance(key, int):
-            self._set_row_by_index(key, value)
-        elif isinstance(key, str):
-            if ':' in key:
-                target = transfer_string_slice_to_slice(key)
-                self._set_cell_by_slice(target, value)
-            else:
-                self._set_cell_by_location(key, value)
-        else:
-            raise TypeError('Key should be a string or slice.')
-
-    def _get_cell_by_slice(self, cell_slice: slice) -> list[tuple]:
-        _, start_row = _separate_alpha_numeric(cell_slice.start)
-        _, stop_row = _separate_alpha_numeric(cell_slice.stop)
-        if start_row != stop_row:
-            raise ValueError('Only support row-wise slicing.')
-        return self.data[int(start_row) - 1]
-
-    def _get_cell_by_location(self, key: str) -> tuple:
-        row, col = cell_reference_to_index(key)
-        return self.data[row][col]
-
-    def _extract_slice_indices(self, cell_slice: slice) -> tuple[int, int, int]:
-        _, start_row = _separate_alpha_numeric(cell_slice.start)
-        _, stop_row = _separate_alpha_numeric(cell_slice.stop)
-        if start_row != stop_row:
-            raise ValueError('Only support row-wise slicing.')
-        start_row, start_col = cell_reference_to_index(cell_slice.start)
-        _, col_stop = cell_reference_to_index(cell_slice.stop)
-        self._expand_row_and_cols(start_row, col_stop)
-        return start_row, start_col, col_stop
-
-    def _set_cell_by_slice(self, cell_slice: slice, value: Any) -> None:
-        start_row, start_col, col_stop = self._extract_slice_indices(cell_slice)
-        for idx, col in enumerate(range(start_col, col_stop + 1)):
-            val = self._validate_value_and_set_default(value[idx])
-            self.data[start_row][col] = val
-
-    def _set_row_by_index(self, row: int, value: Any) -> None:
-        if row < 0 or row > 1048575:
-            raise ValueError(f'Invalid row index: {row}')
-        if not isinstance(value, list):
-            raise ValueError('Value should be a list.')
-        value = [self._validate_value_and_set_default(v) for v in value]
-        self._expand_row_and_cols(row, len(value) - 1)
-        self.data[row] = value
-
-    def _set_cell_by_location(self, key: str, value: Any) -> None:
-        row, col = cell_reference_to_index(key)
-        value = self._validate_value_and_set_default(value)
-        try:
-            self.data[row][col] = value
-        except IndexError:
-            self._expand_row_and_cols(row, col)
-            self.data[row][col] = value
