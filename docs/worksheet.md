@@ -441,10 +441,14 @@ Group columns in a worksheet. This function is currently implemented using `open
 It is not recommended to use this function when dealing with large files.
 
 !!! note "Note"
-    `Excelize` currently does not support column grouping in Streaming mode.
-    As a temporary solution, this function is implemented with `openpyxl`.
-    The process requires calling `load_workbook` after `pyfastexcel` writes
-    the data, which may cause performance issues for very large Excel files.
+    - **Excelize** does not currently support column grouping in Streaming mode.
+    - By default, if you call the `group_columns` function, **pyfastexcel** will
+    write the Excel file using the normal API of **Excelize**, which is slower
+    than Streaming mode.
+    - As an alternative method, you can set the `engine` parameter to
+    `openpyxl`. This will allow **pyfastexcel** to first write other Excel
+    content using Streaming mode, and then load_workbook with `openpyxl` and
+    use the `openpyxl` API to group columns and save the file.
 
 ### Parameters
 
@@ -454,6 +458,7 @@ It is not recommended to use this function when dealing with large files.
 | `end_col`      | Optional[str]    | The cell reference where grouping ends.          |
 | `outline_level`| int              | The level of grouping.                           |
 | `hidden`       | bool             | Whether to hide the group or not.                |
+| `engine`       | Literal['pyfastexcel', 'openpyxl'] | The engine to group columns    |
 
 ```python
 ws.group_columns('A', 'C', 1, False)
@@ -465,10 +470,14 @@ Group Rows in a worksheet. This function is currently implemented using `openpyx
 It is not recommended to use this function when dealing with large files.
 
 !!! note "Note"
-    `Excelize` currently does not support column grouping in Streaming mode.
-    As a temporary solution, this function is implemented with `openpyxl`.
-    The process requires calling `load_workbook` after `pyfastexcel` writes
-    the data, which may cause performance issues for very large Excel files.
+    - **Excelize** does not currently support column grouping in Streaming mode.
+    - By default, if you call the `group_rows` function, **pyfastexcel** will
+    write the Excel file using the normal API of **Excelize**, which is slower
+    than Streaming mode.
+    - As an alternative method, you can set the `engine` parameter to
+    `openpyxl`. This will allow **pyfastexcel** to first write other Excel
+    content using Streaming mode, and then load_workbook with `openpyxl` and
+    use the `openpyxl` API to group rows and save the file.
 
 ### Parameters
 
@@ -478,6 +487,7 @@ It is not recommended to use this function when dealing with large files.
 | `end_row`      | Optional[int]    | The row reference where grouping ends.           |
 | `outline_level`| int              | The level of grouping.                           |
 | `hidden`       | bool             | Whether to hide the group or not.                |
+| `engine`       | Literal['pyfastexcel', 'openpyxl'] | The engine to group rows       |
 
 ```python
 ws.group_rows(1, 3, 1, False)

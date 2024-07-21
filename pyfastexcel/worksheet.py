@@ -107,6 +107,7 @@ class WorkSheet:
         self.data_validation_set = []
         self.grouped_columns = []
         self.grouped_rows = []
+        self.engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
 
         if plain_data is not None and pre_allocate is not None:
             raise ValueError(
@@ -469,6 +470,7 @@ class WorkSheet:
         end_col: Optional[str] = None,
         outline_level: int = 1,
         hidden: bool = False,
+        engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
         self.grouped_columns.append(
             {
@@ -478,6 +480,7 @@ class WorkSheet:
                 'hidden': hidden,
             }
         )
+        self.engine = engine
 
     def group_rows(
         self,
@@ -485,6 +488,7 @@ class WorkSheet:
         end_row: Optional[int] = None,
         outline_level: int = 1,
         hidden: bool = False,
+        engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
         self.grouped_rows.append(
             {
@@ -494,6 +498,7 @@ class WorkSheet:
                 'hidden': hidden,
             }
         )
+        self.engine = engine
 
     def _expand_row_and_cols(self, target_row: int, target_col: int):
         data_row_len = len(self.data)
@@ -532,6 +537,8 @@ class WorkSheet:
             'DataValidation': self.data_validation_set,
             'NoStyle': self.sheet['NoStyle'],
             'Comment': self.comment,
+            'GroupedRow': self.grouped_rows,
+            'GroupedCol': self.grouped_columns,
         }
         return self.sheet
 
@@ -547,6 +554,8 @@ class WorkSheet:
             'DataValidation': [],
             'NoStyle': False,
             'Comment': [],
+            'GroupedRow': [],
+            'GroupedCol': [],
         }
 
     def _validate_value_and_set_default(self, value: Any):

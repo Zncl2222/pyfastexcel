@@ -117,18 +117,29 @@ class ExcelDriver:
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
         set_group_columns = False
         set_row_columns = False
+        use_openpyxl = False
         for sheet in self._sheet_list:
             self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
+            if self.workbook[sheet].engine == 'openpyxl':
+                use_openpyxl = True
             if len(self.workbook[sheet].grouped_columns) != 0:
                 set_group_columns = True
             if len(self.workbook[sheet].grouped_rows) != 0:
                 set_row_columns = True
+
+        # Set writer (if some of the function that excelize StremWriter is not support, and
+        # system will use normal writer to write the excel)
+        if (set_group_columns or set_row_columns) and use_openpyxl is False:
+            engine = 'normalWriter'
+        else:
+            engine = 'streamWriter'
 
         results = {
             'content': self._dict_wb,
             'file_props': self.file_props,
             'style': self.style._style_map,
             'protection': self.protection,
+            'engine': engine,
         }
         json_data = msgspec.json.encode(results)
         create_excel = pyfastexcel.Export
@@ -143,7 +154,7 @@ class ExcelDriver:
 
         # Due to Streaming API of Excelize can't group column currently
         # So implement this function by openpyxl
-        if set_group_columns or set_row_columns:
+        if (set_group_columns or set_row_columns) and use_openpyxl is True:
             self.decoded_bytes = self._set_group_columns_and_group_rows()
 
         return self.decoded_bytes
