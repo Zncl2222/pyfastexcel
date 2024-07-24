@@ -6,6 +6,7 @@ from openpyxl_style_writer import CustomStyle
 
 from .utils import validate_and_format_value, validate_and_register_style
 from .workbook import Workbook
+from .worksheet import WorkSheet
 
 
 class StreamWriter(Workbook):
@@ -35,6 +36,14 @@ class StreamWriter(Workbook):
         super().__init__()
         self._row_list = []
         self.data = data
+
+    @property
+    def wb(self) -> StreamWriter:
+        return self
+
+    @property
+    def ws(self) -> WorkSheet:
+        return self.workbook[self.sheet]
 
     def row_append(self, value: Any, style: str | CustomStyle = 'DEFAULT_STYLE'):
         """
