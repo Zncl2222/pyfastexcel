@@ -61,8 +61,7 @@ class WorkSheetBase:
 
         """
         self.sheet = self._get_default_sheet()
-        self.data = [[('', 'DEFAULT_STYLE')]]
-        self.header = []
+        self.data = []
         self.merge_cells = []
         self.width = {}
         self.height = {}
@@ -124,6 +123,9 @@ class WorkSheetBase:
 
     def _expand_row_and_cols(self, target_row: int, target_col: int) -> None:
         data_row_len = len(self.data)
+        if data_row_len == 0:
+            self.data.append([('', 'DEFAULT_STYLE')])
+            data_row_len = 1
         data_col_len = len(self.data[0])
 
         if data_row_len > target_row and len(self.data[target_row]) > target_col:
@@ -149,7 +151,6 @@ class WorkSheetBase:
 
     def _transfer_to_dict(self) -> dict[str, Any]:
         self.sheet = {
-            'Header': self.header,
             'Data': self.data,
             'MergeCells': self.merge_cells,
             'Width': self.width,
@@ -166,7 +167,6 @@ class WorkSheetBase:
 
     def _get_default_sheet(self) -> dict[str, dict[str, list]]:
         return {
-            'Header': [],
             'Data': [],
             'MergeCells': [],
             'Width': {},

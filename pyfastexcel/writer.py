@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
 
 from openpyxl_style_writer import CustomStyle
 
@@ -24,7 +24,7 @@ class StreamWriter(Workbook):
         create_row(is_header: bool = False): Creates a row in the Excel data.
     """
 
-    def __init__(self, data: list[dict[str, str]]):
+    def __init__(self, data: Optional[list[dict[str, str]]] = None):
         """
         Initializes the NormalWriter.
 
