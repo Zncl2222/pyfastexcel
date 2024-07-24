@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/perimeterx/marshmallow"
 
@@ -437,7 +438,7 @@ func groupCol(file *excelize.File, sheet string, group []interface{}) {
 			col, _ := excelize.ColumnNumberToName(i)
 			file.SetColOutlineLevel(sheet, col, outlineLevel)
 		}
-		file.SetColVisible(sheet, startCol+":"+endCol, hidden)
+		file.SetColVisible(sheet, startCol+":"+endCol, !hidden)
 	}
 }
 
@@ -554,16 +555,22 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 		excelData := sheetData["Data"].([]interface{})
 		for i, rowData := range excelData {
 			row := rowData.([]interface{})
-			var valSlice []interface{}
-			rowCell, _ := excelize.CoordinatesToCellName(1, i+startedRow)
 
 			for col, item := range row {
-				valSlice = append(valSlice, item.([]interface{})[0])
+				v := item.([]interface{})[0]
 				colCell, _ := excelize.CoordinatesToCellName(col+startedRow, i+startedRow)
+				switch value := v.(type) {
+				case string:
+					if strings.HasPrefix(value, "=") {
+						file.SetCellFormula(sheet, colCell, value)
+					} else {
+						file.SetCellValue(sheet, colCell, value)
+					}
+				default:
+					file.SetCellValue(sheet, colCell, value)
+				}
 				file.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
 			}
-
-			file.SetSheetRow(sheet, rowCell, &valSlice)
 		}
 	}
 }
