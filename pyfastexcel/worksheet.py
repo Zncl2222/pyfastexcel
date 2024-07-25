@@ -424,13 +424,23 @@ class WorkSheet(WorkSheetBase):
             raise ValueError(f'Invalid row index: {row}')
         self.height[row] = value
 
-    def set_merge_cell(self, top_left_cell: str, bottom_right_cell: str) -> None:
+    def set_merge_cell(
+        self,
+        top_left_cell: Optional[str] = None,
+        bottom_right_cell: Optional[str] = None,
+        cell_range: Optional[str] = None,
+    ) -> None:
         deprecated_warning(
             "This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead",
         )
-        self.merge_cell(top_left_cell, bottom_right_cell)
+        self.merge_cell(top_left_cell, bottom_right_cell, cell_range)
 
-    def merge_cell(self, top_left_cell: str, bottom_right_cell: str) -> None:
+    def merge_cell(
+        self,
+        top_left_cell: Optional[str] = None,
+        bottom_right_cell: Optional[str] = None,
+        cell_range: Optional[str] = None,
+    ) -> None:
         """
         Sets a merge cell range in the specified sheet.
 
@@ -452,6 +462,16 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
+        if cell_range:
+            top_left_cell, bottom_right_cell = cell_range.split(':')
+
+        if not top_left_cell or not bottom_right_cell:
+            raise ValueError(
+                'Both top_left_cell and bottom_right_cell must be provided.'
+                ' Alternatively, you can merge cells using the format'
+                " ws.merge_cell(cell_range='A1:B1')."
+            )
+
         top_alpha, top_number = _separate_alpha_numeric(top_left_cell)
         bottom_alpha, bottom_number = _separate_alpha_numeric(bottom_right_cell)
         top_idx = column_to_index(top_alpha)
