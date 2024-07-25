@@ -542,6 +542,9 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 		setCellWidthNormalWriter(file, sheet, sheetData)
 		setCellHeightNormalWriter(file, sheet, sheetData)
 
+		// Merge Cell
+		mergeCellNormalWriter(file, sheet, sheetData["MergeCells"].([]interface{}))
+
 		// Group col and row
 		if sheetData["GroupedRow"] != nil {
 			groupRow(file, sheet, sheetData["GroupedRow"].([]interface{}))
