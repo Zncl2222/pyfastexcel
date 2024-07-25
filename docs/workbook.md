@@ -170,11 +170,16 @@ The cell can be merge through the function
 | Parameter           | Data Type | Description                    |
 |---------------------|-----------|--------------------------------|
 | `sheet`             | str       | The name of the sheet         |
-| `top_left_cell`     | str       | The index of the top left cell|
-| `bottom_right_cell` | str       | The index of the bottom right cell|
+| `top_left_cell`     | Optional[str]       | The index of the top left cell|
+| `bottom_right_cell` | Optional[str]       | The index of the bottom right cell|
+| `cell_range`        | Optional[str]       | The cell range to merge|
 
 ```python title='Merge Cells'
-wb.merge_cell('New Sheet', 'A1', 'B2')
+# Merge cells using individual cell references
+ws.merge_cell('A1', 'B2')
+
+# Merge cells using a cell range
+ws.merge_cell(cell_range='A1:B2')
 ```
 
 ## AutoFilter
