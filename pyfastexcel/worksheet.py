@@ -105,6 +105,10 @@ class WorkSheetBase:
     def data(self):
         return self._data
 
+    @property
+    def sheet(self):
+        return self._transfer_to_dict()
+
     def _apply_style_to_string_target(self, target: str, style: str) -> None:
         row, col = cell_reference_to_index(target)
         self._data[row][col] = (self._data[row][col][0], style)
