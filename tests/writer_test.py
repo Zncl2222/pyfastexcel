@@ -296,7 +296,7 @@ def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_except
     else:
         # set_merge_cell will be remove in v1.0.0, use merge_cell instead
         excel.set_merge_cell(sheet, top_left_cell, bottom_right_cell)
-        assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet].merge_cells
+        assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet]._merged_cells_list
 
 
 @pytest.mark.parametrize(
@@ -317,7 +317,7 @@ def test_set_merge_cell_with_cell_range(sheet, cell_range, expected_exception):
         excel.set_merge_cell(sheet, cell_range=cell_range)
         top_left_cell = cell_range.split(':')[0]
         bottom_right_cell = cell_range.split(':')[1]
-        assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet].merge_cells
+        assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet]._merged_cells_list
 
 
 def test_pyfastexcel_stream_example():

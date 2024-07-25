@@ -46,6 +46,9 @@ def test_workbook(range_slice, values, expected_output):
 
     if not isinstance(range_slice, slice):
         actual_output = ws.data
+        # Test ws.sheet work as expected
+        sheet_info_actual_output = ws.sheet['Data']
+        assert sheet_info_actual_output == expected_output
     else:
         actual_output = [tuple([cell for cell in row]) for row in ws[range_slice]]
     assert actual_output == expected_output
@@ -434,7 +437,7 @@ def test_auto_filter(data_range, expected_result):
         row += 1
 
     ws.auto_filter(data_range)
-    assert ws.auto_filter_set == expected_result
+    assert ws._auto_filter_set == expected_result
 
 
 @pytest.mark.parametrize(
