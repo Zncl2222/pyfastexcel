@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+# from pyfastexcel.style import CustomStyle
 from openpyxl_style_writer import CustomStyle
 
 from .utils import validate_and_format_value, validate_and_register_style
@@ -36,6 +37,8 @@ class StreamWriter(Workbook):
         super().__init__()
         self._row_list = []
         self.data = data
+        self._collections = self._get_style_collections()
+        self._cache = {}
 
     @property
     def wb(self) -> StreamWriter:
@@ -45,7 +48,53 @@ class StreamWriter(Workbook):
     def ws(self) -> WorkSheet:
         return self.workbook[self.sheet]
 
-    def row_append(self, value: Any, style: str | CustomStyle = 'DEFAULT_STYLE'):
+    def _handle_custom_style(self, style_instance: CustomStyle, kwargs) -> None:
+        """
+        Handle the case when style is a CustomStyle instance.
+        """
+        if self.style._STYLE_NAME_MAP.get(style_instance) is None:
+            validate_and_register_style(style_instance)
+        style_name = self.style._STYLE_NAME_MAP[style_instance]
+
+        if not kwargs:
+            return style_name
+
+        if self.style_key in self._cache:
+            return self._cache[self.style_key]
+
+        new_style = style_instance.clone_and_modify(**kwargs)
+        validate_and_register_style(new_style)
+        style_name = self.style._STYLE_NAME_MAP[new_style]
+        self._cache[self.style_key] = style_name
+        return style_name
+
+    def _handle_string_style(self, style: str, kwargs) -> None:
+        """
+        Handle the case when style is a string.
+        """
+        if style == 'DEFAULT_STYLE':
+            return style
+
+        if style not in self._collections:
+            raise ValueError(f'Style {style} not found !')
+
+        if not kwargs:
+            return style
+
+        if self.style_key in self._cache:
+            return self._cache[self.style_key]
+        new_style = self._collections[style].clone_and_modify(**kwargs)
+        validate_and_register_style(new_style)
+        style_name = self.style._STYLE_NAME_MAP[new_style]
+        self._cache[self.style_key] = style_name
+        return style_name
+
+    def row_append(
+        self,
+        value: Any,
+        style: str | CustomStyle = 'DEFAULT_STYLE',
+        **kwargs,
+    ) -> None:
         """
         Appends a value to the row list.
 
@@ -53,11 +102,16 @@ class StreamWriter(Workbook):
             value (Any): The value to be appended.
             style (str | CustomStyle): The style of the value, can be either
                 a style name or a CustomStyle object.
+            **kwargs: Additional keyword arguments to modify the style.
         """
+        self.style_key = f'{style}{kwargs}'
+
         if isinstance(style, CustomStyle):
-            if self.style._STYLE_NAME_MAP.get(style) is None:
-                validate_and_register_style(style)
-            style = self.style._STYLE_NAME_MAP[style]
+            style = self._handle_custom_style(style, kwargs)
+        elif isinstance(style, str):
+            style = self._handle_string_style(style, kwargs)
+            print(style)
+
         value = validate_and_format_value(value, set_default_style=False)
         self._row_list.append((value, style))
 
