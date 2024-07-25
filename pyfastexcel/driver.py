@@ -120,11 +120,11 @@ class ExcelDriver:
         use_openpyxl = False
         for sheet in self._sheet_list:
             self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
-            if self.workbook[sheet].engine == 'openpyxl':
+            if self.workbook[sheet]._engine == 'openpyxl':
                 use_openpyxl = True
-            if len(self.workbook[sheet].grouped_columns) != 0:
+            if len(self.workbook[sheet]._grouped_columns_list) != 0:
                 set_group_columns = True
-            if len(self.workbook[sheet].grouped_rows) != 0:
+            if len(self.workbook[sheet]._grouped_rows_list) != 0:
                 set_row_columns = True
 
         # Set writer (if some of the function that excelize StremWriter is not support, and
@@ -162,7 +162,7 @@ class ExcelDriver:
     def _set_group_columns_and_group_rows(self):
         wb = load_workbook(BytesIO(self.decoded_bytes))
         for sheet in self._sheet_list:
-            grouped_columns = self.workbook[sheet].grouped_columns
+            grouped_columns = self.workbook[sheet]._grouped_columns_list
             ws = wb[sheet]
             for col in grouped_columns:
                 ws.column_dimensions.group(
@@ -171,7 +171,7 @@ class ExcelDriver:
                     outline_level=col['outline_level'],
                     hidden=col['hidden'],
                 )
-            grouped_rows = self.workbook[sheet].grouped_rows
+            grouped_rows = self.workbook[sheet]._grouped_rows_list
             for row in grouped_rows:
                 ws.row_dimensions.group(
                     row['start_row'],

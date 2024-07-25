@@ -45,34 +45,34 @@ class WorkSheetBase:
             If both `pre_allocate` and `plain_data` are provided, `plain_data` takes precedence.
 
         Attributes:
-            sheet (dict): Default sheet settings.
-            data (list[list]): The main data structure holding worksheet contents.
-            header (list): List of header row items.
-            merge_cells (list): List of merged cell coordinates.
-            width (dict): Column widths.
-            height (dict): Row heights.
-            auto_filter_set (set): Set of auto-filter settings.
-            data_validation_list (list): list of dv settings.
-            grouped_columns (list): list of settings to group columns.
-            grouped_rows (list): list of settings to group rows.
+            _sheet (dict): Default sheet settings.
+            _data (list[list]): The main data structure holding worksheet contents.
+            _merged_cells_list (list): List of merged cell coordinates.
+            _width_dict (dict): Column widths.
+            _height_dict (dict): Row heights.
+            _auto_filter_set (set): Set of auto-filter settings.
+            _data_validation_list (list): list of dv settings.
+            _grouped_columns_list (list): list of settings to group columns.
+            _grouped_rows_list (list): list of settings to group rows.
+            _engine (str): choice to use excelize normalWriter or openpyxl
 
         Raises:
             TypeError: If `plain_data` is provided but is not a valid 2D list of strings.
 
         """
-        self.sheet = self._get_default_sheet()
-        self.data = []
-        self.merge_cells = []
-        self.width = {}
-        self.height = {}
-        self.panes = {}
-        self.comment = []
-        self.auto_filter_set = set()
-        self.data_validation_list = []
-        self.grouped_columns = []
-        self.grouped_rows = []
+        self._sheet = self._get_default_sheet()
+        self._data = []
+        self._merged_cells_list = []
+        self._width_dict = {}
+        self._height_dict = {}
+        self._panes_dict = {}
+        self._comment_list = []
+        self._auto_filter_set = set()
+        self._data_validation_list = []
+        self._grouped_columns_list = []
+        self._grouped_rows_list = []
         # Using pyfastexcel to write as default
-        self.engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
+        self._engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
 
         if plain_data is not None and pre_allocate is not None:
             raise ValueError(
@@ -91,24 +91,32 @@ class WorkSheetBase:
                 int,
             ):
                 raise TypeError('n_rows and n_cols must be integers.')
-            self.data = [[None] * pre_allocate['n_cols'] for _ in range(pre_allocate['n_rows'])]
+            self._data = [[None] * pre_allocate['n_cols'] for _ in range(pre_allocate['n_rows'])]
 
         if plain_data is not None:
             if not isinstance(plain_data, list) or any(
                 not isinstance(row, list) for row in plain_data
             ):
                 raise TypeError('plain_data should be a valid 2D list of strings.')
-            self.data = plain_data
-            self.sheet['NoStyle'] = True
+            self._data = plain_data
+            self._sheet['NoStyle'] = True
+
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def sheet(self):
+        return self._transfer_to_dict()
 
     def _apply_style_to_string_target(self, target: str, style: str) -> None:
         row, col = cell_reference_to_index(target)
-        self.data[row][col] = (self.data[row][col][0], style)
+        self._data[row][col] = (self._data[row][col][0], style)
 
     def _apply_style_to_slice_target(self, target: slice, style: str) -> None:
         start_row, start_col, col_stop = self._extract_slice_indices(target)
         for col in range(start_col, col_stop + 1):
-            self.data[start_row][col] = (self.data[start_row][col][0], style)
+            self._data[start_row][col] = (self._data[start_row][col][0], style)
 
     def _apply_style_to_list_target(self, target: list[int, int], style: str) -> None:
         row = target[0]
@@ -119,30 +127,30 @@ class WorkSheetBase:
             raise ValueError(f'Invalid row index: {row}')
         if col < 0 or col > 16384:
             raise ValueError(f'Invalid column index: {col}')
-        self.data[row][col] = (self.data[row][col][0], style)
+        self._data[row][col] = (self._data[row][col][0], style)
 
     def _expand_row_and_cols(self, target_row: int, target_col: int) -> None:
-        data_row_len = len(self.data)
+        data_row_len = len(self._data)
         if data_row_len == 0:
-            self.data.append([('', 'DEFAULT_STYLE')])
+            self._data.append([('', 'DEFAULT_STYLE')])
             data_row_len = 1
-        data_col_len = len(self.data[0])
+        data_col_len = len(self._data[0])
 
-        if data_row_len > target_row and len(self.data[target_row]) > target_col:
+        if data_row_len > target_row and len(self._data[target_row]) > target_col:
             return
 
-        # Case when the memory space of self.data row is enough
+        # Case when the memory space of self._data row is enough
         # but the memory space of the target_col is not enough
         if data_row_len > target_row:
             if data_col_len <= target_col:
-                self.data[target_row].extend(
+                self._data[target_row].extend(
                     [('', 'DEFAULT_STYLE') for _ in range(target_col + 1 - data_col_len)],
                 )
         else:
             current_row = max(data_row_len, target_row + 1)
             current_col = max(data_col_len, target_col + 1)
             default_value = ('', 'DEFAULT_STYLE')
-            self.data.extend(
+            self._data.extend(
                 [
                     [default_value for _ in range(current_col)]
                     for _ in range(current_row - data_row_len)
@@ -150,20 +158,20 @@ class WorkSheetBase:
             )
 
     def _transfer_to_dict(self) -> dict[str, Any]:
-        self.sheet = {
-            'Data': self.data,
-            'MergeCells': self.merge_cells,
-            'Width': self.width,
-            'Height': self.height,
-            'AutoFilter': self.auto_filter_set,
-            'Panes': self.panes,
-            'DataValidation': self.data_validation_list,
-            'NoStyle': self.sheet['NoStyle'],
-            'Comment': self.comment,
-            'GroupedRow': self.grouped_rows,
-            'GroupedCol': self.grouped_columns,
+        self._sheet = {
+            'Data': self._data,
+            'MergeCells': self._merged_cells_list,
+            'Width': self._width_dict,
+            'Height': self._height_dict,
+            'AutoFilter': self._auto_filter_set,
+            'Panes': self._panes_dict,
+            'DataValidation': self._data_validation_list,
+            'NoStyle': self._sheet['NoStyle'],
+            'Comment': self._comment_list,
+            'GroupedRow': self._grouped_rows_list,
+            'GroupedCol': self._grouped_columns_list,
         }
-        return self.sheet
+        return self._sheet
 
     def _get_default_sheet(self) -> dict[str, dict[str, list]]:
         return {
@@ -230,7 +238,7 @@ class WorkSheetBase:
         if isinstance(key, slice):
             return self._get_cell_by_slice(key)
         elif isinstance(key, int):
-            return self.data[key]
+            return self._data[key]
         elif isinstance(key, str):
             if ':' in key:
                 target = transfer_string_slice_to_slice(key)
@@ -256,11 +264,11 @@ class WorkSheetBase:
         _, stop_row = _separate_alpha_numeric(cell_slice.stop)
         if start_row != stop_row:
             raise ValueError('Only support row-wise slicing.')
-        return self.data[int(start_row) - 1]
+        return self._data[int(start_row) - 1]
 
     def _get_cell_by_location(self, key: str) -> tuple:
         row, col = cell_reference_to_index(key)
-        return self.data[row][col]
+        return self._data[row][col]
 
     def _extract_slice_indices(self, cell_slice: slice) -> tuple[int, int, int]:
         _, start_row = _separate_alpha_numeric(cell_slice.start)
@@ -276,7 +284,7 @@ class WorkSheetBase:
         start_row, start_col, col_stop = self._extract_slice_indices(cell_slice)
         for idx, col in enumerate(range(start_col, col_stop + 1)):
             val = self._validate_value_and_set_default(value[idx])
-            self.data[start_row][col] = val
+            self._data[start_row][col] = val
 
     def _set_row_by_index(self, row: int, value: Any) -> None:
         if row < 0 or row > 1048575:
@@ -285,16 +293,16 @@ class WorkSheetBase:
             raise ValueError('Value should be a list.')
         value = [self._validate_value_and_set_default(v) for v in value]
         self._expand_row_and_cols(row, len(value) - 1)
-        self.data[row] = value
+        self._data[row] = value
 
     def _set_cell_by_location(self, key: str, value: Any) -> None:
         row, col = cell_reference_to_index(key)
         value = self._validate_value_and_set_default(value)
         try:
-            self.data[row][col] = value
+            self._data[row][col] = value
         except IndexError:
             self._expand_row_and_cols(row, col)
-            self.data[row][col] = value
+            self._data[row][col] = value
 
 
 class WorkSheet(WorkSheetBase):
@@ -306,7 +314,7 @@ class WorkSheet(WorkSheetBase):
         sheet (dict): A dictionary representing the default sheet structure.
         data (list): A list of rows containing cell data.
         header (list): A list containing the header row.
-        merge_cells (list): A list of merged cell ranges.
+        self._merged_cells_list (list): A list of merged cell ranges.
         width (dict): A dictionary mapping column indices to column widths.
         height (dict): A dictionary mapping row indices to row heights.
 
@@ -366,10 +374,10 @@ class WorkSheet(WorkSheetBase):
         if column < 1 or column > 16384:
             raise ValueError(f'Invalid column index: {column}')
         try:
-            self.data[row][column] = value
+            self._data[row][column] = value
         except IndexError:
             self._expand_row_and_cols(row, column)
-            self.data[row][column] = value
+            self._data[row][column] = value
 
     def set_style(
         self,
@@ -417,12 +425,12 @@ class WorkSheet(WorkSheetBase):
             col = column_to_index(col)
         if col < 1 or col > 16384:
             raise ValueError(f'Invalid column index: {col}')
-        self.width[col] = value
+        self._width_dict[col] = value
 
     def set_cell_height(self, row: int, value: int) -> None:
         if row < 1 or row > 1048576:
             raise ValueError(f'Invalid row index: {row}')
-        self.height[row] = value
+        self._height_dict[row] = value
 
     def set_merge_cell(
         self,
@@ -497,7 +505,7 @@ class WorkSheet(WorkSheetBase):
                 + 'smaller than or equal to the bottom-right cell column.',
             )
 
-        self.merge_cells.append((top_left_cell, bottom_right_cell))
+        self._merged_cells_list.append((top_left_cell, bottom_right_cell))
 
     def auto_filter(self, target_range: str) -> None:
         """
@@ -517,7 +525,7 @@ class WorkSheet(WorkSheetBase):
         target_list = target_range.split(':')
         _validate_cell_reference(target_list[0])
         _validate_cell_reference(target_list[1])
-        self.auto_filter_set.add(target_range)
+        self._auto_filter_set.add(target_range)
 
     def set_panes(
         self,
@@ -545,7 +553,7 @@ class WorkSheet(WorkSheetBase):
 
         selection = [item.to_dict() for item in selection if isinstance(item, Selection)]
 
-        self.panes = {
+        self._panes_dict = {
             'freeze': freeze,
             'split': split,
             'x_split': x_split,
@@ -625,7 +633,7 @@ class WorkSheet(WorkSheetBase):
             dv['error_title'] = error_msg[0]
             dv['error_body'] = error_msg[1]
 
-        self.data_validation_list.append(dv)
+        self._data_validation_list.append(dv)
 
     def add_comment(
         self,
@@ -666,7 +674,7 @@ class WorkSheet(WorkSheetBase):
             text = [t.to_dict() for t in text]
         else:
             raise ValueError('Comment text should be a string or a list of dictionaries.')
-        self.comment.append({'cell': cell, 'author': author, 'paragraph': text})
+        self._comment_list.append({'cell': cell, 'author': author, 'paragraph': text})
 
     def group_columns(
         self,
@@ -676,7 +684,7 @@ class WorkSheet(WorkSheetBase):
         hidden: bool = False,
         engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
-        self.grouped_columns.append(
+        self._grouped_columns_list.append(
             {
                 'start_col': start_col,
                 'end_col': end_col,
@@ -684,7 +692,7 @@ class WorkSheet(WorkSheetBase):
                 'hidden': hidden,
             }
         )
-        self.engine = engine
+        self._engine = engine
 
     def group_rows(
         self,
@@ -694,7 +702,7 @@ class WorkSheet(WorkSheetBase):
         hidden: bool = False,
         engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
-        self.grouped_rows.append(
+        self._grouped_rows_list.append(
             {
                 'start_row': start_row,
                 'end_row': end_row,
@@ -702,4 +710,4 @@ class WorkSheet(WorkSheetBase):
                 'hidden': hidden,
             }
         )
-        self.engine = engine
+        self._engine = engine
