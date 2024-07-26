@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal, Optional, overload
 
 from pyfastexcel.driver import ExcelDriver, WorkSheet
 from pyfastexcel.utils import deprecated_warning
@@ -121,27 +121,31 @@ class Workbook(ExcelDriver):
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_cell_height(row, value)
 
+    @overload
     def set_merge_cell(
-        self,
-        sheet: str,
-        top_left_cell: Optional[str] = None,
-        bottom_right_cell: Optional[str] = None,
-        cell_range: Optional[str] = None,
-    ) -> None:
+        self, sheet: str, top_lef_cell: Optional[str], bottom_right_cell: Optional[str]
+    ) -> None: ...
+
+    @overload
+    def set_merge_cell(self, sheet: str, cell_range: Optional[str]) -> None: ...
+
+    def set_merge_cell(self, sheet, *args) -> None:
         deprecated_warning(
             "This function is going to deprecated in v1.0.0. Please use 'wb.merge_cell' instead",
         )
-        self.merge_cell(sheet, top_left_cell, bottom_right_cell, cell_range)
+        self.merge_cell(sheet, *args)
 
+    @overload
     def merge_cell(
-        self,
-        sheet: str,
-        top_left_cell: Optional[str] = None,
-        bottom_right_cell: Optional[str] = None,
-        cell_range: Optional[str] = None,
-    ) -> None:
+        self, sheet: str, top_lef_cell: Optional[str], bottom_right_cell: Optional[str]
+    ) -> None: ...
+
+    @overload
+    def merge_cell(self, sheet: str, cell_range: Optional[str]) -> None: ...
+
+    def merge_cell(self, sheet: str, *args) -> None:
         self._check_if_sheet_exists(sheet)
-        self.workbook[sheet].set_merge_cell(top_left_cell, bottom_right_cell, cell_range)
+        self.workbook[sheet].set_merge_cell(*args)
 
     def auto_filter(self, sheet: str, target_range: str) -> None:
         self._check_if_sheet_exists(sheet)
