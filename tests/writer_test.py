@@ -276,7 +276,7 @@ def test_set_cell_height(sheet, row, height, expected_exception):
     'sheet, top_left_cell, bottom_right_cell, expected_exception',
     [
         ('Sheet1', 'A1', 'C2', None),  # Valid case
-        ('Sheet1', 'A1', 'A1', None),  # Invalid: Single cell is not a merge cell
+        ('Sheet1', 'A1', 'A1', ValueError),  # Invalid: Single cell is not a merge cell
         ('Sheet1', 'A1048577', 'C2', ValueError),  # Invalid: Row number exceeds limit
         ('Sheet1', 'A1', 'C1048577', ValueError),  # Invalid: Row number exceeds limit
         ('Sheet1', 'XFD1', 'XFD1048576', None),  # Valid: Maximum row and column numbers
@@ -303,8 +303,15 @@ def test_set_merge_cell(sheet, top_left_cell, bottom_right_cell, expected_except
     'sheet, cell_range, expected_exception',
     [
         ('Sheet1', 'A1:C2', None),  # Valid case
-        ('Sheet1', 'A1:A1', None),  # Invalid: Single cell is not a merge cell
         ('Sheet1', 'A1:A1', ValueError),  # Invalid: Single cell is not a merge cell
+        ('Sheet1', 'A1048577:C2', ValueError),  # Invalid: Row number exceeds limit
+        ('Sheet1', 'A1:C1048577', ValueError),  # Invalid: Row number exceeds limit
+        ('Sheet1', 'XFD1:XFD1048576', None),  # Valid: Maximum row and column numbers
+        ('Sheet1', 'A1:XFE1048576', ValueError),  # Invalid: Column number exceeds limit
+        ('Sheet1', 'A2:A1', ValueError),  # Invalid: Top number less than bottom number
+        ('Sheet1', 'C1:A1', ValueError),  # Invalid: Top column less than bottom column
+        ('Sheet1', 'A0:A1', ValueError),  # Invalid: Row number too small
+        ('Sheet1', 'A0:C0', ValueError),  # Invalid: Row number too small
     ],
 )
 def test_set_merge_cell_with_cell_range(sheet, cell_range, expected_exception):
@@ -312,9 +319,13 @@ def test_set_merge_cell_with_cell_range(sheet, cell_range, expected_exception):
     if expected_exception is not None:
         with pytest.raises(expected_exception):
             excel.merge_cell(sheet, cell_range)
+        with pytest.raises(ValueError):
+            excel.merge_cell(sheet, cell_range, 1, 2)
+        with pytest.raises(ValueError):
+            excel.merge_cell(sheet, f'{cell_range}:123')
     else:
         # set_merge_cell will be remove in v1.0.0, use merge_cell instead
-        excel.set_merge_cell(sheet, cell_range=cell_range)
+        excel.set_merge_cell(sheet, cell_range)
         top_left_cell = cell_range.split(':')[0]
         bottom_right_cell = cell_range.split(':')[1]
         assert (top_left_cell, bottom_right_cell) in excel.workbook[sheet]._merged_cells_list

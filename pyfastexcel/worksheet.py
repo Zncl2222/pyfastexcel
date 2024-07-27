@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Optional, List
+from typing import Any, Literal, Optional, List, overload
 
 from openpyxl_style_writer import CustomStyle
 
@@ -432,24 +432,14 @@ class WorkSheet(WorkSheetBase):
             raise ValueError(f'Invalid row index: {row}')
         self._height_dict[row] = value
 
+    @overload
     def set_merge_cell(
         self,
-        top_left_cell: Optional[str] = None,
-        bottom_right_cell: Optional[str] = None,
-        cell_range: Optional[str] = None,
+        top_lef_cell: Optional[str],
+        bottom_right_cell: Optional[str],
     ) -> None:
-        deprecated_warning(
-            "This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead",
-        )
-        self.merge_cell(top_left_cell, bottom_right_cell, cell_range)
-
-    def merge_cell(
-        self,
-        top_left_cell: Optional[str] = None,
-        bottom_right_cell: Optional[str] = None,
-        cell_range: Optional[str] = None,
-    ) -> None:
-        """
+        '''
+        This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead
         Sets a merge cell range in the specified sheet.
 
         Args:
@@ -457,28 +447,63 @@ class WorkSheet(WorkSheetBase):
                 merge cell range (e.g., 'A1').
             bottom_right_cell (str): The cell location of the bottom-right corner
                 of the merge cell range (e.g., 'C3').
+        '''
+        ...
 
-        Raises:
-            ValueError: If any of the following conditions are met:
-                - Either the top_left_cell or bottom_right_cell has an invalid
-                    row number (not between 1 and 1048576).
-                - The top_left_cell number is larger than the bottom_right_cell number.
-                - The top_left_cell column index is larger than the bottom_right_cell
-                    column index.
-            IndexError: If sheet does not exist.
+    @overload
+    def set_merge_cell(self, cell_range: Optional[str]) -> None:
+        '''
+        "This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead"
+        Sets a merge cell range in the specified sheet.
 
-        Returns:
-            None
-        """
-        if cell_range:
+        Args:
+            cell_range: The cell range to merge cell.
+        '''
+        ...
+
+    def set_merge_cell(self, *args) -> None:
+        deprecated_warning(
+            "This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead",
+        )
+        self.merge_cell(*args)
+
+    @overload
+    def merge_cell(self, top_lef_cell: Optional[str], bottom_right_cell: Optional[str]) -> None:
+        '''
+        Sets a merge cell range in the specified sheet.
+
+        Args:
+            top_left_cell (str): The cell location of the top-left corner of the
+                merge cell range (e.g., 'A1').
+            bottom_right_cell (str): The cell location of the bottom-right corner
+                of the merge cell range (e.g., 'C3').
+        '''
+        ...
+
+    @overload
+    def merge_cell(self, cell_range: Optional[str]) -> None:
+        '''
+        Sets a merge cell range in the specified sheet.
+
+        Args:
+            cell_range: The cell range to merge cell.
+        '''
+        ...
+
+    def merge_cell(self, *args) -> None:
+        if len(args) == 1:
+            cell_range = args[0]
             top_left_cell, bottom_right_cell = cell_range.split(':')
-
-        if not top_left_cell or not bottom_right_cell:
+        elif len(args) == 2:
+            top_left_cell, bottom_right_cell = args
+        else:
             raise ValueError(
-                'Both top_left_cell and bottom_right_cell must be provided.'
-                ' Alternatively, you can merge cells using the format'
-                " ws.merge_cell(cell_range='A1:B1')."
+                'Invalid arguments. Use either ws.merge_cell(cell_range) or'
+                ' ws.merge_cell(top_left_cell, bottom_right_cell).'
             )
+
+        if top_left_cell == bottom_right_cell:
+            raise ValueError('Invalid arguments. Single cell is not a merge cell.')
 
         top_alpha, top_number = _separate_alpha_numeric(top_left_cell)
         bottom_alpha, bottom_number = _separate_alpha_numeric(bottom_right_cell)
@@ -496,13 +521,13 @@ class WorkSheet(WorkSheetBase):
         if int(top_number) > int(bottom_number):
             raise ValueError(
                 'Invalid cell range. The top-left cell number should be'
-                + 'smaller than or equal to the bottom-right cell number.',
+                ' smaller than or equal to the bottom-right cell number.'
             )
 
         if top_idx > bottom_idx:
             raise ValueError(
                 'Invalid cell range. The top-left cell column should be'
-                + 'smaller than or equal to the bottom-right cell column.',
+                ' smaller than or equal to the bottom-right cell column.'
             )
 
         self._merged_cells_list.append((top_left_cell, bottom_right_cell))

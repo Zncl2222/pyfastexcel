@@ -242,20 +242,34 @@ ws.set_cell_height(15, 20)
 
 ## Merge Cell
 
-The cell can be merge through the function
+The cell can be merged through the function. You can choose to use either two
+parameters or one parameter to merge.
+
+!!! note "Note"
+    1. The function supports merging cells using either individual
+    cell references or a cell range.
+    2. Ensure that the `top-left cell` is specified before the
+    `bottom-right cell` when using two parameters.
+    3. Cell references should be valid within the sheet's
+    boundaries (rows: 1 to 1,048,576, columns: A to XFD).
 
 | Parameter           | Data Type | Description                    |
 |---------------------|-----------|--------------------------------|
-| `top_left_cell`     | Optional[str]       | The index of the top left cell|
-| `bottom_right_cell` | Optional[str]       | The index of the bottom right cell|
-| `cell_range`        | Optional[str]       | The cell range to merge|
+| `top_left_cell`     | str       | The index of the top left cell|
+| `bottom_right_cell` | str       | The index of the bottom right cell|
 
 ```python title='Merge Cells'
 # Merge cells using individual cell references
 ws.merge_cell('A1', 'B2')
+```
 
+| Parameter           | Data Type | Description                    |
+|---------------------|-----------|--------------------------------|
+| `cell_range`        | str       | The cell range to merge|
+
+```python title='Merge Cells'
 # Merge cells using a cell range
-ws.merge_cell(cell_range='A1:B2')
+ws.merge_cell('A1:B2')
 ```
 
 ## AutoFilter
