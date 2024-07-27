@@ -123,11 +123,18 @@ class Workbook(ExcelDriver):
 
     @overload
     def set_merge_cell(
-        self, sheet: str, top_lef_cell: Optional[str], bottom_right_cell: Optional[str]
+        self,
+        sheet: str,
+        top_lef_cell: Optional[str],
+        bottom_right_cell: Optional[str],
     ) -> None: ...
 
     @overload
-    def set_merge_cell(self, sheet: str, cell_range: Optional[str]) -> None: ...
+    def set_merge_cell(
+        self,
+        sheet: str,
+        cell_range: Optional[str],
+    ) -> None: ...
 
     def set_merge_cell(self, sheet, *args) -> None:
         deprecated_warning(
@@ -137,11 +144,18 @@ class Workbook(ExcelDriver):
 
     @overload
     def merge_cell(
-        self, sheet: str, top_lef_cell: Optional[str], bottom_right_cell: Optional[str]
+        self,
+        sheet: str,
+        top_lef_cell: Optional[str],
+        bottom_right_cell: Optional[str],
     ) -> None: ...
 
     @overload
-    def merge_cell(self, sheet: str, cell_range: Optional[str]) -> None: ...
+    def merge_cell(
+        self,
+        sheet: str,
+        cell_range: Optional[str],
+    ) -> None: ...
 
     def merge_cell(self, sheet: str, *args) -> None:
         self._check_if_sheet_exists(sheet)

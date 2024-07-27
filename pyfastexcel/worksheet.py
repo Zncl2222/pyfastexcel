@@ -434,11 +434,32 @@ class WorkSheet(WorkSheetBase):
 
     @overload
     def set_merge_cell(
-        self, top_lef_cell: Optional[str], bottom_right_cell: Optional[str]
-    ) -> None: ...
+        self,
+        top_lef_cell: Optional[str],
+        bottom_right_cell: Optional[str],
+    ) -> None:
+        '''
+        This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead
+        Sets a merge cell range in the specified sheet.
+
+        Args:
+            top_left_cell (str): The cell location of the top-left corner of the
+                merge cell range (e.g., 'A1').
+            bottom_right_cell (str): The cell location of the bottom-right corner
+                of the merge cell range (e.g., 'C3').
+        '''
+        ...
 
     @overload
-    def set_merge_cell(self, cell_range: Optional[str]) -> None: ...
+    def set_merge_cell(self, cell_range: Optional[str]) -> None:
+        '''
+        "This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead"
+        Sets a merge cell range in the specified sheet.
+
+        Args:
+            cell_range: The cell range to merge cell.
+        '''
+        ...
 
     def set_merge_cell(self, *args) -> None:
         deprecated_warning(
