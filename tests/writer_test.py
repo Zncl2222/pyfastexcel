@@ -5,6 +5,7 @@ from openpyxl.styles import Side
 from openpyxl_style_writer import CustomStyle
 
 from pyfastexcel import StreamWriter
+from pyfastexcel.utils import set_custom_style
 
 font_params = {
     'size': 11,
@@ -340,3 +341,21 @@ def test_pyfastexcel_stream_example():
     excel_bytes = excel_example.create_excel()
     assert isinstance(excel_bytes, bytes)
     assert excel_example._dict_wb['Sheet2']['Data'][-1] == [("['1', 2, 3]", 'DEFAULT_STYLE')]
+
+
+def test_pyfastexcel_stream_style_not_found():
+    excel_example = StreamWriter()
+    with pytest.raises(ValueError):
+        excel_example.row_append('Test', style='not_found_style')
+
+
+def test_pyfastexcel_stream_style_kwargs():
+    excel_example = StreamWriter()
+    style = CustomStyle()
+    set_custom_style('new_style', style)
+    for _ in range(10):
+        excel_example.row_append(
+            'new_style', style='new_style', font_color='00ff00', font_bold=True
+        )
+    for _ in range(10):
+        excel_example.row_append('new_style', style=style, font_color='0000ff', font_bold=True)
