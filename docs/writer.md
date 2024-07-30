@@ -129,3 +129,66 @@ your own row-by-row writing method.
     file_path = 'pyexample_normal.xlsx'
     stream_writer.save('pyexample_normal.xlsx')
     ```
+
+## Style Modification
+
+The `StreamWriter` provides a method to dynamically modify the style in the
+`row_append` function. You can pass keywords from ``CustomStyle` to the
+`row_append` function to override the style.
+
+!!! note "Note"
+    Currently, if you define a `CustomStyle` through `font_params`, `ali_params`
+    or any other `_params` key words. You should also pass `_params` key words
+    in `row_append` to override the style. This will be fixed in the future
+    version of `openpyxl_style_writer`. For example
+
+    ```python
+    style = CustomStyle(
+        font_params={
+            'size': 20,
+            'bold': True,
+            'italic': True,
+            'color': '5e03fc',
+        },
+        ali_params={
+            'wrapText': True,
+            'shrinkToFit': True,
+        },
+    )
+
+    # This will not work because the original style is using font_params
+    sw.row_append('Hello', style=style, font_size=33)
+
+    # This will work
+    sw.row_append(
+        'Hello',
+        style=style,
+        font_params={
+            'size': 20,
+            'bold': True,
+            'italic': True,
+            'color': '5e03fc',
+        }
+    )
+    ```
+
+!!! warning "Warning"
+    By using this method, it might decrease the performance of the writing process.
+    It is recommended to use the `StyleCollections` method or call
+    `set_custom_style` to create the styles.
+
+```python title="Style Modification"
+from pyfastexcel import CustomStyle, StreamWriter
+from pyfastexcel.utils import set_custom_style
+
+
+sw = StreamWriter()
+
+style = CustomStyle()
+set_custom_style('normal_style', style)
+
+sw.row_append('Hello', style='normal_style', font_color='00ff00', font_bold=True)
+sw.row_append('Hello2', style=style, font_color='ff0000', font_size=33)
+sw.create_row()
+sw.save('test.xlsx')
+```
