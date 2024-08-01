@@ -93,6 +93,14 @@ wb.remove_sheet('Sheet1')
 !!! note "Note"
     The sheet cannot be removed if there is only one sheet in the workbook.
 
+## Rename the WorkSheet
+
+Rename the existing worksheet to the target name.
+
+```python
+wb.rename_sheet('Sheet1', 'New Sheet')
+```
+
 ## Switch current sheet
 
 This function switch the instance attributes `#!python self.sheet`. This function is designed
