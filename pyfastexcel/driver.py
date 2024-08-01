@@ -85,7 +85,7 @@ class ExcelDriver:
 
     @property
     def sheet_list(self):
-        return self._sheet_list
+        return list(self._sheet_list)
 
     def save(self, path: str = './pyfastexcel.xlsx') -> None:
         if not hasattr(self, 'decoded_bytes'):

@@ -45,6 +45,24 @@ class Workbook(ExcelDriver):
         self._sheet_list = tuple(self.workbook.keys())
         self.sheet = self._sheet_list[0]
 
+    def rename_sheet(self, old_sheet_name: str, new_sheet_name: str) -> None:
+        """
+        Renames a sheet in the Excel data.
+
+        Args:
+            old_sheet_name (str): The name of the sheet to rename.
+            new_sheet_name (str): The new name for the sheet.
+        """
+        if self.workbook.get(old_sheet_name) is None:
+            raise IndexError(f'Sheet {old_sheet_name} does not exist.')
+        if self.workbook.get(new_sheet_name) is not None:
+            raise ValueError(f'Sheet {new_sheet_name} already exists.')
+        self.workbook[new_sheet_name] = self.workbook.pop(old_sheet_name)
+        self._sheet_list = tuple(
+            [new_sheet_name if x == old_sheet_name else x for x in self._sheet_list]
+        )
+        self.sheet = new_sheet_name
+
     def create_sheet(
         self,
         sheet_name: str,

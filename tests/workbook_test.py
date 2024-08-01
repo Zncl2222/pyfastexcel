@@ -55,6 +55,52 @@ def test_workbook(range_slice, values, expected_output):
 
 
 @pytest.mark.parametrize(
+    'sheet_name',
+    [
+        ('Sheet2'),
+        ('New Sheet'),
+        ('Gogoasd'),
+    ],
+)
+def test_rename_sheet(sheet_name):
+    wb = Workbook()
+    wb.rename_sheet('Sheet1', sheet_name)
+
+    assert sheet_name in wb.sheet_list
+
+
+@pytest.mark.parametrize(
+    'sheet_name',
+    [
+        ('Sheet2'),
+        ('New Sheet'),
+        ('Gogoasd'),
+    ],
+)
+def test_rename_sheet_old_sheet_failed(sheet_name):
+    wb = Workbook()
+    with pytest.raises(IndexError):
+        wb.rename_sheet('gogo', sheet_name)
+
+
+@pytest.mark.parametrize(
+    'sheet_name',
+    [
+        ('Sheet2'),
+        ('New Sheet'),
+        ('Gogoasd'),
+    ],
+)
+def test_rename_sheet_new_sheet_failed(sheet_name):
+    wb = Workbook()
+    wb.create_sheet(sheet_name)
+    with pytest.raises(ValueError):
+        wb.rename_sheet(sheet_name, sheet_name)
+    with pytest.raises(ValueError):
+        wb.rename_sheet('Sheet1', sheet_name)
+
+
+@pytest.mark.parametrize(
     'input_data, expected_exception',
     [
         ([slice('A1', 'G3'), [1, 2, 3]], ValueError),  # Invalid slice assignment
