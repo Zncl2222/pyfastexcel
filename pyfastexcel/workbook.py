@@ -156,7 +156,7 @@ class Workbook(ExcelDriver):
 
     def set_merge_cell(self, sheet, *args) -> None:
         deprecated_warning(
-            "This function is going to deprecated in v1.0.0. Please use 'wb.merge_cell' instead",
+            "wb.set_merge_cell is going to deprecated in v1.0.0. Please use 'wb.merge_cell' instead",
         )
         self.merge_cell(sheet, *args)
 
