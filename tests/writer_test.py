@@ -359,3 +359,20 @@ def test_pyfastexcel_stream_style_kwargs():
         )
     for _ in range(10):
         excel_example.row_append('new_style', style=style, font_color='0000ff', font_bold=True)
+
+
+def test_overwrite_style():
+    from pyfastexcel import Workbook
+
+    data = prepare_example_data(rows=3, cols=3)
+    excel = PyFastExcelStreamExample(data)
+    excel.create_excel()
+
+    wb = Workbook()
+    bold_style = CustomStyle(font_size=15, font_bold=True)
+    set_custom_style('bold_style', bold_style)
+
+    ws = wb['Sheet1']
+    ws['A1'] = 'A1 value'
+    ws['B1'] = ('B1 value', 'bold_style')
+    wb.read_lib_and_create_excel()
