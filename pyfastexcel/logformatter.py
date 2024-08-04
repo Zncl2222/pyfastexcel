@@ -9,6 +9,7 @@ LOG_COLORS = {
     'ERROR': '\033[91m',  # Red
     'CRITICAL': '\033[91m',  # Red
 }
+LOG_CACHE = {}
 
 
 def custom_warning_format(message, *args):
@@ -17,8 +18,10 @@ def custom_warning_format(message, *args):
     return f'{start_color}DeprecationWarning: {message}{reset_color}\n'
 
 
-warnings.formatwarning = custom_warning_format
-warnings.simplefilter('always', DeprecationWarning)
+def log_warning(logger: logging.Logger, message: str):
+    if not LOG_CACHE.get(message):
+        logger.warning(message)
+        LOG_CACHE[message] = True
 
 
 class ColoredFormatter(logging.Formatter):
@@ -30,4 +33,6 @@ class ColoredFormatter(logging.Formatter):
         return super().format(record)
 
 
+warnings.formatwarning = custom_warning_format
+warnings.simplefilter('always', DeprecationWarning)
 formatter = ColoredFormatter(NORMAL_FORMAT)
