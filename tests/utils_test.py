@@ -146,3 +146,30 @@ def test_comment_text():
     assert isinstance(c, dict)
     assert 'text' in c
     assert 'Size' in c
+
+
+def test_colored_formatter():
+    import logging
+    from pyfastexcel.logformatter import ColoredFormatter
+
+    formatter = ColoredFormatter('%(levelname)s: %(message)s')
+
+    # Create a mock log record
+    record = logging.LogRecord(
+        name='test_logger',
+        level=logging.INFO,
+        pathname='/path/to/module.py',
+        lineno=123,
+        msg='This is a test log message',
+        args=None,
+        exc_info=None,
+    )
+
+    # Apply the formatter to the record
+    formatted_message = formatter.format(record)
+
+    # Assert that the formatted message contains the expected log level and message
+    assert 'INFO: This is a test log message' in formatted_message
+
+    # Assert that the log_color attribute is correctly set
+    assert record.log_color == '\033[92m'

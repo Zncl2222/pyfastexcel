@@ -5,20 +5,17 @@ from pathlib import Path
 from typing import Any
 
 from openpyxl_style_writer import CustomStyle
+from .logformatter import formatter, log_warning
 
 BASE_DIR = Path(__file__).resolve().parent
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
+style_formatter = logging.StreamHandler()
+style_formatter.setLevel(logging.DEBUG)
+style_formatter.setFormatter(formatter)
 
 if not logger.hasHandlers():
-    logger.addHandler(ch)
+    logger.addHandler(style_formatter)
 
 # TODO: Implement a CustomStyle without the dependency of openpyxl_style_writer
 
@@ -75,6 +72,11 @@ class StyleManager:
 
     @classmethod
     def set_custom_style(cls, name: str, custom_style: CustomStyle):
+        if cls.REGISTERED_STYLES.get(name):
+            log_warning(
+                logger,
+                f'{name} has already existed. Overiding the style settings.',
+            )
         cls.REGISTERED_STYLES[name] = custom_style
         cls._STYLE_NAME_MAP[custom_style] = name
 
@@ -104,7 +106,10 @@ class StyleManager:
 
     def _update_style_map(self, style_name: str, custom_style: CustomStyle) -> None:
         if self._style_map.get(style_name):
-            logger.warning(f'{style_name} has already existed. Overiding the style settings.')
+            log_warning(
+                logger,
+                f'{style_name} has already existed. Overiding the style settings.',
+            )
         self._style_map[style_name] = self._get_default_style()
         self._style_map[style_name]['Font'] = self._get_font_style(custom_style)
         self._style_map[style_name]['Fill'] = self._get_fill_style(custom_style)

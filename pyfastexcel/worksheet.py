@@ -463,7 +463,7 @@ class WorkSheet(WorkSheetBase):
 
     def set_merge_cell(self, *args) -> None:
         deprecated_warning(
-            "This function is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead",
+            "ws.set_merge_cell is going to deprecated in v1.0.0. Please use 'ws.merge_cell' instead",
         )
         self.merge_cell(*args)
 
