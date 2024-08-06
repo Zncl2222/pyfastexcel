@@ -26,13 +26,6 @@ class StreamWriter(Workbook):
     """
 
     def __init__(self, data: Optional[list[dict[str, str]]] = None):
-        """
-        Initializes the NormalWriter.
-
-        Args:
-            data (list[dict[str, str]]): The data to be written to the
-            Excel file.
-        """
         super().__init__()
         self._row_list = []
         self.data = data
