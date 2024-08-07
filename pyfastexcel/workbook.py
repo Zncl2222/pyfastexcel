@@ -16,6 +16,8 @@ class Workbook(ExcelDriver):
     Methods:
         remove_sheet(sheet: str) -> None:
             Removes a sheet from the Excel data.
+        rename_sheet(self, old_sheet_name: str, new_sheet_name: str) -> None:
+            Rename a sheet.
         create_sheet(sheet_name: str) -> None:
             Creates a new sheet.
         switch_sheet(sheet_name: str) -> None:

@@ -562,6 +562,27 @@ class WorkSheet(WorkSheetBase):
         active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = '',
         selection: Optional[SetPanesSelection | list[Selection]] = None,
     ) -> None:
+        """
+        Sets the panes for the worksheet with options for freezing, splitting, and selection.
+
+        Args:
+            freeze (bool): Whether to freeze the panes.
+            split (bool): Whether to split the panes.
+            x_split (int): The column position to split or freeze.
+            y_split (int): The row position to split or freeze.
+            top_left_cell (str): The top-left cell in the split or frozen panes.
+            active_pane (Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', '']):
+            The active pane.
+            selection (Optional[SetPanesSelection | list[Selection]]): The selection
+            details for the panes.
+
+        Raises:
+            ValueError: If x_split or y_split is negative, or if active_pane is
+                invalid.
+
+        Returns:
+            None
+        """
         if x_split < 0 or y_split < 0:
             raise ValueError('Split position should be positive.')
         if top_left_cell != '':
@@ -709,6 +730,22 @@ class WorkSheet(WorkSheetBase):
         hidden: bool = False,
         engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
+        """
+        Groups columns between start_col and end_col with specified outline
+        level and visibility.
+
+        Args:
+            start_col (str): The starting column to group.
+            end_col (Optional[str]): The ending column to group. If None, only
+            start_col will be grouped.
+            outline_level (int): The outline level of the group.
+            hidden (bool): Whether the grouped columns should be hidden.
+            engine (Literal['pyfastexcel', 'openpyxl']): The engine to use for
+            grouping.
+
+        Returns:
+            None
+        """
         self._grouped_columns_list.append(
             {
                 'start_col': start_col,
@@ -727,6 +764,22 @@ class WorkSheet(WorkSheetBase):
         hidden: bool = False,
         engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
+        """
+        Groups rows between start_row and end_row with specified outline level
+        and visibility.
+
+        Args:
+            start_row (int): The starting row to group.
+            end_row (Optional[int]): The ending row to group. If None,
+            only start_row will be grouped.
+            outline_level (int): The outline level of the group.
+            hidden (bool): Whether the grouped rows should be hidden.
+            engine (Literal['pyfastexcel', 'openpyxl']): The engine to use for
+            grouping.
+
+        Returns:
+            None
+        """
         self._grouped_rows_list.append(
             {
                 'start_row': start_row,
