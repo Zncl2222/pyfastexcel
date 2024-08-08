@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 import string
 import warnings
@@ -47,6 +48,10 @@ class Selection:
             'active_cell': self.active_cell,
             'pane': self.pane,
         }
+
+
+def set_debug_level(level: int):
+    logging.basicConfig(level=level)
 
 
 def deprecated_warning(msg: str):

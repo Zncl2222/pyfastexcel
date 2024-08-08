@@ -11,11 +11,10 @@ BASE_DIR = Path(__file__).resolve().parent
 
 logger = logging.getLogger(__name__)
 style_formatter = logging.StreamHandler()
-style_formatter.setLevel(logging.DEBUG)
 style_formatter.setFormatter(formatter)
 
-if not logger.hasHandlers():
-    logger.addHandler(style_formatter)
+logger.addHandler(style_formatter)
+logger.propagate = False
 
 # TODO: Implement a CustomStyle without the dependency of openpyxl_style_writer
 
