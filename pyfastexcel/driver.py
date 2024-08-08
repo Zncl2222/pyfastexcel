@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import ctypes
+import logging
 import sys
 from datetime import datetime, timezone
 from io import BytesIO
@@ -11,10 +12,18 @@ import msgspec
 from openpyxl import load_workbook
 from openpyxl_style_writer import CustomStyle
 
+from .logformatter import formatter
 from .style import StyleManager
 from .worksheet import WorkSheet
 
 BASE_DIR = Path(__file__).resolve().parent
+
+logger = logging.getLogger(__name__)
+style_formatter = logging.StreamHandler()
+style_formatter.setFormatter(formatter)
+
+logger.addHandler(style_formatter)
+logger.propagate = False
 
 
 class ExcelDriver:
@@ -155,6 +164,7 @@ class ExcelDriver:
         # Due to Streaming API of Excelize can't group column currently
         # So implement this function by openpyxl
         if (set_group_columns or set_row_columns) and use_openpyxl is True:
+            logger.info('Using openpyxl to group columns and rows...')
             self.decoded_bytes = self._set_group_columns_and_group_rows()
 
         return self.decoded_bytes
