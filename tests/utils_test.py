@@ -173,3 +173,10 @@ def test_colored_formatter():
 
     # Assert that the log_color attribute is correctly set
     assert record.log_color == '\033[92m'
+
+
+def test_set_debug_level():
+    import logging
+    from pyfastexcel import set_debug_level
+
+    set_debug_level(logging.INFO)
