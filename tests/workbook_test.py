@@ -290,6 +290,8 @@ def test_set_worksheet_with_wrong_format(cell_value):
 
 
 def test_save_workbook():
+    import io
+
     wb = Workbook()
     ws = wb['Sheet1']
     ws['A1':'G1'] = [1, 2, 3, 9, 8, 45, 11]
@@ -299,6 +301,10 @@ def test_save_workbook():
 
     wb.read_lib_and_create_excel()
     wb.save('test2.xlsx')
+
+    # Save with Writable object
+    buffer = io.BytesIO()
+    wb.save(buffer)
 
 
 def test_if_style_is_reset():

@@ -7,6 +7,7 @@ import sys
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
+from typing import overload
 
 import msgspec
 from openpyxl import load_workbook
@@ -15,6 +16,7 @@ from openpyxl_style_writer import CustomStyle
 from .logformatter import formatter
 from .style import StyleManager
 from .worksheet import WorkSheet
+from ._typing import Writable
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -96,12 +98,35 @@ class ExcelDriver:
     def sheet_list(self):
         return list(self._sheet_list)
 
-    def save(self, path: str = './pyfastexcel.xlsx') -> None:
+    @overload
+    def save(self, file: Writable) -> None:
+        """
+        Saves the workbook to a writable object.
+
+        Args:
+            file (Writable): Writable object that has .write() function.
+        """
+        ...
+
+    @overload
+    def save(self, path: str) -> None:
+        """
+        Saves the workbook to a file.
+
+        Args:
+            path (str): A path to save the file.
+        """
+        ...
+
+    def save(self, file_or_path: Writable | str) -> None:
         if not hasattr(self, 'decoded_bytes'):
             self.read_lib_and_create_excel()
 
-        with open(path, 'wb') as file:
-            file.write(self.decoded_bytes)
+        if isinstance(file_or_path, str):
+            with open(file_or_path, 'wb') as file:
+                file.write(self.decoded_bytes)
+        else:
+            file_or_path.write(self.decoded_bytes)
 
     def __getitem__(self, key: str) -> WorkSheet:
         return self.workbook[key]

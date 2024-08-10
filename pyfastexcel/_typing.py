@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, TypedDict, Optional, List, Union
+from typing import Literal, Protocol, TypedDict, Optional, List, Union
 
 
 class CommentTextDict(TypedDict, total=False):
@@ -19,6 +19,10 @@ class SelectionDict(TypedDict, total=False):
     sq_ref: str
     active_cell: str
     pane: str
+
+
+class Writable(Protocol):
+    def write(self, content: str) -> None: ...
 
 
 CommentTextStructure = Union[str, List[str], CommentTextDict, List[CommentTextDict]]
