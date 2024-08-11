@@ -111,6 +111,8 @@ class StyleCollections:
 
 
 class PyFastExcelStreamExample(StreamWriter, StyleCollections):
+    list_data = [[i for i in range(10)] for i in range(20)]
+
     def create_excel(self) -> bytes:
         self._set_header()
         self._create_style()
@@ -176,6 +178,15 @@ class PyFastExcelStreamExample(StreamWriter, StyleCollections):
 
         # AutoFilter
         self.auto_filter('Sheet1', 'A1:C1')
+
+        self.create_sheet('Sheet3')
+        for row in self.list_data:
+            self.row_append_list(row, style='black_fill_style')
+            self.create_row()
+
+        self.create_sheet('Sheet4')
+        for row in self.list_data:
+            self.row_append_list(row, style=self.green_fill_style, create_row=True)
 
 
 def test_set_data_with_index():
