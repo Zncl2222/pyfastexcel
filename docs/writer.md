@@ -114,6 +114,20 @@ your own row-by-row writing method.
                         self.row_append(row[h], style='black_fill_style')
                 self.create_row()
 
+            # Create row by row_append_list
+            self.switch_sheet('Sheet3')
+            list_data = [1, 2, 3, 4, 5]
+            self.row_append_list(list_data, style='black_fill_style')
+            self.create_row()
+
+            # Set create_row = True to apply the value to sheet without calling
+            # self.create_row()
+            self.row_append_list(
+                list_data,
+                style=self.green_fill_style,
+                create_row=True
+            )
+
             # You can also assign the value via index
             self.workbook['Sheet1']['A2'] = ('Hellow World', 'black_fill_style')
             self.workbook['Sheet1']['A3'] = 'I am A3'
