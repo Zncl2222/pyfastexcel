@@ -109,6 +109,39 @@ class StreamWriter(Workbook):
         value = validate_and_format_value(value, set_default_style=False)
         self._row_list.append((value, style))
 
+    def row_append_list(
+        self,
+        value: list[Any],
+        style: str | CustomStyle = 'DEFAULT_STYLE',
+        create_row: bool = False,
+        **kwargs,
+    ) -> None:
+        """
+        Appends a value to the row list.
+
+        Args:
+            value (list[Any]): The value to be appended.
+            style (str | CustomStyle): The style of the value, can be either
+                a style name or a CustomStyle object.
+            create_row (bool): Whether to create row.
+            **kwargs: Additional keyword arguments to modify the style.
+        """
+        self.style_key = f'{style}{kwargs}'
+
+        if isinstance(style, CustomStyle):
+            style = self._handle_custom_style(style, kwargs)
+        elif isinstance(style, str):
+            style = self._handle_string_style(style, kwargs)
+
+        if create_row:
+            value = tuple(
+                (validate_and_format_value(x, set_default_style=False), style) for x in value
+            )
+            self.workbook[self.sheet].data.append(value)
+        else:
+            value = validate_and_format_value(value, set_default_style=False)
+            self._row_list.append((value, style))
+
     def create_row(self):
         """
         Creates a row in the Excel data, and clean the current _row_list.
