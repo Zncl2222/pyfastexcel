@@ -133,14 +133,12 @@ class StreamWriter(Workbook):
         elif isinstance(style, str):
             style = self._handle_string_style(style, kwargs)
 
+        value = tuple((validate_and_format_value(x, set_default_style=False), style) for x in value)
+
         if create_row:
-            value = tuple(
-                (validate_and_format_value(x, set_default_style=False), style) for x in value
-            )
             self.workbook[self.sheet].data.append(value)
         else:
-            value = validate_and_format_value(value, set_default_style=False)
-            self._row_list.append((value, style))
+            self._row_list.extend(value)
 
     def create_row(self):
         """
