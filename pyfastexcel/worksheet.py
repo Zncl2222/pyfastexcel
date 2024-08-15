@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal, Optional, List, overload
 
 from openpyxl_style_writer import CustomStyle
+from pydantic import validate_call
 
 from .style import StyleManager
 from ._typing import CommentTextStructure, SetPanesSelection
@@ -224,7 +225,7 @@ class WorkSheetBase:
                     'Style should be a string or CustomStyle object.',
                 )
             # The case that user do not register the Custom Style by 'Class attributes'
-            # or set_cumston_style function.
+            # or set_custom_style function.
             if (
                 isinstance(value[1], CustomStyle)
                 and StyleManager._STYLE_NAME_MAP.get(value[1]) is None
@@ -352,7 +353,7 @@ class WorkSheet(WorkSheetBase):
         self,
         row: int,
         column: int,
-        value: any,
+        value: Any,
         style: str | CustomStyle = 'DEFAULT_STYLE',
     ) -> None:
         """
@@ -420,6 +421,7 @@ class WorkSheet(WorkSheetBase):
         else:
             raise TypeError('Target should be a string, slice, or list[row, index].')
 
+    @validate_call
     def set_cell_width(self, col: str | int, value: int) -> None:
         if isinstance(col, str):
             col = column_to_index(col)
@@ -427,6 +429,7 @@ class WorkSheet(WorkSheetBase):
             raise ValueError(f'Invalid column index: {col}')
         self._width_dict[col] = value
 
+    @validate_call
     def set_cell_height(self, row: int, value: int) -> None:
         if row < 1 or row > 1048576:
             raise ValueError(f'Invalid row index: {row}')
@@ -532,6 +535,7 @@ class WorkSheet(WorkSheetBase):
 
         self._merged_cells_list.append((top_left_cell, bottom_right_cell))
 
+    @validate_call
     def auto_filter(self, target_range: str) -> None:
         """
         Sets the auto filter for the specified range.
@@ -552,6 +556,7 @@ class WorkSheet(WorkSheetBase):
         _validate_cell_reference(target_list[1])
         self._auto_filter_set.add(target_range)
 
+    @validate_call
     def set_panes(
         self,
         freeze: bool = False,
@@ -560,7 +565,7 @@ class WorkSheet(WorkSheetBase):
         y_split: int = 0,
         top_left_cell: str = '',
         active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = '',
-        selection: Optional[SetPanesSelection | list[Selection]] = None,
+        selection: Optional[SetPanesSelection | list[Selection] | Selection] = None,
     ) -> None:
         """
         Sets the panes for the worksheet with options for freezing, splitting, and selection.
@@ -587,10 +592,6 @@ class WorkSheet(WorkSheetBase):
             raise ValueError('Split position should be positive.')
         if top_left_cell != '':
             _validate_cell_reference(top_left_cell)
-        if active_pane not in ['bottomLeft', 'bottomRight', 'topLeft', 'topRight', '']:
-            raise ValueError(
-                'Invalid active pane. The options are bottomLeft, bottomRight, topLeft, topRight.',
-            )
 
         if selection is None:
             selection = []
@@ -609,12 +610,13 @@ class WorkSheet(WorkSheetBase):
             'selection': selection,
         }
 
+    @validate_call
     def set_data_validation(
         self,
         sq_ref: str = '',
         set_range: Optional[list[int | float]] = None,
         input_msg: Optional[list[str]] = None,
-        drop_list: Optional[list[str] | str] = None,
+        drop_list: Optional[list[str | int | float] | str] = None,
         error_msg: Optional[list[str]] = None,
     ):
         """
@@ -652,8 +654,6 @@ class WorkSheet(WorkSheetBase):
             _validate_cell_reference(drop_list_split[1])
             drop_list_key = 'sqref_drop_list'
         elif drop_list is not None:
-            if not isinstance(drop_list, list):
-                raise ValueError('Drop list should be a list of strings.')
             drop_list = [str(x) for x in drop_list]
 
         dv = {}
@@ -672,15 +672,12 @@ class WorkSheet(WorkSheetBase):
         if drop_list is not None:
             dv[drop_list_key] = drop_list
         if error_msg is not None:
-            if not isinstance(error_msg, list) or len(error_msg) != 2:
-                raise ValueError(
-                    'Error message should be a list of two elements. Like ["Title", "Body"].',
-                )
             dv['error_title'] = error_msg[0]
             dv['error_body'] = error_msg[1]
 
         self._data_validation_list.append(dv)
 
+    @validate_call
     def add_comment(
         self,
         cell: str,
@@ -718,10 +715,10 @@ class WorkSheet(WorkSheetBase):
                     }
         elif all(isinstance(item, CommentText) for item in text):
             text = [t.to_dict() for t in text]
-        else:
-            raise ValueError('Comment text should be a string or a list of dictionaries.')
+
         self._comment_list.append({'cell': cell, 'author': author, 'paragraph': text})
 
+    @validate_call
     def group_columns(
         self,
         start_col: str,
@@ -756,6 +753,7 @@ class WorkSheet(WorkSheetBase):
         )
         self._engine = engine
 
+    @validate_call
     def group_rows(
         self,
         start_row: int,
