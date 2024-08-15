@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 openpyxl_style_writer = "*"
 msgspec = "*"
+pydantic = "*"
 
 [dev-packages]
 pre-commit = "*"
@@ -14,7 +15,8 @@ pytest = "*"
 pytest-cov = "*"
 pytest-xdist = "*"
 pip-tools = "*"
-matplotlib = "*"
+matplotlib = "<=3.7.5"
+eval-type-backport = "*"
 
 [requires]
 python_version = "3.11"
