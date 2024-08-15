@@ -7,6 +7,9 @@ from pyfastexcel import Workbook
 from pyfastexcel.utils import CommentText, Selection
 from pyfastexcel._typing import SelectionDict
 
+from pydantic import ValidationError
+
+
 style_for_set_custom_style = CustomStyle(font_color='fcfcfc')
 
 
@@ -633,7 +636,7 @@ def test_split_set_panes(selection):
     'top_left_cell, expected_result',
     [
         ('qwe', ValueError),
-        (123, TypeError),
+        (123, ValidationError),
         ('XFDDDD1', ValueError),
         ('X99999999999999', ValueError),
     ],
@@ -755,10 +758,12 @@ def test_set_data_validation_drop_list_error(drop_list, expected_resp):
     [
         ('A2', ValueError),
         ([], ValueError),
+        (['1', '2', '3'], ValueError),
+        ([1, 2, 3], ValueError),
         (12, ValueError),
     ],
 )
-def test_set_data_validation__set_range_error(set_range, expected_resp):
+def test_set_data_validation_set_range_error(set_range, expected_resp):
     wb = Workbook()
     ws = wb['Sheet1']
 
@@ -774,6 +779,7 @@ def test_set_data_validation__set_range_error(set_range, expected_resp):
     [
         ('title', 'title', ValueError),
         (1, 'title', ValueError),
+        (['1', '1', '1'], 'title', ValueError),
         ('title', 2, ValueError),
     ],
 )

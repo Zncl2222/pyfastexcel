@@ -262,7 +262,7 @@ def test_remove_sheet():
     'sheet, column, width, expected_exception',
     [
         ('Sheet1', 16385, 12, ValueError),  # Invalid case
-        ('qwe', '', '', KeyError),  # Invalid: Single cell is not a merge cell
+        ('qwe', 1638, 2, KeyError),  # Invalid: Single cell is not a merge cell
     ],
 )
 def test_set_cell_width(sheet, column, width, expected_exception):
@@ -275,7 +275,7 @@ def test_set_cell_width(sheet, column, width, expected_exception):
     'sheet, row, height, expected_exception',
     [
         ('Sheet1', 1048577, 12, ValueError),  # Invalid case
-        ('qwe', '', '', KeyError),  # Invalid: Single cell is not a merge cell
+        ('qwe', 10487, 2, KeyError),  # Invalid: Single cell is not a merge cell
     ],
 )
 def test_set_cell_height(sheet, row, height, expected_exception):
