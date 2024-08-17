@@ -72,6 +72,7 @@ class WorkSheetBase:
         self._data_validation_list = []
         self._grouped_columns_list = []
         self._grouped_rows_list = []
+        self._table_list = []
         # Using pyfastexcel to write as default
         self._engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
 
@@ -171,6 +172,7 @@ class WorkSheetBase:
             'Comment': self._comment_list,
             'GroupedRow': self._grouped_rows_list,
             'GroupedCol': self._grouped_columns_list,
+            'Table': self._table_list,
         }
         return self._sheet
 
@@ -187,6 +189,7 @@ class WorkSheetBase:
             'Comment': [],
             'GroupedRow': [],
             'GroupedCol': [],
+            'Table': [],
         }
 
     def _validate_value_and_set_default(self, value: Any):
@@ -787,3 +790,35 @@ class WorkSheet(WorkSheetBase):
             }
         )
         self._engine = engine
+
+    @validate_call
+    def create_table(
+        self,
+        cell_range: str,
+        name: str,
+        style_name: str = '',
+        show_first_column: bool = True,
+        show_last_column: bool = True,
+        show_row_stripes: bool = False,
+        show_column_stripes: bool = True,
+    ):
+        if ':' not in cell_range:
+            raise ValueError(
+                'Invalid cell_range.' 'cell_range should be in the format "A1:B2".',
+            )
+
+        cell_range_split = cell_range.split(':')
+        _validate_cell_reference(cell_range_split[0])
+        _validate_cell_reference(cell_range_split[1])
+
+        table = {
+            'range': cell_range,
+            'name': name,
+            'style_name': style_name,
+            'show_first_column': show_first_column,
+            'show_last_column': show_last_column,
+            'show_row_stripes': show_row_stripes,
+            'show_column_stripes': show_column_stripes,
+        }
+
+        self._table_list.append(table)

@@ -297,3 +297,26 @@ class Workbook(ExcelDriver):
             hidden,
             engine,
         )
+
+    @validate_call
+    def create_table(
+        self,
+        sheet: str,
+        cell_range: str,
+        name: str,
+        style_name: str = '',
+        show_first_column: bool = True,
+        show_last_column: bool = True,
+        show_row_stripes: bool = False,
+        show_column_stripes: bool = True,
+    ):
+        self._check_if_sheet_exists(sheet)
+        self.workbook[self.sheet].create_table(
+            cell_range,
+            name,
+            style_name,
+            show_first_column,
+            show_last_column,
+            show_row_stripes,
+            show_column_stripes,
+        )
