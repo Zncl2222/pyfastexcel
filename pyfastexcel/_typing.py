@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal, Protocol, TypedDict, Optional, List, Union
+from typing import Literal, Protocol, Optional, List, Union
+from typing_extensions import TypedDict
 
 
 class CommentTextDict(TypedDict, total=False):

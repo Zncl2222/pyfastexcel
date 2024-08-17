@@ -1,9 +1,14 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, overload
+from typing import Literal, Optional, overload, List
 
 from pyfastexcel.driver import ExcelDriver, WorkSheet
 from pyfastexcel.utils import deprecated_warning
+
+from pydantic import validate_call
+
+from ._typing import CommentTextStructure, SetPanesSelection
+from .utils import CommentText, Selection
 
 
 class Workbook(ExcelDriver):
@@ -102,6 +107,7 @@ class Workbook(ExcelDriver):
         self._check_if_sheet_exists(sheet_name)
         self.sheet = sheet_name
 
+    @validate_call
     def set_file_props(self, key: str, value: str) -> None:
         """
         Sets a file property.
@@ -117,6 +123,7 @@ class Workbook(ExcelDriver):
             raise ValueError(f'Invalid file property: {key}')
         self.file_props[key] = value
 
+    @validate_call
     def protect_workbook(
         self,
         algorithm: str,
@@ -133,10 +140,12 @@ class Workbook(ExcelDriver):
         self.protection['lock_structure'] = lock_structure
         self.protection['lock_windows'] = lock_windows
 
+    @validate_call
     def set_cell_width(self, sheet: str, col: str | int, value: int) -> None:
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_cell_width(col, value)
 
+    @validate_call
     def set_cell_height(self, sheet: str, row: int, value: int) -> None:
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_cell_height(row, value)
@@ -181,10 +190,12 @@ class Workbook(ExcelDriver):
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_merge_cell(*args)
 
+    @validate_call
     def auto_filter(self, sheet: str, target_range: str) -> None:
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].auto_filter(target_range)
 
+    @validate_call
     def set_panes(
         self,
         sheet: str,
@@ -194,7 +205,7 @@ class Workbook(ExcelDriver):
         y_split: int = 0,
         top_left_cell: str = '',
         active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = '',
-        selection: list[dict[str, str]] = None,
+        selection: Optional[SetPanesSelection | list[Selection] | Selection] = None,
     ) -> None:
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_panes(
@@ -207,14 +218,15 @@ class Workbook(ExcelDriver):
             selection=selection,
         )
 
+    @validate_call
     def set_data_validation(
         self,
         sheet: str,
         sq_ref: str = '',
-        set_range: list[int | float] = None,
-        input_msg: list[str] = None,
-        drop_list: list[str] | str = None,
-        error_msg: list[str] = None,
+        set_range: Optional[list[int | float]] = None,
+        input_msg: Optional[list[str]] = None,
+        drop_list: Optional[list[str | int | float] | str] = None,
+        error_msg: Optional[list[str]] = None,
     ):
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_data_validation(
@@ -225,12 +237,13 @@ class Workbook(ExcelDriver):
             error_msg=error_msg,
         )
 
+    @validate_call
     def add_comment(
         self,
         sheet: str,
         cell: str,
         author: str,
-        text: str | dict[str, str] | list[str | dict[str, str]],
+        text: CommentTextStructure | CommentText | List[CommentText],
     ) -> None:
         """
         Adds a comment to the specified cell.
@@ -247,6 +260,7 @@ class Workbook(ExcelDriver):
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].add_comment(cell, author, text)
 
+    @validate_call
     def group_columns(
         self,
         sheet: str,
@@ -265,6 +279,7 @@ class Workbook(ExcelDriver):
             engine,
         )
 
+    @validate_call
     def group_rows(
         self,
         sheet: str,

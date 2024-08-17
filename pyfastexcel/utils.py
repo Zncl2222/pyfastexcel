@@ -4,7 +4,9 @@ import logging
 import re
 import string
 import warnings
-from dataclasses import dataclass
+
+# from dataclasses import dataclass
+from pydantic.dataclasses import dataclass
 from typing import Any, Literal
 
 from openpyxl_style_writer import CustomStyle
