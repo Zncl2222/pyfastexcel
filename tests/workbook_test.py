@@ -915,3 +915,29 @@ def test_group_row_openpyxl(start, end, level, hidden, engine):
     wb.create_sheet('Sheet3')
     wb.group_rows('Sheet3', start, end, level, hidden, engine=engine)
     wb.read_lib_and_create_excel()
+
+
+def test_create_table():
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    ws[0] = [1, 2, 3, 4]
+    ws[1] = [2, 2, 3, 4]
+
+    ws.create_table('A1:B4', 'test')
+
+    ws[2] = ['q', 'w', 'e', 'r']
+    ws[3] = [2, 2, 3, 4]
+
+    wb.create_table('Sheet1', 'A1:B4', 'test')
+
+
+def test_create_table_failed():
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    ws[0] = [1, 2, 3, 4]
+    ws[1] = [2, 2, 3, 4]
+
+    with pytest.raises(ValueError):
+        ws.create_table('A1B4', 'test')
