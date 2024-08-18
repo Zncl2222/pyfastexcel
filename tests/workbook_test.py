@@ -930,6 +930,20 @@ def test_create_table():
     ws[3] = [2, 2, 3, 4]
 
     wb.create_table('Sheet1', 'A1:B4', 'test')
+    wb.read_lib_and_create_excel()
+
+
+def test_create_table_with_normal_writer():
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    ws[0] = [1, 2, 3, 4]
+    ws[1] = [2, 2, 3, 4]
+
+    ws.create_table('A1:B4', 'test')
+    # Make pyfastexcel use normal wirter to write content
+    ws.group_columns('F1')
+    wb.read_lib_and_create_excel()
 
 
 def test_create_table_failed():
