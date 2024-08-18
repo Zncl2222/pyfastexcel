@@ -476,3 +476,40 @@ It is not recommended to use this function when dealing with large files.
 ```python
 wb.group_rows('Sheet1', 1, 3, 1, False)
 ```
+
+## Create Table
+
+Create a table in a sheet.
+
+!!! note "Note"
+    There are some limitations when creating a table:
+    1. A table must always be created with at least one row of data.
+    For example, if you want to create a table in the range 'A1:B3',
+    you should first ensure that there is data in the range 'A1:A3';
+    otherwise, the table will not be created correctly.
+    2. Tables should not overlap with one another.
+
+### Parameters
+
+| Parameter            | Data Type | Description                                      |
+|----------------------|-----------|--------------------------------------------------|
+| `sheet`              | str       | The name of the sheet.                           |
+| `cell_range`         | str       | The cell reference range, e.g., 'A1:B3'.         |
+| `name`               | str       | The name of the table.                           |
+| `style_name`         | str       | The built-in style name for the table in Excel.  |
+| `show_first_column`  | bool      | Whether to display the first column.             |
+| `show_last_column`   | bool      | Whether to display the last column.              |
+| `show_row_stripes`   | bool      | Whether to display row stripes.                  |
+| `show_column_stripes`| bool      | Whether to display column stripes.               |
+
+```python
+ws.create_table(
+    'A1:B3',
+    'table_name',
+    'TableStyleLight1,
+    True,
+    True,
+    False,
+    True,
+)
+```
