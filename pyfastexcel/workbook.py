@@ -309,6 +309,7 @@ class Workbook(ExcelDriver):
         show_last_column: bool = True,
         show_row_stripes: bool = False,
         show_column_stripes: bool = True,
+        validate_table: bool = True,
     ):
         self._check_if_sheet_exists(sheet)
         self.workbook[self.sheet].create_table(
@@ -319,4 +320,5 @@ class Workbook(ExcelDriver):
             show_last_column,
             show_row_stripes,
             show_column_stripes,
+            validate_table,
         )

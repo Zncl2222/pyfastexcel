@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Protocol, Optional, List, Union
+from typing import Literal, Protocol, Optional, List, Union, TypeVar
 from typing_extensions import TypedDict
 
 
@@ -26,5 +26,6 @@ class Writable(Protocol):
     def write(self, content: str) -> None: ...
 
 
+Self = TypeVar('Self')
 CommentTextStructure = Union[str, List[str], CommentTextDict, List[CommentTextDict]]
 SetPanesSelection = List[SelectionDict]

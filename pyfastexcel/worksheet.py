@@ -19,6 +19,7 @@ from .utils import (
     validate_and_register_style,
     transfer_string_slice_to_slice,
 )
+from .validators import validate_call as _validate_call
 
 
 class WorkSheetBase:
@@ -791,7 +792,7 @@ class WorkSheet(WorkSheetBase):
         )
         self._engine = engine
 
-    @validate_call
+    @_validate_call
     def create_table(
         self,
         cell_range: str,
@@ -801,16 +802,25 @@ class WorkSheet(WorkSheetBase):
         show_last_column: bool = True,
         show_row_stripes: bool = False,
         show_column_stripes: bool = True,
+        validate_table: bool = True,
     ):
-        if ':' not in cell_range:
-            raise ValueError(
-                'Invalid cell_range.' 'cell_range should be in the format "A1:B2".',
-            )
+        """
+        Creates a table within the specified cell range with given style and display options.
 
-        cell_range_split = cell_range.split(':')
-        _validate_cell_reference(cell_range_split[0])
-        _validate_cell_reference(cell_range_split[1])
+        Args:
+            cell_range (str): The cell range where the table should be created (e.g., 'A1:D10').
+            name (str): The name of the table.
+            style_name (str): The style to apply to the table. Defaults to an empty string, which
+            applies the default style.
+            show_first_column (bool): Whether to emphasize the first column.
+            show_last_column (bool): Whether to emphasize the last column.
+            show_row_stripes (bool): Whether to show row stripes for alternate row shading.
+            show_column_stripes (bool): Whether to show column stripes for alternate column shading.
+            validate_table (bool): Whether to validate the table through TableFinalValidation.
 
+        Returns:
+            None
+        """
         table = {
             'range': cell_range,
             'name': name,
@@ -819,6 +829,9 @@ class WorkSheet(WorkSheetBase):
             'show_last_column': show_last_column,
             'show_row_stripes': show_row_stripes,
             'show_column_stripes': show_column_stripes,
+            # validate_table is a flag to decide whether
+            # to validate the table by TableFinalValidation
+            'validate_table': validate_table,
         }
 
         self._table_list.append(table)
