@@ -16,6 +16,7 @@ from openpyxl_style_writer import CustomStyle
 from .logformatter import formatter
 from .style import StyleManager
 from .worksheet import WorkSheet
+from .validators import TableFinalValidation
 from ._typing import Writable
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -160,6 +161,11 @@ class ExcelDriver:
                 set_group_columns = True
             if len(self.workbook[sheet]._grouped_rows_list) != 0:
                 set_row_columns = True
+            if len(self.workbook[sheet]._table_list) != 0:
+                TableFinalValidation(
+                    data=self.workbook[sheet]._data,
+                    table_list=self.workbook[sheet]._table_list,
+                )
 
         # Set writer (if some of the function that excelize StremWriter is not support, and
         # system will use normal writer to write the excel)

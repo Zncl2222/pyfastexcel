@@ -19,6 +19,7 @@ from .utils import (
     validate_and_register_style,
     transfer_string_slice_to_slice,
 )
+from .validators import validate_call as _validate_call
 
 
 class WorkSheetBase:
@@ -72,6 +73,7 @@ class WorkSheetBase:
         self._data_validation_list = []
         self._grouped_columns_list = []
         self._grouped_rows_list = []
+        self._table_list = []
         # Using pyfastexcel to write as default
         self._engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
 
@@ -171,6 +173,7 @@ class WorkSheetBase:
             'Comment': self._comment_list,
             'GroupedRow': self._grouped_rows_list,
             'GroupedCol': self._grouped_columns_list,
+            'Table': self._table_list,
         }
         return self._sheet
 
@@ -187,6 +190,7 @@ class WorkSheetBase:
             'Comment': [],
             'GroupedRow': [],
             'GroupedCol': [],
+            'Table': [],
         }
 
     def _validate_value_and_set_default(self, value: Any):
@@ -787,3 +791,47 @@ class WorkSheet(WorkSheetBase):
             }
         )
         self._engine = engine
+
+    @_validate_call
+    def create_table(
+        self,
+        cell_range: str,
+        name: str,
+        style_name: str = '',
+        show_first_column: bool = True,
+        show_last_column: bool = True,
+        show_row_stripes: bool = False,
+        show_column_stripes: bool = True,
+        validate_table: bool = True,
+    ):
+        """
+        Creates a table within the specified cell range with given style and display options.
+
+        Args:
+            cell_range (str): The cell range where the table should be created (e.g., 'A1:D10').
+            name (str): The name of the table.
+            style_name (str): The style to apply to the table. Defaults to an empty string, which
+            applies the default style.
+            show_first_column (bool): Whether to emphasize the first column.
+            show_last_column (bool): Whether to emphasize the last column.
+            show_row_stripes (bool): Whether to show row stripes for alternate row shading.
+            show_column_stripes (bool): Whether to show column stripes for alternate column shading.
+            validate_table (bool): Whether to validate the table through TableFinalValidation.
+
+        Returns:
+            None
+        """
+        table = {
+            'range': cell_range,
+            'name': name,
+            'style_name': style_name,
+            'show_first_column': show_first_column,
+            'show_last_column': show_last_column,
+            'show_row_stripes': show_row_stripes,
+            'show_column_stripes': show_column_stripes,
+            # validate_table is a flag to decide whether
+            # to validate the table by TableFinalValidation
+            'validate_table': validate_table,
+        }
+
+        self._table_list.append(table)

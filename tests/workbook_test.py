@@ -915,3 +915,97 @@ def test_group_row_openpyxl(start, end, level, hidden, engine):
     wb.create_sheet('Sheet3')
     wb.group_rows('Sheet3', start, end, level, hidden, engine=engine)
     wb.read_lib_and_create_excel()
+
+
+@pytest.mark.parametrize(
+    'ws1, ws2, cell_range',
+    [
+        ([1, 2, 3, 4], [5, 6, 7, 8], 'A1:B2'),
+        (['q', 'w', 'e', 'r', 'd', 'f'], [1, 2, 3, 4, 5, 7], 'A1:D2'),
+        (['q', 'w', 'e', 'r', 'd', 'f'], [1, 2, 3, 4, 5, 7], 'A1:F2'),
+    ],
+)
+def test_create_table(ws1, ws2, cell_range):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    ws[0] = ws1
+    ws[1] = ws2
+
+    ws.create_table(cell_range, 'test')
+
+    ws[2] = ['q', 'w', 'e', 'r']
+    ws[3] = [2, 2, 3, 4]
+
+    wb.create_table('Sheet1', 'A3:D4', 'test', validate_table=False)
+
+    ws[4] = ['q', 'w', 'e', 'r']
+    ws[5] = [2, 2, 3, 4]
+    ws.create_table('A5:D6', 'test', show_first_column=True, show_last_column=False)
+
+    ws[6] = ['q', 'w', 'e', 'r']
+    ws[7] = [2, 2, 3, 4]
+    ws.create_table(cell_range='A7:D8', name='test', show_first_column=True, show_last_column=False)
+
+    ws[8] = ['q', 'w', 'e', 'r']
+    ws[9] = [2, 2, 3, 4]
+    ws.create_table('A9:D10', name='test', show_first_column=True, show_last_column=False)
+    wb.read_lib_and_create_excel()
+
+
+@pytest.mark.parametrize(
+    'ws1, ws2, cell_range',
+    [
+        ([1, 2, 3, 4], [5, 6, 7, 8], 'A1:B2'),
+        (['q', 'w', 'e', 'r', 'd', 'f'], [1, 2, 3, 4, 5, 7], 'A1:D2'),
+        (['q', 'w', 'e', 'r', 'd', 'f'], [1, 2, 3, 4, 5, 7], 'A1:F2'),
+    ],
+)
+def test_create_table_with_normal_writer(ws1, ws2, cell_range):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    ws[0] = ws1
+    ws[1] = ws2
+
+    ws.create_table(cell_range, 'test')
+    # Make pyfastexcel use normal wirter to write content
+    ws.group_columns('F1')
+    wb.read_lib_and_create_excel()
+
+
+def test_create_table_failed_args():
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    ws[0] = ['t1', 't2', 't3', 't4']
+    ws[1] = [2, 2, 3, 4]
+
+    with pytest.raises(ValueError):
+        ws.create_table('A1B2', 'test')
+
+    with pytest.raises(ValueError):
+        ws.create_table('A1:B2:1', 'test')
+
+    with pytest.raises(ValueError):
+        ws.create_table('A1:B2', 'test', style_name='wrong_style')
+
+
+@pytest.mark.parametrize(
+    'ws1, ws2, cell_range',
+    [
+        ([1, 2, 3, 4], [5, 6, 7, 8], 'A1:G2'),
+        ([1, 1, 1, 1], [5, 6, 7, 8], 'A1:D2'),
+        ([1, 2, 3, 4], [1, 2, 3, 4], 'A1:D2'),
+    ],
+)
+def test_create_table_failed_final_validation(ws1, ws2, cell_range):
+    wb = Workbook()
+    ws = wb['Sheet1']
+
+    ws[0] = ws1
+    ws[1] = ws2
+
+    with pytest.raises(ValueError):
+        ws.create_table(cell_range, 'test')
+        wb.read_lib_and_create_excel()

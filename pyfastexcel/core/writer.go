@@ -66,6 +66,104 @@ func WriteExcel(data string) string {
 	return encodedString
 }
 
+// streamCreateTable adds multiple tables to an Excel sheet using a StreamWriter.
+//
+// This function takes a StreamWriter and a list of tables, each represented by a map of key-value pairs.
+// It iterates over the list of tables and adds each one to the sheet using the StreamWriter's AddTable method.
+// If an error occurs while adding a table, it prints the error.
+//
+// Args:
+//   sw (*excelize.StreamWriter): The StreamWriter object used to write data to the Excel sheet.
+//   tables ([]interface{}): A slice of maps where each map represents a table's properties.
+//     The map should contain the following keys:
+//     - "range" (string): The cell range for the table (e.g., "A1:C10").
+//     - "name" (string): The name of the table.
+//     - "style_name" (string): The style name for the table.
+//     - "show_first_column" (bool): Whether to highlight the first column.
+//     - "show_last_column" (bool): Whether to highlight the last column.
+//     - "show_row_stripes" (bool): Whether to display row stripes for better readability.
+//     - "show_column_stripes" (bool): Whether to display column stripes for better readability.
+//
+// Example:
+//   tables := []interface{}{
+//     map[string]interface{}{
+//       "range": "A1:C10", "name": "Table1", "style_name": "TableStyleMedium9",
+//       "show_first_column": true, "show_last_column": false,
+//       "show_row_stripes": true, "show_column_stripes": false,
+//     },
+//     // Add more tables as needed
+//   }
+//   streamCreateTable(sw, tables)
+func streamCreateTable(sw *excelize.StreamWriter, tables []interface{}) {
+	for _, table := range tables {
+		t := table.(map[string]interface{})
+		showRowStripes := t["show_row_stripes"].(bool)
+		err := sw.AddTable(&excelize.Table{
+			Range:             t["range"].(string),
+			Name:              t["name"].(string),
+			StyleName:         t["style_name"].(string),
+			ShowFirstColumn:   t["show_first_column"].(bool),
+			ShowLastColumn:    t["show_last_column"].(bool),
+			ShowRowStripes:    &showRowStripes,
+			ShowColumnStripes: t["show_column_stripes"].(bool),
+		})
+
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+// createTable adds multiple tables to a specified sheet in an Excel file.
+//
+// This function takes an Excel file object, a sheet name, and a list of tables.
+// Each table is represented by a map of key-value pairs defining its properties.
+// It iterates over the list of tables and adds each one to the specified sheet using the file's AddTable method.
+// If an error occurs while adding a table, the function prints the error.
+//
+// Args:
+//   file (*excelize.File): The Excel file object to which tables will be added.
+//   sheet (string): The name of the sheet in which to create the tables.
+//   tables ([]interface{}): A slice of maps where each map represents a table's properties.
+//     The map should contain the following keys:
+//     - "range" (string): The cell range for the table (e.g., "A1:C10").
+//     - "name" (string): The name of the table.
+//     - "style_name" (string): The style name for the table.
+//     - "show_first_column" (bool): Whether to highlight the first column.
+//     - "show_last_column" (bool): Whether to highlight the last column.
+//     - "show_row_stripes" (bool): Whether to display row stripes for better readability.
+//     - "show_column_stripes" (bool): Whether to display column stripes for better readability.
+//
+// Example:
+//   tables := []interface{}{
+//     map[string]interface{}{
+//       "range": "A1:C10", "name": "Table1", "style_name": "TableStyleMedium9",
+//       "show_first_column": true, "show_last_column": false,
+//       "show_row_stripes": true, "show_column_stripes": false,
+//     },
+//     // Add more tables as needed
+//   }
+//   createTable(file, "Sheet1", tables)
+func createTable(file *excelize.File, sheet string, tables []interface{}) {
+	for _, table := range tables {
+		t := table.(map[string]interface{})
+		showRowStripes := t["show_row_stripes"].(bool)
+		err := file.AddTable(sheet, &excelize.Table{
+			Range:             t["range"].(string),
+			Name:              t["name"].(string),
+			StyleName:         t["style_name"].(string),
+			ShowFirstColumn:   t["show_first_column"].(bool),
+			ShowLastColumn:    t["show_last_column"].(bool),
+			ShowRowStripes:    &showRowStripes,
+			ShowColumnStripes: t["show_column_stripes"].(bool),
+		})
+
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
 // setFileProps sets document properties of the Excel file based on a map of key-value pairs.
 //
 // Args:
@@ -377,6 +475,10 @@ func streamWriter(file *excelize.File, data map[string]interface{}) {
 			}
 		}
 
+		// Create Stream Table
+		// Excelize should create table with the existed row.
+		streamCreateTable(streamWriter, sheetData["Table"].([]interface{}))
+
 		if err := streamWriter.Flush(); err != nil {
 			fmt.Println(err)
 		}
@@ -575,5 +677,7 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 				file.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
 			}
 		}
+		// Excelize should create table with the existed row.
+		createTable(file, sheet, sheetData["Table"].([]interface{}))
 	}
 }
