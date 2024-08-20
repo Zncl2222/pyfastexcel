@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal, Optional, List, overload
 
 from openpyxl_style_writer import CustomStyle
-from pydantic import validate_call
+from pydantic import validate_call as pydantic_validate_call
 
 from .style import StyleManager
 from ._typing import CommentTextStructure, SetPanesSelection
@@ -19,7 +19,7 @@ from .utils import (
     validate_and_register_style,
     transfer_string_slice_to_slice,
 )
-from .validators import validate_call as _validate_call
+from .validators import validate_call
 
 
 class WorkSheetBase:
@@ -425,7 +425,7 @@ class WorkSheet(WorkSheetBase):
         else:
             raise TypeError('Target should be a string, slice, or list[row, index].')
 
-    @validate_call
+    @pydantic_validate_call
     def set_cell_width(self, col: str | int, value: int) -> None:
         if isinstance(col, str):
             col = column_to_index(col)
@@ -433,7 +433,7 @@ class WorkSheet(WorkSheetBase):
             raise ValueError(f'Invalid column index: {col}')
         self._width_dict[col] = value
 
-    @validate_call
+    @pydantic_validate_call
     def set_cell_height(self, row: int, value: int) -> None:
         if row < 1 or row > 1048576:
             raise ValueError(f'Invalid row index: {row}')
@@ -539,7 +539,7 @@ class WorkSheet(WorkSheetBase):
 
         self._merged_cells_list.append((top_left_cell, bottom_right_cell))
 
-    @validate_call
+    @pydantic_validate_call
     def auto_filter(self, target_range: str) -> None:
         """
         Sets the auto filter for the specified range.
@@ -592,11 +592,6 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
-        if x_split < 0 or y_split < 0:
-            raise ValueError('Split position should be positive.')
-        if top_left_cell != '':
-            _validate_cell_reference(top_left_cell)
-
         if selection is None:
             selection = []
         elif not isinstance(selection, list):
@@ -639,13 +634,6 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
-        if ':' in sq_ref:
-            sq_ref_list = sq_ref.split(':')
-            _validate_cell_reference(sq_ref_list[0])
-            _validate_cell_reference(sq_ref_list[1])
-        else:
-            _validate_cell_reference(sq_ref)
-
         drop_list_key = 'drop_list'
         if isinstance(drop_list, str):
             if ':' not in drop_list:
@@ -681,7 +669,7 @@ class WorkSheet(WorkSheetBase):
 
         self._data_validation_list.append(dv)
 
-    @validate_call
+    @pydantic_validate_call
     def add_comment(
         self,
         cell: str,
@@ -722,7 +710,7 @@ class WorkSheet(WorkSheetBase):
 
         self._comment_list.append({'cell': cell, 'author': author, 'paragraph': text})
 
-    @validate_call
+    @pydantic_validate_call
     def group_columns(
         self,
         start_col: str,
@@ -757,7 +745,7 @@ class WorkSheet(WorkSheetBase):
         )
         self._engine = engine
 
-    @validate_call
+    @pydantic_validate_call
     def group_rows(
         self,
         start_row: int,
@@ -792,7 +780,7 @@ class WorkSheet(WorkSheetBase):
         )
         self._engine = engine
 
-    @_validate_call
+    @validate_call
     def create_table(
         self,
         cell_range: str,
