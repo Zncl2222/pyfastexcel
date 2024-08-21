@@ -1,12 +1,13 @@
+from __future__ import annotations
+
 import logging
 
 from pydantic import BaseModel, Field, field_validator, model_validator
-from typing import Any, Self, Optional, Literal
+from typing import Any, Optional, Literal
 
-from ._typing import SetPanesSelection
-from .utils import Selection
+from ._typing import SetPanesSelection, Self
 from .logformatter import formatter
-from .utils import cell_reference_to_index, _validate_cell_reference
+from .utils import Selection, cell_reference_to_index, _validate_cell_reference
 
 logger = logging.getLogger(__name__)
 style_formatter = logging.StreamHandler()
@@ -135,11 +136,29 @@ class DataValidationValidator(BaseModel):
         return sq_ref
 
 
+class AutoFilterValidator(BaseModel):
+    target_range: str
+
+    @field_validator('target_range')
+    @classmethod
+    def validate_target_range(cls, target_range: str) -> str:
+        if ':' not in target_range:
+            raise ValueError('Invalid target range. Target range should be in the format "A1:B2".')
+        target_list = target_range.split(':')
+        if len(target_list) != 2:
+            raise ValueError('Invalid target range. Target range should be in the format "A1:B2".')
+        _validate_cell_reference(target_list[0])
+        _validate_cell_reference(target_list[1])
+
+        return target_range
+
+
 # Register validators and use them in the validate_call decorator
 VALIDATORS = {
     'create_table': TableValidator,
     'set_panes': PanesValidator,
     'set_data_validation': DataValidationValidator,
+    'auto_filter': AutoFilterValidator,
 }
 
 

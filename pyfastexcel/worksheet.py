@@ -539,7 +539,7 @@ class WorkSheet(WorkSheetBase):
 
         self._merged_cells_list.append((top_left_cell, bottom_right_cell))
 
-    @pydantic_validate_call
+    @validate_call
     def auto_filter(self, target_range: str) -> None:
         """
         Sets the auto filter for the specified range.
@@ -553,11 +553,6 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
-        if ':' not in target_range:
-            raise ValueError('Invalid target range. Target range should be in the format "A1:B2".')
-        target_list = target_range.split(':')
-        _validate_cell_reference(target_list[0])
-        _validate_cell_reference(target_list[1])
         self._auto_filter_set.add(target_range)
 
     @validate_call
