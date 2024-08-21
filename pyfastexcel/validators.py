@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 
 from pydantic import BaseModel, Field, field_validator, model_validator
-from typing import Any
+from typing import Any, Optional, Literal
 
-from ._typing import Self
+from ._typing import SetPanesSelection, Self
 from .logformatter import formatter
-from .utils import cell_reference_to_index, _validate_cell_reference
+from .utils import Selection, cell_reference_to_index, _validate_cell_reference
 
 logger = logging.getLogger(__name__)
 style_formatter = logging.StreamHandler()
@@ -99,9 +99,66 @@ class TableFinalValidation(BaseModel):
         return self
 
 
+class PanesValidator(BaseModel):
+    freeze: bool = Field(default=False, strict=True)
+    split: bool = Field(default=False, strict=True)
+    x_split: int = Field(default=0, strict=True)
+    y_split: int = Field(default=0, strict=True)
+    top_left_cell: str = Field(default='', strict=True)
+    active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = ''
+    selection: Optional[SetPanesSelection | list[Selection] | Selection] = None
+
+    @model_validator(mode='after')
+    def validate_panes(self) -> Self:
+        if self.x_split < 0 or self.y_split < 0:
+            raise ValueError('Split position should be positive.')
+        if self.top_left_cell != '':
+            _validate_cell_reference(self.top_left_cell)
+        return self
+
+
+class DataValidationValidator(BaseModel):
+    sq_ref: str = Field(default=False, strict=True)
+    set_range: Optional[list[int | float]] = None
+    input_msg: Optional[list[str]] = None
+    drop_list: Optional[list[str | int | float] | str] = None
+    error_msg: Optional[list[str]] = None
+
+    @field_validator('sq_ref')
+    @classmethod
+    def validate_style_name(cls, sq_ref: str) -> str:
+        if ':' in sq_ref:
+            sq_ref_list = sq_ref.split(':')
+            _validate_cell_reference(sq_ref_list[0])
+            _validate_cell_reference(sq_ref_list[1])
+        else:
+            _validate_cell_reference(sq_ref)
+        return sq_ref
+
+
+class AutoFilterValidator(BaseModel):
+    target_range: str
+
+    @field_validator('target_range')
+    @classmethod
+    def validate_target_range(cls, target_range: str) -> str:
+        if ':' not in target_range:
+            raise ValueError('Invalid target range. Target range should be in the format "A1:B2".')
+        target_list = target_range.split(':')
+        if len(target_list) != 2:
+            raise ValueError('Invalid target range. Target range should be in the format "A1:B2".')
+        _validate_cell_reference(target_list[0])
+        _validate_cell_reference(target_list[1])
+
+        return target_range
+
+
 # Register validators and use them in the validate_call decorator
 VALIDATORS = {
     'create_table': TableValidator,
+    'set_panes': PanesValidator,
+    'set_data_validation': DataValidationValidator,
+    'auto_filter': AutoFilterValidator,
 }
 
 
