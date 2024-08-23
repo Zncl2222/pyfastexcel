@@ -20,6 +20,7 @@ from .utils import (
     transfer_string_slice_to_slice,
 )
 from .validators import validate_call
+from .serializers import PanesSerializer
 
 
 class WorkSheetBase:
@@ -587,12 +588,7 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
-        if selection is None:
-            selection = []
-        elif not isinstance(selection, list):
-            selection = [selection]
-
-        selection = [item.to_dict() for item in selection if isinstance(item, Selection)]
+        selection = PanesSerializer.serialize_selection(selection)
 
         self._panes_dict = {
             'freeze': freeze,
