@@ -5,9 +5,9 @@ import logging
 from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Any, Optional, Literal
 
-from ._typing import SetPanesSelection, Self
+from ._typing import CommentTextStructure, SetPanesSelection, Self
 from .logformatter import formatter
-from .utils import Selection, cell_reference_to_index, _validate_cell_reference
+from .utils import CommentText, Selection, cell_reference_to_index, _validate_cell_reference
 
 logger = logging.getLogger(__name__)
 style_formatter = logging.StreamHandler()
@@ -153,12 +153,25 @@ class AutoFilterValidator(BaseModel):
         return target_range
 
 
+class CommentValidator(BaseModel):
+    cell: str
+    author: str
+    text: CommentTextStructure | CommentText | list[CommentText]
+
+    @field_validator('cell')
+    @classmethod
+    def validate_cell(cls, cell: str) -> str:
+        _validate_cell_reference(cell)
+        return cell
+
+
 # Register validators and use them in the validate_call decorator
 VALIDATORS = {
     'create_table': TableValidator,
     'set_panes': PanesValidator,
     'set_data_validation': DataValidationValidator,
     'auto_filter': AutoFilterValidator,
+    'add_comment': CommentValidator,
 }
 
 

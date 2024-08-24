@@ -20,7 +20,7 @@ from .utils import (
     transfer_string_slice_to_slice,
 )
 from .validators import validate_call
-from .serializers import PanesSerializer
+from .serializers import CommentSerializer, PanesSerializer
 
 
 class WorkSheetBase:
@@ -660,7 +660,7 @@ class WorkSheet(WorkSheetBase):
 
         self._data_validation_list.append(dv)
 
-    @pydantic_validate_call
+    @validate_call
     def add_comment(
         self,
         cell: str,
@@ -678,26 +678,7 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
-        _validate_cell_reference(cell)
-        text = (
-            [text]
-            if isinstance(text, (str, CommentText))
-            else text
-            if isinstance(text, list)
-            else [text]
-        )
-        if all(isinstance(item, (dict, str)) for item in text):
-            for idx, item in enumerate(text):
-                if isinstance(item, str):
-                    text[idx] = {'text': item}
-                else:
-                    if 'text' not in item:
-                        raise ValueError('Comment text should contain the key "text".')
-                    text[idx] = {
-                        k[0].upper() + k[1:] if k != 'text' else k: v for k, v in item.items()
-                    }
-        elif all(isinstance(item, CommentText) for item in text):
-            text = [t.to_dict() for t in text]
+        text = CommentSerializer.serialize_text(text)
 
         self._comment_list.append({'cell': cell, 'author': author, 'paragraph': text})
 
