@@ -11,7 +11,6 @@ from .utils import (
     CommentText,
     Selection,
     _separate_alpha_numeric,
-    _validate_cell_reference,
     column_to_index,
     deprecated_warning,
     cell_reference_to_index,
@@ -20,6 +19,7 @@ from .utils import (
     transfer_string_slice_to_slice,
 )
 from .validators import validate_call
+from .serializers import CommentSerializer, PanesSerializer, DataValidationSerializer
 
 
 class WorkSheetBase:
@@ -587,12 +587,7 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
-        if selection is None:
-            selection = []
-        elif not isinstance(selection, list):
-            selection = [selection]
-
-        selection = [item.to_dict() for item in selection if isinstance(item, Selection)]
+        selection = PanesSerializer.serialize_selection(selection)
 
         self._panes_dict = {
             'freeze': freeze,
@@ -629,42 +624,16 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
-        drop_list_key = 'drop_list'
-        if isinstance(drop_list, str):
-            if ':' not in drop_list:
-                raise ValueError(
-                    'Invalid drop list. Sequential Reference'
-                    'Drop list should be in the format "A1:B2".',
-                )
-            drop_list_split = drop_list.split(':')
-            _validate_cell_reference(drop_list_split[0])
-            _validate_cell_reference(drop_list_split[1])
-            drop_list_key = 'sqref_drop_list'
-        elif drop_list is not None:
-            drop_list = [str(x) for x in drop_list]
-
-        dv = {}
+        dv = DataValidationSerializer(
+            set_range=set_range,
+            input_msg=input_msg,
+            drop_list=drop_list,
+            error_msg=error_msg,
+        ).model_dump()
         dv['sq_ref'] = sq_ref
-        if set_range is not None:
-            if not isinstance(set_range, list) or len(set_range) != 2:
-                raise ValueError('Set range should be a list of two elements. Like [1, 10].')
-            dv['set_range'] = set_range
-        if input_msg is not None:
-            if not isinstance(input_msg, list) or len(input_msg) != 2:
-                raise ValueError(
-                    'Input message should be a list of two elements. Like ["Title", "Body"].',
-                )
-            dv['input_title'] = input_msg[0]
-            dv['input_body'] = input_msg[1]
-        if drop_list is not None:
-            dv[drop_list_key] = drop_list
-        if error_msg is not None:
-            dv['error_title'] = error_msg[0]
-            dv['error_body'] = error_msg[1]
-
         self._data_validation_list.append(dv)
 
-    @pydantic_validate_call
+    @validate_call
     def add_comment(
         self,
         cell: str,
@@ -682,26 +651,7 @@ class WorkSheet(WorkSheetBase):
         Returns:
             None
         """
-        _validate_cell_reference(cell)
-        text = (
-            [text]
-            if isinstance(text, (str, CommentText))
-            else text
-            if isinstance(text, list)
-            else [text]
-        )
-        if all(isinstance(item, (dict, str)) for item in text):
-            for idx, item in enumerate(text):
-                if isinstance(item, str):
-                    text[idx] = {'text': item}
-                else:
-                    if 'text' not in item:
-                        raise ValueError('Comment text should contain the key "text".')
-                    text[idx] = {
-                        k[0].upper() + k[1:] if k != 'text' else k: v for k, v in item.items()
-                    }
-        elif all(isinstance(item, CommentText) for item in text):
-            text = [t.to_dict() for t in text]
+        text = CommentSerializer.serialize_text(text)
 
         self._comment_list.append({'cell': cell, 'author': author, 'paragraph': text})
 
