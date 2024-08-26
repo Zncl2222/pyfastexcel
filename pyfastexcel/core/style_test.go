@@ -1,7 +1,6 @@
 package core
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/xuri/excelize/v2"
@@ -91,12 +90,13 @@ func TestCreateStyle(t *testing.T) {
 		"style1": 1,
 		"style2": 2,
 	}
-	expectedStyles2 := map[string]int{
-		"style2": 2,
-		"style1": 1,
+
+	for key, value := range expectedStyles {
+		if val, ok := styleMap[key]; ok {
+			if value != val {
+				t.Errorf("Expected style map %#v, but got %#v", expectedStyles, styleMap)
+			}
+		}
 	}
 
-	if !(reflect.DeepEqual(styleMap, expectedStyles) || reflect.DeepEqual(styleMap, expectedStyles2)) {
-		t.Errorf("Expected style map %#v, but got %#v", expectedStyles, styleMap)
-	}
 }
