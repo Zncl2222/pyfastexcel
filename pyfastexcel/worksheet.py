@@ -134,8 +134,10 @@ class WorkSheetBase:
 
     def _expand_row_and_cols(self, target_row: int, target_col: int) -> None:
         data_row_len = len(self._data)
+        d = ()
         if data_row_len == 0:
-            self._data.append([('', 'DEFAULT_STYLE')])
+            # self._data.append([('', 'DEFAULT_STYLE')])
+            self._data.append([d])
             data_row_len = 1
         data_col_len = len(self._data[0])
 
@@ -147,17 +149,14 @@ class WorkSheetBase:
         if data_row_len > target_row:
             if data_col_len <= target_col:
                 self._data[target_row].extend(
-                    [('', 'DEFAULT_STYLE') for _ in range(target_col + 1 - data_col_len)],
+                    [d for _ in range(target_col + 1 - data_col_len)],
                 )
         else:
             current_row = max(data_row_len, target_row + 1)
             current_col = max(data_col_len, target_col + 1)
-            default_value = ('', 'DEFAULT_STYLE')
+            # default_value = ('', 'DEFAULT_STYLE')
             self._data.extend(
-                [
-                    [default_value for _ in range(current_col)]
-                    for _ in range(current_row - data_row_len)
-                ],
+                [[d for _ in range(current_col)] for _ in range(current_row - data_row_len)],
             )
 
     def _transfer_to_dict(self) -> dict[str, Any]:

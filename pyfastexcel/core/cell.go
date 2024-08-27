@@ -25,6 +25,9 @@ import (
 //   - Otherwise, the cell is created with the string value and the style ID.
 //   - For any other type, the cell is created with the value and the style ID.
 func createCell(v []interface{}) excelize.Cell {
+	if len(v) == 0 {
+		return excelize.Cell{StyleID: styleMap["DEFAULT_STYLE"], Value: ""}
+	}
 	switch value := v[0].(type) {
 	case string:
 		if strings.HasPrefix(value, "=") {

@@ -73,27 +73,29 @@ func WriteExcel(data string) string {
 // If an error occurs while adding a table, it prints the error.
 //
 // Args:
-//   sw (*excelize.StreamWriter): The StreamWriter object used to write data to the Excel sheet.
-//   tables ([]interface{}): A slice of maps where each map represents a table's properties.
-//     The map should contain the following keys:
-//     - "range" (string): The cell range for the table (e.g., "A1:C10").
-//     - "name" (string): The name of the table.
-//     - "style_name" (string): The style name for the table.
-//     - "show_first_column" (bool): Whether to highlight the first column.
-//     - "show_last_column" (bool): Whether to highlight the last column.
-//     - "show_row_stripes" (bool): Whether to display row stripes for better readability.
-//     - "show_column_stripes" (bool): Whether to display column stripes for better readability.
+//
+//	sw (*excelize.StreamWriter): The StreamWriter object used to write data to the Excel sheet.
+//	tables ([]interface{}): A slice of maps where each map represents a table's properties.
+//	  The map should contain the following keys:
+//	  - "range" (string): The cell range for the table (e.g., "A1:C10").
+//	  - "name" (string): The name of the table.
+//	  - "style_name" (string): The style name for the table.
+//	  - "show_first_column" (bool): Whether to highlight the first column.
+//	  - "show_last_column" (bool): Whether to highlight the last column.
+//	  - "show_row_stripes" (bool): Whether to display row stripes for better readability.
+//	  - "show_column_stripes" (bool): Whether to display column stripes for better readability.
 //
 // Example:
-//   tables := []interface{}{
-//     map[string]interface{}{
-//       "range": "A1:C10", "name": "Table1", "style_name": "TableStyleMedium9",
-//       "show_first_column": true, "show_last_column": false,
-//       "show_row_stripes": true, "show_column_stripes": false,
-//     },
-//     // Add more tables as needed
-//   }
-//   streamCreateTable(sw, tables)
+//
+//	tables := []interface{}{
+//	  map[string]interface{}{
+//	    "range": "A1:C10", "name": "Table1", "style_name": "TableStyleMedium9",
+//	    "show_first_column": true, "show_last_column": false,
+//	    "show_row_stripes": true, "show_column_stripes": false,
+//	  },
+//	  // Add more tables as needed
+//	}
+//	streamCreateTable(sw, tables)
 func streamCreateTable(sw *excelize.StreamWriter, tables []interface{}) {
 	for _, table := range tables {
 		t := table.(map[string]interface{})
@@ -122,28 +124,30 @@ func streamCreateTable(sw *excelize.StreamWriter, tables []interface{}) {
 // If an error occurs while adding a table, the function prints the error.
 //
 // Args:
-//   file (*excelize.File): The Excel file object to which tables will be added.
-//   sheet (string): The name of the sheet in which to create the tables.
-//   tables ([]interface{}): A slice of maps where each map represents a table's properties.
-//     The map should contain the following keys:
-//     - "range" (string): The cell range for the table (e.g., "A1:C10").
-//     - "name" (string): The name of the table.
-//     - "style_name" (string): The style name for the table.
-//     - "show_first_column" (bool): Whether to highlight the first column.
-//     - "show_last_column" (bool): Whether to highlight the last column.
-//     - "show_row_stripes" (bool): Whether to display row stripes for better readability.
-//     - "show_column_stripes" (bool): Whether to display column stripes for better readability.
+//
+//	file (*excelize.File): The Excel file object to which tables will be added.
+//	sheet (string): The name of the sheet in which to create the tables.
+//	tables ([]interface{}): A slice of maps where each map represents a table's properties.
+//	  The map should contain the following keys:
+//	  - "range" (string): The cell range for the table (e.g., "A1:C10").
+//	  - "name" (string): The name of the table.
+//	  - "style_name" (string): The style name for the table.
+//	  - "show_first_column" (bool): Whether to highlight the first column.
+//	  - "show_last_column" (bool): Whether to highlight the last column.
+//	  - "show_row_stripes" (bool): Whether to display row stripes for better readability.
+//	  - "show_column_stripes" (bool): Whether to display column stripes for better readability.
 //
 // Example:
-//   tables := []interface{}{
-//     map[string]interface{}{
-//       "range": "A1:C10", "name": "Table1", "style_name": "TableStyleMedium9",
-//       "show_first_column": true, "show_last_column": false,
-//       "show_row_stripes": true, "show_column_stripes": false,
-//     },
-//     // Add more tables as needed
-//   }
-//   createTable(file, "Sheet1", tables)
+//
+//	tables := []interface{}{
+//	  map[string]interface{}{
+//	    "range": "A1:C10", "name": "Table1", "style_name": "TableStyleMedium9",
+//	    "show_first_column": true, "show_last_column": false,
+//	    "show_row_stripes": true, "show_column_stripes": false,
+//	  },
+//	  // Add more tables as needed
+//	}
+//	createTable(file, "Sheet1", tables)
 func createTable(file *excelize.File, sheet string, tables []interface{}) {
 	for _, table := range tables {
 		t := table.(map[string]interface{})
@@ -662,19 +666,24 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 			row := rowData.([]interface{})
 
 			for col, item := range row {
-				v := item.([]interface{})[0]
 				colCell, _ := excelize.CoordinatesToCellName(col+startedRow, i+startedRow)
-				switch value := v.(type) {
-				case string:
-					if strings.HasPrefix(value, "=") {
-						file.SetCellFormula(sheet, colCell, value)
-					} else {
+				v := item.([]interface{})
+				if len(v) == 0 {
+					file.SetCellValue(sheet, colCell, "")
+					file.SetCellStyle(sheet, colCell, colCell, styleMap["DEFAULT_STYLE"])
+				} else {
+					switch value := v[0].(type) {
+					case string:
+						if strings.HasPrefix(value, "=") {
+							file.SetCellFormula(sheet, colCell, value)
+						} else {
+							file.SetCellValue(sheet, colCell, value)
+						}
+					default:
 						file.SetCellValue(sheet, colCell, value)
 					}
-				default:
-					file.SetCellValue(sheet, colCell, value)
+					file.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
 				}
-				file.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
 			}
 		}
 		// Excelize should create table with the existed row.

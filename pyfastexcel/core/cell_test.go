@@ -28,6 +28,11 @@ func TestCreateCell(t *testing.T) {
 			input:  []interface{}{123, "styleID"},
 			expect: excelize.Cell{StyleID: styleMap["styleID"], Value: 123},
 		},
+		{
+			name:   "EmptyInterface",
+			input:  []interface{}{},
+			expect: excelize.Cell{StyleID: styleMap["DEFAULT_STYLE"], Value: ""},
+		},
 	}
 
 	for _, tt := range tests {
