@@ -1,9 +1,6 @@
 package core
 
 import (
-	"errors"
-	"reflect"
-
 	"github.com/xuri/excelize/v2"
 )
 
@@ -11,43 +8,6 @@ type fieldMapping struct {
 	Name  string
 	Type  string
 	Value interface{}
-}
-
-// setField sets a field in a struct based on a map and field mappings.
-//
-// Args:
-//
-//	obj (interface{}): The struct object to set the field on.
-//	fieldMap (map[string]interface{}): A map containing key-value pairs for field values.
-//	mappings ([]fieldMapping): An array of field mappings specifying expected names and types.
-//
-//	error: Any error encountered during reflection or type conversion.
-func setField(obj interface{}, fieldMap map[string]interface{}, mappings []fieldMapping) error {
-	for _, mapping := range mappings {
-		if value, ok := fieldMap[mapping.Name]; ok {
-			field := reflect.ValueOf(obj).Elem().FieldByName(mapping.Name)
-			switch mapping.Type {
-			case "string":
-				field.SetString(value.(string))
-			case "int":
-				value = int(value.(float64))
-				field.SetInt(int64(value.(int)))
-			case "uint64":
-				value = uint64(value.(float64))
-				field.SetUint(uint64(value.(uint64)))
-			case "bool":
-				field.SetBool(value.(bool))
-			case "float64":
-				field.SetFloat(value.(float64))
-			case "[]string":
-				value = []string{value.(string)}
-				field.Set(reflect.ValueOf(value))
-			default:
-				return errors.New("unsupported field type")
-			}
-		}
-	}
-	return nil
 }
 
 // getFontStyle extracts font style information from a map and returns an excelize.Font object.

@@ -426,6 +426,9 @@ func streamWriter(file *excelize.File, data map[string]interface{}) {
 			sheetCount++
 		}
 
+		// Add Chart
+		addChart(file, sheet, sheetData["Chart"].([]interface{}))
+
 		// Set DataValidations
 		setDataValidation(file, sheet, sheetData["DataValidation"].([]interface{}))
 
@@ -629,6 +632,8 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 			file.NewSheet(sheet)
 			sheetCount++
 		}
+
+		addChart(file, sheet, sheetData["Chart"].([]interface{}))
 
 		// Set DataValidations
 		setDataValidation(file, sheet, sheetData["DataValidation"].([]interface{}))
