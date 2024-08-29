@@ -94,6 +94,7 @@ func init() {
 					"paragraph": []interface{}{map[string]interface{}{"text": "text", "bold": true}}}},
 				"NoStyle": false,
 				"Table":   []interface{}{},
+				"Chart":   []interface{}{},
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -114,6 +115,7 @@ func init() {
 				"NoStyle": false,
 				"Comment": []interface{}{},
 				"Table":   []interface{}{},
+				"Chart":   []interface{}{},
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -131,6 +133,7 @@ func init() {
 				"Comment":        []interface{}{},
 				"NoStyle":        false,
 				"Table":          []interface{}{map[string]interface{}{"range": "A1:B3", "name": "test", "style_name": "", "show_first_column": true, "show_last_column": true, "show_row_stripes": false, "show_column_stripes": true}},
+				"Chart":          []interface{}{},
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -152,6 +155,7 @@ func init() {
 				"Comment": []interface{}{},
 				"NoStyle": false,
 				"Table":   []interface{}{map[string]interface{}{"range": "A1:B3", "name": "test", "style_name": "", "show_first_column": true, "show_last_column": true, "show_row_stripes": false, "show_column_stripes": true}},
+				"Chart":   []interface{}{},
 			},
 		},
 	}
@@ -241,6 +245,7 @@ func init() {
 				"GroupedRow": []interface{}{map[string]interface{}{"start_row": 1.0, "end_row": 3.0, "outline_level": 1, "hidden": false}},
 				"GroupedCol": []interface{}{map[string]interface{}{"start_col": "A", "end_col": "C", "outline_level": 1, "hidden": true}},
 				"Table":      []interface{}{},
+				"Chart":      []interface{}{},
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -263,6 +268,7 @@ func init() {
 				"GroupedRow": []interface{}{map[string]interface{}{"start_row": 1.0, "end_row": 1.0, "outline_level": 9, "hidden": true}},
 				"GroupedCol": []interface{}{map[string]interface{}{"start_col": "A", "end_col": "A", "outline_level": 2, "hidden": true}},
 				"Table":      []interface{}{},
+				"Chart":      []interface{}{},
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -282,6 +288,7 @@ func init() {
 				"GroupedRow":     []interface{}{},
 				"GroupedCol":     []interface{}{},
 				"Table":          []interface{}{},
+				"Chart":          []interface{}{},
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -305,6 +312,7 @@ func init() {
 				"GroupedRow": []interface{}{map[string]interface{}{"start_row": 1.0, "end_row": 1.0, "outline_level": 9, "hidden": true}},
 				"GroupedCol": []interface{}{},
 				"Table":      []interface{}{map[string]interface{}{"range": "A1:B3", "name": "test", "style_name": "", "show_first_column": true, "show_last_column": true, "show_row_stripes": false, "show_column_stripes": true}},
+				"Chart":      []interface{}{},
 			},
 		},
 	}
@@ -348,6 +356,7 @@ func TestWriteExcel2(t *testing.T) {
 			"Comment":        []interface{}{},
 			"NoStyle":        false,
 			"Table":          []interface{}{},
+			"Chart":          []interface{}{},
 		},
 	}
 	jsonData, err := json.Marshal(data)
@@ -407,6 +416,7 @@ func TestWriteExcel2NormalWriter(t *testing.T) {
 			"Comment":        []interface{}{},
 			"NoStyle":        false,
 			"Table":          []interface{}{},
+			"Chart":          []interface{}{},
 		},
 	}
 	jsonData, err := json.Marshal(data)
