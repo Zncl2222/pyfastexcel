@@ -7,6 +7,18 @@ from pyfastexcel.utils import deprecated_warning
 
 from pydantic import validate_call as pydantic_validate_call
 
+from .chart import (
+    ChartModel,
+    ChartSeriesModel,
+    GraphicOptionsModel,
+    RichTextRunModel,
+    ChartLegendModel,
+    ChartAxisModel,
+    ChartPlotAreaModel,
+    FillModel,
+    LineModel,
+    ChartDimensionModel,
+)
 from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import CommentText, Selection
 
@@ -313,3 +325,76 @@ class Workbook(ExcelDriver):
             show_column_stripes,
             validate_table,
         )
+
+    @overload
+    def add_chart(self, sheet: str, cell: str, chart_model: ChartModel | List[ChartModel]): ...
+
+    @overload
+    def add_chart(
+        self,
+        sheet: str,
+        cell: str,
+        chart_type: str,
+        series: List[ChartSeriesModel] | ChartSeriesModel,
+        format: Optional[GraphicOptionsModel] = None,
+        title: Optional[List[RichTextRunModel]] = None,
+        legend: Optional[ChartLegendModel] = None,
+        dimension: Optional[ChartDimensionModel] = None,
+        vary_colors: Optional[bool] = None,
+        x_axis: Optional[ChartAxisModel] = None,
+        y_axis: Optional[ChartAxisModel] = None,
+        plot_area: Optional[ChartPlotAreaModel] = None,
+        fill: Optional[FillModel] = None,
+        border: Optional[LineModel] = None,
+        show_blanks_as: Optional[str] = None,
+        bubble_size: Optional[int] = None,
+        hole_size: Optional[int] = None,
+        order: Optional[int] = None,
+    ): ...
+
+    def add_chart(
+        self,
+        sheet: str,
+        cell: str,
+        chart_model: Optional[List[ChartModel] | ChartModel] = None,
+        chart_type: Optional[str] = None,
+        series: Optional[List[ChartSeriesModel] | ChartSeriesModel] = None,
+        format: Optional[GraphicOptionsModel] = None,
+        title: Optional[List[RichTextRunModel]] = None,
+        legend: Optional[ChartLegendModel] = None,
+        dimension: Optional[ChartDimensionModel] = None,
+        vary_colors: Optional[bool] = None,
+        x_axis: Optional[ChartAxisModel] = None,
+        y_axis: Optional[ChartAxisModel] = None,
+        plot_area: Optional[ChartPlotAreaModel] = None,
+        fill: Optional[FillModel] = None,
+        border: Optional[LineModel] = None,
+        show_blanks_as: Optional[str] = None,
+        bubble_size: Optional[int] = None,
+        hole_size: Optional[int] = None,
+        order: Optional[int] = None,
+    ):
+        self._check_if_sheet_exists(sheet)
+        if isinstance(chart_model, list):
+            self.workbook[sheet].add_chart(cell, chart_model)
+        else:
+            self.workbook[sheet].add_chart(
+                cell,
+                chart_model,
+                chart_type,
+                series,
+                format,
+                title,
+                legend,
+                dimension,
+                vary_colors,
+                x_axis,
+                y_axis,
+                plot_area,
+                fill,
+                border,
+                show_blanks_as,
+                bubble_size,
+                hole_size,
+                order,
+            )
