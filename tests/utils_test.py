@@ -180,3 +180,10 @@ def test_set_debug_level():
     from pyfastexcel import set_debug_level
 
     set_debug_level(logging.INFO)
+
+
+def test_base_enum():
+    from pyfastexcel.enums import BaseEnum
+
+    with pytest.raises(ValueError):
+        BaseEnum.get_enum('test')
