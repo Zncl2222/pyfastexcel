@@ -145,7 +145,7 @@ class ChartSeriesModel(BaseModel):
 class ChartModel(BaseModel):
     chart_type: str | ChartType = Field(..., serialization_alias='Type')
     series: List[ChartSeriesModel] | ChartSeriesModel = Field(None, serialization_alias='Series')
-    format: Optional[GraphicOptionsModel] = Field(None, serialization_alias='Format')
+    graph_format: Optional[GraphicOptionsModel] = Field(None, serialization_alias='Format')
     title: Optional[List[RichTextRunModel]] = Field(None, serialization_alias='Title')
     legend: Optional[ChartLegendModel] = Field(None, serialization_alias='Legend')
     dimension: Optional[ChartDimensionModel] = Field(None, serialization_alias='Dimension')
