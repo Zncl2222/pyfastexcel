@@ -5,6 +5,18 @@ from typing import Any, Literal, Optional, List, overload
 from openpyxl_style_writer import CustomStyle
 from pydantic import validate_call as pydantic_validate_call
 
+from .chart import (
+    ChartModel,
+    ChartSeriesModel,
+    GraphicOptionsModel,
+    RichTextRunModel,
+    ChartLegendModel,
+    ChartAxisModel,
+    ChartPlotAreaModel,
+    FillModel,
+    LineModel,
+    ChartDimensionModel,
+)
 from .style import StyleManager
 from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import (
@@ -74,6 +86,7 @@ class WorkSheetBase:
         self._grouped_columns_list = []
         self._grouped_rows_list = []
         self._table_list = []
+        self._chart_list = []
         # Using pyfastexcel to write as default
         self._engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
 
@@ -136,7 +149,6 @@ class WorkSheetBase:
         data_row_len = len(self._data)
         d = ()
         if data_row_len == 0:
-            # self._data.append([('', 'DEFAULT_STYLE')])
             self._data.append([d])
             data_row_len = 1
         data_col_len = len(self._data[0])
@@ -154,7 +166,6 @@ class WorkSheetBase:
         else:
             current_row = max(data_row_len, target_row + 1)
             current_col = max(data_col_len, target_col + 1)
-            # default_value = ('', 'DEFAULT_STYLE')
             self._data.extend(
                 [[d for _ in range(current_col)] for _ in range(current_row - data_row_len)],
             )
@@ -173,6 +184,7 @@ class WorkSheetBase:
             'GroupedRow': self._grouped_rows_list,
             'GroupedCol': self._grouped_columns_list,
             'Table': self._table_list,
+            'Chart': self._chart_list,
         }
         return self._sheet
 
@@ -190,6 +202,7 @@ class WorkSheetBase:
             'GroupedRow': [],
             'GroupedCol': [],
             'Table': [],
+            'Chart': [],
         }
 
     def _validate_value_and_set_default(self, value: Any):
@@ -767,3 +780,84 @@ class WorkSheet(WorkSheetBase):
         }
 
         self._table_list.append(table)
+
+    @overload
+    def add_chart(self, cell: str, chart_model: ChartModel | List[ChartModel]): ...
+
+    @overload
+    def add_chart(
+        self,
+        cell: str,
+        chart_type: str,
+        series: List[ChartSeriesModel] | ChartSeriesModel,
+        graph_format: Optional[GraphicOptionsModel] = None,
+        title: Optional[List[RichTextRunModel]] = None,
+        legend: Optional[ChartLegendModel] = None,
+        dimension: Optional[ChartDimensionModel] = None,
+        vary_colors: Optional[bool] = None,
+        x_axis: Optional[ChartAxisModel] = None,
+        y_axis: Optional[ChartAxisModel] = None,
+        plot_area: Optional[ChartPlotAreaModel] = None,
+        fill: Optional[FillModel] = None,
+        border: Optional[LineModel] = None,
+        show_blanks_as: Optional[str] = None,
+        bubble_size: Optional[int] = None,
+        hole_size: Optional[int] = None,
+        order: Optional[int] = None,
+    ): ...
+
+    def add_chart(
+        self,
+        cell: str,
+        chart_model: Optional[List[ChartModel] | ChartModel] = None,
+        chart_type: Optional[str] = None,
+        series: Optional[List[ChartSeriesModel] | ChartSeriesModel] = None,
+        graph_format: Optional[GraphicOptionsModel] = None,
+        title: Optional[List[RichTextRunModel]] = None,
+        legend: Optional[ChartLegendModel] = None,
+        dimension: Optional[ChartDimensionModel] = None,
+        vary_colors: Optional[bool] = None,
+        x_axis: Optional[ChartAxisModel] = None,
+        y_axis: Optional[ChartAxisModel] = None,
+        plot_area: Optional[ChartPlotAreaModel] = None,
+        fill: Optional[FillModel] = None,
+        border: Optional[LineModel] = None,
+        show_blanks_as: Optional[str] = None,
+        bubble_size: Optional[int] = None,
+        hole_size: Optional[int] = None,
+        order: Optional[int] = None,
+    ):
+        if chart_model is not None:
+            if isinstance(chart_model, list):
+                self._chart_list.append(
+                    {
+                        'cell': cell,
+                        'chart': [chart.model_dump(by_alias=True) for chart in chart_model],
+                    }
+                )
+            else:
+                self._chart_list.append(
+                    {'cell': cell, 'chart': [chart_model.model_dump(by_alias=True)]}
+                )
+        elif chart_type is not None and series is not None:
+            chart = ChartModel(
+                chart_type=chart_type,
+                series=series,
+                graph_format=graph_format,
+                title=title,
+                legend=legend,
+                dimension=dimension,
+                vary_colors=vary_colors,
+                x_axis=x_axis,
+                y_axis=y_axis,
+                plot_area=plot_area,
+                fill=fill,
+                border=border,
+                show_blanks_as=show_blanks_as,
+                bubble_size=bubble_size,
+                hole_size=hole_size,
+                order=order,
+            )
+            self._chart_list.append({'cell': cell, 'chart': [chart.model_dump(by_alias=True)]})
+        else:
+            raise ValueError('Invalid arguments provided to add_chart function')
