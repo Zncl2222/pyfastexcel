@@ -92,9 +92,10 @@ func init() {
 					"cell":      "A1",
 					"author":    "author",
 					"paragraph": []interface{}{map[string]interface{}{"text": "text", "bold": true}}}},
-				"NoStyle": false,
-				"Table":   []interface{}{},
-				"Chart":   []interface{}{},
+				"NoStyle":    false,
+				"Table":      []interface{}{},
+				"Chart":      []interface{}{},
+				"PivotTable": []interface{}{},
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -112,10 +113,11 @@ func init() {
 					"sq_ref":    "A1",
 					"set_range": "B1",
 					"drop_list": []string{"123", "qwe"}}},
-				"NoStyle": false,
-				"Comment": []interface{}{},
-				"Table":   []interface{}{},
-				"Chart":   []interface{}{},
+				"NoStyle":    false,
+				"Comment":    []interface{}{},
+				"Table":      []interface{}{},
+				"Chart":      []interface{}{},
+				"PivotTable": []interface{}{},
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -134,6 +136,7 @@ func init() {
 				"NoStyle":        false,
 				"Table":          []interface{}{map[string]interface{}{"range": "A1:B3", "name": "test", "style_name": "", "show_first_column": true, "show_last_column": true, "show_row_stripes": false, "show_column_stripes": true}},
 				"Chart":          []interface{}{},
+				"PivotTable":     []interface{}{map[string]interface{}{"DataRange": "Sheet1$A1:C1", "PivotTableRange": "Sheet1$D1:F1", "ShowDrill": true, "Rows": []interface{}{}, "Filter": []interface{}{}, "Columns": []interface{}{}, "Data": []interface{}{}}},
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -152,10 +155,11 @@ func init() {
 					"error_body":  "err_body",
 					"input_title": "input_test",
 					"input_body":  "input_body"}},
-				"Comment": []interface{}{},
-				"NoStyle": false,
-				"Table":   []interface{}{map[string]interface{}{"range": "A1:B3", "name": "test", "style_name": "", "show_first_column": true, "show_last_column": true, "show_row_stripes": false, "show_column_stripes": true}},
-				"Chart":   []interface{}{},
+				"Comment":    []interface{}{},
+				"NoStyle":    false,
+				"Table":      []interface{}{map[string]interface{}{"range": "A1:B3", "name": "test", "style_name": "", "show_first_column": true, "show_last_column": true, "show_row_stripes": false, "show_column_stripes": true}},
+				"Chart":      []interface{}{},
+				"PivotTable": []interface{}{},
 			},
 		},
 	}
@@ -246,6 +250,7 @@ func init() {
 				"GroupedCol": []interface{}{map[string]interface{}{"start_col": "A", "end_col": "C", "outline_level": 1, "hidden": true}},
 				"Table":      []interface{}{},
 				"Chart":      []interface{}{},
+				"PivotTable": []interface{}{},
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -269,6 +274,7 @@ func init() {
 				"GroupedCol": []interface{}{map[string]interface{}{"start_col": "A", "end_col": "A", "outline_level": 2, "hidden": true}},
 				"Table":      []interface{}{},
 				"Chart":      []interface{}{},
+				"PivotTable": []interface{}{},
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -289,6 +295,7 @@ func init() {
 				"GroupedCol":     []interface{}{},
 				"Table":          []interface{}{},
 				"Chart":          []interface{}{},
+				"PivotTable":     []interface{}{},
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -313,6 +320,7 @@ func init() {
 				"GroupedCol": []interface{}{},
 				"Table":      []interface{}{map[string]interface{}{"range": "A1:B3", "name": "test", "style_name": "", "show_first_column": true, "show_last_column": true, "show_row_stripes": false, "show_column_stripes": true}},
 				"Chart":      []interface{}{},
+				"PivotTable": []interface{}{},
 			},
 		},
 	}
@@ -357,6 +365,7 @@ func TestWriteExcel2(t *testing.T) {
 			"NoStyle":        false,
 			"Table":          []interface{}{},
 			"Chart":          []interface{}{},
+			"PivotTable":     []interface{}{},
 		},
 	}
 	jsonData, err := json.Marshal(data)
@@ -417,6 +426,7 @@ func TestWriteExcel2NormalWriter(t *testing.T) {
 			"NoStyle":        false,
 			"Table":          []interface{}{},
 			"Chart":          []interface{}{},
+			"PivotTable":     []interface{}{},
 		},
 	}
 	jsonData, err := json.Marshal(data)
