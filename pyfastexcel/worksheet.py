@@ -782,7 +782,16 @@ class WorkSheet(WorkSheetBase):
         self._table_list.append(table)
 
     @overload
-    def add_chart(self, cell: str, chart_model: ChartModel | List[ChartModel]): ...
+    def add_chart(self, cell: str, chart_model: ChartModel | List[ChartModel]) -> None:
+        """
+        Adds one or more charts using ChartModel objects.
+
+        Args:
+            cell (str): The cell reference where the chart(s) will be added.
+            chart_model (ChartModel | List[ChartModel]): A single ChartModel object or a list
+                of ChartModel objects defining the chart(s) to be added.
+        """
+        ...
 
     @overload
     def add_chart(
@@ -804,7 +813,34 @@ class WorkSheet(WorkSheetBase):
         bubble_size: Optional[int] = None,
         hole_size: Optional[int] = None,
         order: Optional[int] = None,
-    ): ...
+    ) -> None:
+        """
+        Adds a chart by specifying chart attributes directly.
+
+        Args:
+            cell (str): The cell reference where the chart will be added.
+            chart_type (str): The type of chart (e.g., 'bar', 'line').
+            series (List[ChartSeriesModel] | ChartSeriesModel): The data series to be plotted.
+            graph_format (Optional[GraphicOptionsModel]): Graphical options for the chart.
+            title (Optional[List[RichTextRunModel]]): The title of the chart.
+            legend (Optional[ChartLegendModel]): Legend settings for the chart.
+            dimension (Optional[ChartDimensionModel]): Dimensions of the chart.
+            vary_colors (Optional[bool]): Whether to vary colors by data point.
+            x_axis (Optional[ChartAxisModel]): Configuration of the X-axis.
+            y_axis (Optional[ChartAxisModel]): Configuration of the Y-axis.
+            plot_area (Optional[ChartPlotAreaModel]): Configuration of the plot area.
+            fill (Optional[FillModel]): Fill settings for the chart.
+            border (Optional[LineModel]): Border settings for the chart.
+            show_blanks_as (Optional[str]): How to display blanks in the chart.
+            bubble_size (Optional[int]): Size of bubbles in a bubble chart.
+            hole_size (Optional[int]): Size of the hole in a doughnut chart.
+            order (Optional[int]): The order of the series in the chart.
+
+        Raises:
+            ValueError: If neither 'chart_model' nor 'chart_type' and 'series' are provided,
+                        or if other invalid combinations of arguments are supplied.
+        """
+        ...
 
     def add_chart(
         self,
@@ -826,7 +862,7 @@ class WorkSheet(WorkSheetBase):
         bubble_size: Optional[int] = None,
         hole_size: Optional[int] = None,
         order: Optional[int] = None,
-    ):
+    ) -> None:
         if chart_model is not None:
             if isinstance(chart_model, list):
                 self._chart_list.append(

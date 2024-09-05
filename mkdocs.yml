@@ -35,6 +35,7 @@ nav:
     - Styling: style.md
     - Workbook: workbook.md
     - WorkSheet: worksheet.md
+    - Chart: chart.md
     - Common: common.md
   - Advanced Usage:
       - StreamWriter: writer.md
