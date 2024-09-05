@@ -19,6 +19,7 @@ from .chart import (
     LineModel,
     ChartDimensionModel,
 )
+from .pivot import PivotTable, PivotTableField
 from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import CommentText, Selection
 
@@ -397,4 +398,85 @@ class Workbook(ExcelDriver):
                 bubble_size,
                 hole_size,
                 order,
+            )
+
+    @overload
+    def add_pivot_table(self, sheet: str, pivot_table: PivotTable | list[PivotTable]) -> None: ...
+
+    @overload
+    def add_pivot_table(
+        self,
+        sheet: str,
+        data_range: str,
+        pivot_table_range: str,
+        rows: list[PivotTableField],
+        filter: list[PivotTableField],
+        columns: list[PivotTableField],
+        data: list[PivotTableField],
+        row_grand_totals: Optional[bool],
+        column_grand_totals: Optional[bool],
+        show_drill: Optional[bool],
+        show_row_headers: Optional[bool],
+        show_column_headers: Optional[bool],
+        show_row_stripes: Optional[bool],
+        show_col_stripes: Optional[bool],
+        show_last_column: Optional[bool],
+        use_auto_formatting: Optional[bool],
+        page_over_then_down: Optional[bool],
+        merge_item: Optional[bool],
+        compact_data: Optional[bool],
+        show_error: Optional[bool],
+        pivot_table_style_name: Optional[str],
+    ) -> None: ...
+
+    def add_pivot_table(
+        self,
+        sheet: str,
+        pivot_table: Optional[PivotTable | list[PivotTable]] = None,
+        data_range: Optional[str] = None,
+        pivot_table_range: Optional[str] = None,
+        rows: Optional[list[PivotTableField]] = None,
+        filter: Optional[list[PivotTableField]] = None,
+        columns: Optional[list[PivotTableField]] = None,
+        data: Optional[list[PivotTableField]] = None,
+        row_grand_totals: Optional[bool] = None,
+        column_grand_totals: Optional[bool] = None,
+        show_drill: Optional[bool] = None,
+        show_row_headers: Optional[bool] = None,
+        show_column_headers: Optional[bool] = None,
+        show_row_stripes: Optional[bool] = None,
+        show_col_stripes: Optional[bool] = None,
+        show_last_column: Optional[bool] = None,
+        use_auto_formatting: Optional[bool] = None,
+        page_over_then_down: Optional[bool] = None,
+        merge_item: Optional[bool] = None,
+        compact_data: Optional[bool] = None,
+        show_error: Optional[bool] = None,
+        pivot_table_style_name: Optional[str] = None,
+    ) -> None:
+        self._check_if_sheet_exists(sheet)
+        if isinstance(pivot_table, list):
+            self.workbook[sheet].add_pivot_table(pivot_table)
+        else:
+            self.workbook[sheet].add_pivot_table(
+                data_range,
+                pivot_table_range,
+                rows,
+                filter,
+                columns,
+                data,
+                row_grand_totals,
+                column_grand_totals,
+                show_drill,
+                show_row_headers,
+                show_column_headers,
+                show_row_stripes,
+                show_col_stripes,
+                show_last_column,
+                use_auto_formatting,
+                page_over_then_down,
+                merge_item,
+                compact_data,
+                show_error,
+                pivot_table_style_name,
             )

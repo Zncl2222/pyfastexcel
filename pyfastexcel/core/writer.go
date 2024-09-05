@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/perimeterx/marshmallow"
-
 	"github.com/xuri/excelize/v2"
 )
 
@@ -489,6 +488,10 @@ func streamWriter(file *excelize.File, data map[string]interface{}) {
 		if err := streamWriter.Flush(); err != nil {
 			fmt.Println(err)
 		}
+
+		// Create Pivot Table. It should Create after the data is written,
+		// so it should create after streamWriter.Flush()
+		createPivotTable(file, sheetData["PivotTable"].([]interface{}))
 	}
 }
 
@@ -633,6 +636,7 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 			sheetCount++
 		}
 
+		// Add Chart
 		addChart(file, sheet, sheetData["Chart"].([]interface{}))
 
 		// Set DataValidations
@@ -693,5 +697,8 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 		}
 		// Excelize should create table with the existed row.
 		createTable(file, sheet, sheetData["Table"].([]interface{}))
+
+		// Create Pivot Table (Should Create after the data is written)
+		createPivotTable(file, sheetData["PivotTable"].([]interface{}))
 	}
 }
