@@ -659,3 +659,90 @@ wb.add_chart(
     legend=ChartLegendModel(position='top', show_legend_key=True),
 )
 ```
+
+## Add Pivot Table
+
+This function allows you to add a pivot table to a worksheet using either a `PivotTable` object or by specifying ranges and fields directly. You can customize the appearance and functionality of the pivot table using various optional parameters.
+
+!!! note "Note"
+    - You can either pass a `PivotTable` object or directly specify the data range, pivot table range, and fields.
+    - Ensure that the data range and pivot table range are correctly formatted and within the sheet's valid boundaries.
+    - Optional parameters allow you to control the visibility of row and column headers, grand totals, stripes, and more.
+
+### Adding a Pivot Table Using a `PivotTable` Object or a List of `PivotTable`
+
+| Parameter     | Data Type              | Description                                     |
+|---------------|------------------------|-------------------------------------------------|
+| `sheet`              | str       | The name of the sheet.                           |
+| `pivot_table` | `PivotTable \| list[PivotTable]` | A single `PivotTable` object or a list of `PivotTable` objects to add to the worksheet. |
+
+```python title='Add Pivot Table using PivotTable object'
+from pyfastexcle.pivot import PivotTable, PivotTableField
+
+pivot_table_object = PivotTableField(
+    data_range="Sheet1!A1:B10",
+    pivot_table_range="Sheet1!C3:D10",
+    rows=[PivotTableField()],
+    columns=[PivotTableField()],
+    data=[PivotTableField()],
+    row_grand_totals=True,
+    column_grand_totals=False,
+    pivot_table_style_name="PivotStyleMedium9"
+)
+
+pivot_table_object2 = PivotTableField(
+    data_range="Sheet1!A1:B10",
+    pivot_table_range="Sheet1!C3:D10",
+    pivot_table_style_name="PivotStyleMedium9"
+)
+
+# Add a pivot table using a PivotTable object
+wb.add_pivot_table('Sheet1', pivot_table=pivot_table_object)
+
+# Add multiple pivot tables using a list of PivotTable objects
+wb.add_pivot_table('Sheet1', pivot_table=[pivot_table_object1, pivot_table_object2])
+```
+
+### Adding a Pivot Table by Specifying Ranges and Fields
+
+| Parameter              | Data Type               | Description                                                                  |
+|------------------------|-------------------------|------------------------------------------------------------------------------|
+| `sheet`              | str       | The name of the sheet.                           |
+| `data_range`           | `str`                   | The range of data to be used in the pivot table, e.g., `"Sheet1!A1:B2"`.     |
+| `pivot_table_range`    | `str`                   | The range where the pivot table will be positioned, e.g., `"Sheet1!C3:D4"`.  |
+| `rows`                 | `list[PivotTableField]`  | List of fields used as rows in the pivot table.                              |
+| `filter`               | `list[PivotTableField]`  | List of fields used as filters in the pivot table.                           |
+| `columns`              | `list[PivotTableField]`  | List of fields used as columns in the pivot table.                           |
+| `data`                 | `list[PivotTableField]`  | List of fields used as data fields in the pivot table.                       |
+| `row_grand_totals`     | `Optional[bool]`         | Whether to display row grand totals.                                         |
+| `column_grand_totals`  | `Optional[bool]`         | Whether to display column grand totals.                                      |
+| `show_drill`           | `Optional[bool]`         | Whether to show drill indicators.                                            |
+| `show_row_headers`     | `Optional[bool]`         | Whether to display row headers.                                              |
+| `show_column_headers`  | `Optional[bool]`         | Whether to display column headers.                                           |
+| `show_row_stripes`     | `Optional[bool]`         | Whether to display row stripes.                                              |
+| `show_col_stripes`     | `Optional[bool]`         | Whether to display column stripes.                                           |
+| `show_last_column`     | `Optional[bool]`         | Whether to highlight the last column.                                        |
+| `use_auto_formatting`  | `Optional[bool]`         | Whether to use automatic formatting for the pivot table.                     |
+| `page_over_then_down`  | `Optional[bool]`         | Whether to order pages from top to bottom then left to right.                |
+| `merge_item`           | `Optional[bool]`         | Whether to merge items.                                                      |
+| `compact_data`         | `Optional[bool]`         | Whether to display data in a compact form.                                   |
+| `show_error`           | `Optional[bool]`         | Whether to display errors in the pivot table.                                |
+| `pivot_table_style_name` | `Optional[str]`         | The style name to apply to the pivot table.                                  |
+
+```python
+from pyfastexcel.pivot import PivotTableField
+
+# Add a pivot table by specifying the data range, pivot table range, and fields
+wb.add_pivot_table(
+    'Sheet1',
+    data_range="Sheet1!A1:B10",
+    pivot_table_range="Sheet1!C3:D10",
+    rows=[PivotTableField()],
+    columns=[PivotTableField()],
+    data=[PivotTableField()],
+    row_grand_totals=True,
+    column_grand_totals=False,
+    pivot_table_style_name="PivotStyleMedium9"
+)
+
+```

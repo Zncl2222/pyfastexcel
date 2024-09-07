@@ -132,7 +132,6 @@ def test_pivot_table_pivot_data_range_failed(data):
     [('123'), ('Sqwer')],
 )
 def test_pivot_table_style_name_failed(name):
-    wb, ws = get_wb()
     with pytest.raises(ValueError):
         PivotTable(
             data_range='Sheet1!A1:E31',
