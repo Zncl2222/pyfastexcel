@@ -881,24 +881,24 @@ class WorkSheet(WorkSheetBase):
         self,
         data_range: str,
         pivot_table_range: str,
-        rows: list[PivotTableField],
-        filter: list[PivotTableField],
-        columns: list[PivotTableField],
-        data: list[PivotTableField],
-        row_grand_totals: Optional[bool],
-        column_grand_totals: Optional[bool],
-        show_drill: Optional[bool],
-        show_row_headers: Optional[bool],
-        show_column_headers: Optional[bool],
-        show_row_stripes: Optional[bool],
-        show_col_stripes: Optional[bool],
-        show_last_column: Optional[bool],
-        use_auto_formatting: Optional[bool],
-        page_over_then_down: Optional[bool],
-        merge_item: Optional[bool],
-        compact_data: Optional[bool],
-        show_error: Optional[bool],
-        pivot_table_style_name: Optional[str],
+        rows: list[PivotTableField] = None,
+        filter: list[PivotTableField] = None,
+        columns: list[PivotTableField] = None,
+        data: list[PivotTableField] = None,
+        row_grand_totals: Optional[bool] = None,
+        column_grand_totals: Optional[bool] = None,
+        show_drill: Optional[bool] = None,
+        show_row_headers: Optional[bool] = None,
+        show_column_headers: Optional[bool] = None,
+        show_row_stripes: Optional[bool] = None,
+        show_col_stripes: Optional[bool] = None,
+        show_last_column: Optional[bool] = None,
+        use_auto_formatting: Optional[bool] = None,
+        page_over_then_down: Optional[bool] = None,
+        merge_item: Optional[bool] = None,
+        compact_data: Optional[bool] = None,
+        show_error: Optional[bool] = None,
+        pivot_table_style_name: Optional[str] = None,
     ) -> None:
         """
         Add Pivot table.
@@ -983,5 +983,3 @@ class WorkSheet(WorkSheetBase):
                 pivot_table_style_name=pivot_table_style_name,
             )
             self._pivot_table_list.append(pivot_table.model_dump(by_alias=True))
-        else:
-            raise ValueError('Invalid arguments provided to add_pivot_table function')

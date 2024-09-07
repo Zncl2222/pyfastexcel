@@ -10,6 +10,7 @@ _pivot_table_style_config = ('PivotStyleLight', 'PivotStyleMedium', 'PivotStyleD
 
 _pivot_table_style: set[str] = set()
 _pivot_table_style.add('')
+_pivot_table_style.add(None)
 
 for name in _pivot_table_style_config:
     for i in range(1, 29):
@@ -33,12 +34,12 @@ class PivotTableField(BaseModel):
     data: Optional[str] = Field(None, serialization_alias='Data')
     name: Optional[str] = Field(None, serialization_alias='Name')
     outline: Optional[bool] = Field(None, serialization_alias='Outline')
-    subtotal: Optional[str] = Field(None, serialization_alias='Subtotal')
+    subtotal: Optional[str | PivotSubTotal] = Field(None, serialization_alias='Subtotal')
     default_subtotal: Optional[bool] = Field(None, serialization_alias='DefaultSubtotal')
 
     @field_serializer('subtotal')
     @classmethod
-    def subtotal_serializer(cls, subtotal: str | None) -> str:
+    def subtotal_serializer(cls, subtotal: str | PivotSubTotal | None) -> str:
         if subtotal is None:
             return None
         if isinstance(subtotal, PivotSubTotal):
