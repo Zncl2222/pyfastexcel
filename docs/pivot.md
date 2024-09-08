@@ -21,7 +21,7 @@ Represents a PivotTable configuration, including data ranges, field settings, an
 | `data_range`          | `str`                                   | Range of data used for the pivot table, e.g., "Sheet1!A1:B2".                         |
 | `pivot_table_range`   | `str`                                   | Range where the pivot table will be placed, e.g., "Sheet1!C3:D4".                     |
 | `rows`                | `list[PivotTableField]`                 | List of fields used as rows in the pivot table.                                       |
-| `filter`              | `list[PivotTableField]`                 | List of fields used as filters in the pivot table.                                    |
+| `pivot_filter`        | `list[PivotTableField]`                 | List of fields used as filters in the pivot table.                                    |
 | `columns`             | `list[PivotTableField]`                 | List of fields used as columns in the pivot table.                                    |
 | `data`                | `list[PivotTableField]`                 | List of fields used as data fields in the pivot table.                                |
 | `row_grand_totals`    | `Optional[bool]`                        | Indicates whether to display row grand totals.                                        |

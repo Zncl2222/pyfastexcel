@@ -55,7 +55,7 @@ class PivotTable(BaseModel):
         data_range (str): The range of data to be used in the pivot table, e.g., "Sheet1!A1:B2".
         pivot_table_range (str): The range where the pivot table will be positioned, e.g., "Sheet1!C3:D4".
         rows (list[PivotTableField]): List of fields used as rows in the pivot table.
-        filter ([PivotTableField]): List of fields used as filters in the pivot table.
+        pivot_filter ([PivotTableField]): List of fields used as filters in the pivot table.
         columns (list[PivotTableField]): List of fields used as columns in the pivot table.
         data (list[PivotTableField]): List of fields used as data fields in the pivot table.
         row_grand_totals (Optional[bool Indicates whether to show row grand totals.
@@ -78,7 +78,7 @@ class PivotTable(BaseModel):
     data_range: str = Field(..., serialization_alias='DataRange')
     pivot_table_range: str = Field(..., serialization_alias='PivotTableRange')
     rows: list[PivotTableField] = Field([PivotTableField()], serialization_alias='Rows')
-    filter: list[PivotTableField] = Field([PivotTableField()], serialization_alias='Filter')
+    pivot_filter: list[PivotTableField] = Field([PivotTableField()], serialization_alias='Filter')
     columns: list[PivotTableField] = Field([PivotTableField()], serialization_alias='Columns')
     data: list[PivotTableField] = Field([PivotTableField()], serialization_alias='Data')
     row_grand_totals: Optional[bool] = Field(None, serialization_alias='RowGrandTotals')

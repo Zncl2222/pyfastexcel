@@ -739,7 +739,7 @@ ws.add_pivot_table(pivot_table=[pivot_table_object1, pivot_table_object2])
 | `data_range`           | `str`                   | The range of data to be used in the pivot table, e.g., `"Sheet1!A1:B2"`.     |
 | `pivot_table_range`    | `str`                   | The range where the pivot table will be positioned, e.g., `"Sheet1!C3:D4"`.  |
 | `rows`                 | `list[PivotTableField]`  | List of fields used as rows in the pivot table.                              |
-| `filter`               | `list[PivotTableField]`  | List of fields used as filters in the pivot table.                           |
+| `pivot_filter`         | `list[PivotTableField]`  | List of fields used as filters in the pivot table.                           |
 | `columns`              | `list[PivotTableField]`  | List of fields used as columns in the pivot table.                           |
 | `data`                 | `list[PivotTableField]`  | List of fields used as data fields in the pivot table.                       |
 | `row_grand_totals`     | `Optional[bool]`         | Whether to display row grand totals.                                         |
