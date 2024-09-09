@@ -13,14 +13,14 @@ charts in Pyfastexcel.
 ```python
 from pyfastexcel import Workbook
 from pyfastexcel.chart import (
-    ChartModel,
-    ChartSeriesModel,
-    RichTextRunModel,
-    FontModel,
-    ChartAxisModel,
-    ChartLegendModel,
-    FillModel,
-    MarkerModel,
+    Chart,
+    ChartSeries,
+    RichTextRun,
+    Font,
+    ChartAxis,
+    ChartLegend,
+    Fill,
+    Marker,
 )
 
 wb = Workbook()
@@ -31,38 +31,38 @@ ws[1] = ['Food', 123, 125, 645]
 ws[2] = ['Book', 456, 789, 321]
 ws[3] = ['Phone', 777, 66, 214]
 
-chart = ChartModel(
+chart = Chart(
     chart_type='line',
     series=[
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A2',
             categories='Sheet1!B1:D1',
             values='Sheet1!B2:D2',
-            fill=FillModel(ftype='pattern', pattern=1, color='ebce42'),
-            marker=MarkerModel(symbol='none'),
+            fill=Fill(ftype='pattern', pattern=1, color='ebce42'),
+            marker=Marker(symbol='none'),
         ),
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A3',
             categories='Sheet1!B1:D1',
             values='Sheet1!B3:D3',
-            fill=FillModel(ftype='pattern', pattern=1, color='29a64b'),
-            marker=MarkerModel(symbol='none'),
+            fill=Fill(ftype='pattern', pattern=1, color='29a64b'),
+            marker=Marker(symbol='none'),
         ),
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A4',
             categories='Sheet1!B1:D1',
             values='Sheet1!B4:D4',
-            fill=FillModel(ftype='pattern', pattern=1, color='0000FF'),
-            marker=MarkerModel(
+            fill=Fill(ftype='pattern', pattern=1, color='0000FF'),
+            marker=Marker(
                 symbol='circle',
-                fill=FillModel(ftype='pattern', pattern=1, color='FFFF00'),
+                fill=Fill(ftype='pattern', pattern=1, color='FFFF00'),
             ),
         ),
     ],
-    title=[RichTextRunModel(text='Example Chart', font=FontModel(color='FF0000', bold=True))],
-    x_axis=ChartAxisModel(major_grid_lines=True, font=FontModel(color='000000')),
-    y_axis=ChartAxisModel(major_grid_lines=True, font=FontModel(color='000000')),
-    legend=ChartLegendModel(position='top', show_legend_key=True),
+    title=[RichTextRun(text='Example Chart', font=Font(color='FF0000', bold=True))],
+    x_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
+    y_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
+    legend=ChartLegend(position='top', show_legend_key=True),
 )
 ws.add_chart('E1', chart)
 ```
@@ -78,14 +78,14 @@ ws.add_chart('E1', chart)
 ```python
 from pyfastexcel import Workbook
 from pyfastexcel.chart import (
-    ChartModel,
-    ChartSeriesModel,
-    RichTextRunModel,
-    FontModel,
-    ChartAxisModel,
-    ChartLegendModel,
-    FillModel,
-    MarkerModel,
+    Chart,
+    ChartSeries,
+    RichTextRun,
+    Font,
+    ChartAxis,
+    ChartLegend,
+    Fill,
+    Marker,
 )
 
 wb = Workbook()
@@ -96,32 +96,32 @@ ws[1] = ['Food', 123, 125, 645]
 ws[2] = ['Book', 456, 789, 321]
 ws[3] = ['Phone', 777, 66, 214]
 
-chart = ChartModel(
+chart = Chart(
     chart_type='col',
     series=[
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A2',
             categories='Sheet1!B1:D1',
             values='Sheet1!B2:D2',
-            fill=FillModel(ftype='pattern', pattern=1, color='ebce42'),
+            fill=Fill(ftype='pattern', pattern=1, color='ebce42'),
         ),
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A3',
             categories='Sheet1!B1:D1',
             values='Sheet1!B3:D3',
-            fill=FillModel(ftype='pattern', pattern=1, color='29a64b'),
+            fill=Fill(ftype='pattern', pattern=1, color='29a64b'),
         ),
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A4',
             categories='Sheet1!B1:D1',
             values='Sheet1!B4:D4',
-            fill=FillModel(ftype='pattern', pattern=1, color='0000FF'),
+            fill=Fill(ftype='pattern', pattern=1, color='0000FF'),
         ),
     ],
-    title=[RichTextRunModel(text='Example Chart', font=FontModel(color='FF0000', bold=True))],
-    x_axis=ChartAxisModel(major_grid_lines=True, font=FontModel(color='000000')),
-    y_axis=ChartAxisModel(major_grid_lines=True, font=FontModel(color='000000')),
-    legend=ChartLegendModel(position='top', show_legend_key=True),
+    title=[RichTextRun(text='Example Chart', font=Font(color='FF0000', bold=True))],
+    x_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
+    y_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
+    legend=ChartLegend(position='top', show_legend_key=True),
 )
 ws.add_chart('E1', chart)
 ```
@@ -137,14 +137,14 @@ ws.add_chart('E1', chart)
 ```python
 from pyfastexcel import Workbook
 from pyfastexcel.chart import (
-    ChartModel,
-    ChartSeriesModel,
-    RichTextRunModel,
-    FontModel,
-    ChartAxisModel,
-    ChartLegendModel,
-    FillModel,
-    MarkerModel,
+    Chart,
+    ChartSeries,
+    RichTextRun,
+    Font,
+    ChartAxis,
+    ChartLegend,
+    Fill,
+    Marker,
 )
 
 wb = Workbook()
@@ -155,45 +155,45 @@ ws[1] = ['Food', 123, 125, 645]
 ws[2] = ['Book', 456, 789, 321]
 ws[3] = ['Phone', 777, 66, 214]
 
-column_chart = ChartModel(
+column_chart = Chart(
     chart_type='col',
     series=[
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A2',
             categories='Sheet1!B1:D1',
             values='Sheet1!B2:D2',
-            fill=FillModel(ftype='pattern', pattern=1, color='ebce42'),
-            marker=MarkerModel(symbol='none'),
+            fill=Fill(ftype='pattern', pattern=1, color='ebce42'),
+            marker=Marker(symbol='none'),
         ),
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A3',
             categories='Sheet1!B1:D1',
             values='Sheet1!B3:D3',
-            fill=FillModel(ftype='pattern', pattern=1, color='29a64b'),
-            marker=MarkerModel(symbol='none'),
+            fill=Fill(ftype='pattern', pattern=1, color='29a64b'),
+            marker=Marker(symbol='none'),
         ),
     ],
-    legend=ChartLegendModel(position='top', show_legend_key=True),
+    legend=ChartLegend(position='top', show_legend_key=True),
 )
 
-line_chart = ChartModel(
+line_chart = Chart(
     chart_type='line',
     series=[
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A4',
             categories='Sheet1!B1:D1',
             values='Sheet1!B4:D4',
-            fill=FillModel(ftype='pattern', pattern=1, color='0000FF'),
-            marker=MarkerModel(
+            fill=Fill(ftype='pattern', pattern=1, color='0000FF'),
+            marker=Marker(
                 symbol='circle',
-                fill=FillModel(ftype='pattern', pattern=1, color='FFFF00'),
+                fill=Fill(ftype='pattern', pattern=1, color='FFFF00'),
             ),
         ),
     ],
-    title=[RichTextRunModel(text='Example Chart', font=FontModel(color='FF0000', bold=True))],
-    x_axis=ChartAxisModel(major_grid_lines=True, font=FontModel(color='000000')),
-    y_axis=ChartAxisModel(major_grid_lines=True, font=FontModel(color='000000')),
-    legend=ChartLegendModel(position='top', show_legend_key=True),
+    title=[RichTextRun(text='Example Chart', font=Font(color='FF0000', bold=True))],
+    x_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
+    y_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
+    legend=ChartLegend(position='top', show_legend_key=True),
 )
 ws.add_chart('E1', [column_chart, line_chart])
 ```
@@ -204,30 +204,30 @@ ws.add_chart('E1', [column_chart, line_chart])
 
 </div>
 
-## ChartModel
+## Chart
 
 Defines the configuration for a chart.
 
 | Attribute            | Type                                        | Description                                               |
 |----------------------|---------------------------------------------|-----------------------------------------------------------|
 | `chart_type`         | `str or ChartType`                           | The type of chart, such as 'bar', 'line', etc.           |
-| `series`             | `List[ChartSeriesModel] or ChartSeriesModel` | The data series to be plotted in the chart.              |
-| `graph_format`       | `Optional[GraphicOptionsModel]`             | Graphical options for the chart.                         |
-| `title`              | `Optional[List[RichTextRunModel]]`          | The title of the chart.                                  |
-| `legend`             | `Optional[ChartLegendModel]`                | The legend settings for the chart.                       |
-| `dimension`          | `Optional[ChartDimensionModel]`             | The dimensions of the chart.                             |
+| `series`             | `List[ChartSeries] or ChartSeries` | The data series to be plotted in the chart.              |
+| `graph_format`       | `Optional[GraphicOptions]`             | Graphical options for the chart.                         |
+| `title`              | `Optional[List[RichTextRun]]`          | The title of the chart.                                  |
+| `legend`             | `Optional[ChartLegend]`                | The legend settings for the chart.                       |
+| `dimension`          | `Optional[ChartDimension]`             | The dimensions of the chart.                             |
 | `vary_colors`        | `Optional[bool]`                            | Specifies if colors should vary by data point.           |
-| `x_axis`             | `Optional[ChartAxisModel]`                  | The configuration of the X-axis.                         |
-| `y_axis`             | `Optional[ChartAxisModel]`                  | The configuration of the Y-axis.                         |
-| `plot_area`          | `Optional[ChartPlotAreaModel]`              | The configuration of the plot area.                      |
-| `fill`               | `Optional[FillModel]`                       | The fill settings for the chart.                         |
-| `border`             | `Optional[LineModel]`                       | The border settings for the chart.                       |
+| `x_axis`             | `Optional[ChartAxis]`                  | The configuration of the X-axis.                         |
+| `y_axis`             | `Optional[ChartAxis]`                  | The configuration of the Y-axis.                         |
+| `plot_area`          | `Optional[ChartPlotArea]`              | The configuration of the plot area.                      |
+| `fill`               | `Optional[Fill]`                       | The fill settings for the chart.                         |
+| `border`             | `Optional[Line]`                       | The border settings for the chart.                       |
 | `show_blanks_as`     | `Optional[str]`                             | Specifies how blanks should be shown in the chart.       |
 | `bubble_size`        | `Optional[int]`                             | The size of bubbles in a bubble chart.                   |
 | `hole_size`          | `Optional[int]`                             | The size of the hole in a doughnut chart.                |
 | `order`              | `Optional[int]`                             | The order of the series in the chart.                    |
 
-## ChartSeriesModel
+## ChartSeries
 
 Defines the series within a chart, including attributes like the series name,
 data categories, values, and various settings for visual customization such
@@ -239,12 +239,12 @@ as line styles, markers, and data labels.
 | `categories`       | `str`                                    | The categories for the series (X value).        |
 | `values`           | `str`                                    | The values for the series (Y value).            |
 | `sizes`            | `Optional[str]`                          | The sizes for bubble charts.                    |
-| `fill`             | `Optional[FillModel]`                    | Fill settings for the series.                   |
-| `line`             | `Optional[LineModel]`                    | Line settings for the series.                   |
-| `marker`           | `Optional[MarkerModel]`                  | Marker settings for the series.                 |
+| `fill`             | `Optional[Fill]`                    | Fill settings for the series.                   |
+| `line`             | `Optional[Line]`                    | Line settings for the series.                   |
+| `marker`           | `Optional[Marker]`                  | Marker settings for the series.                 |
 | `data_label_position` | `Optional[str or ChartDataLabelPosition]` | The position of data labels for the series.     |
 
-## ChartDimensionModel
+## ChartDimension
 
 Specifies the dimensions (width and height) of the chart area.
 
@@ -253,7 +253,7 @@ Specifies the dimensions (width and height) of the chart area.
 | `width`   | `Optional[int]` | The width of the chart.            |
 | `height`  | `Optional[int]` | The height of the chart.           |
 
-## GraphicOptionsModel
+## GraphicOptions
 
 Contains settings for graphical objects, including accessibility features,
 locking options, scaling, and positioning.
@@ -273,7 +273,7 @@ locking options, scaling, and positioning.
 | `hyperlink_type`  | `Optional[str]`                        | The type of hyperlink.                          |
 | `positioning`     | `Optional[str]`                        | The positioning mode for the object.            |
 
-## ChartPlotAreaModel
+## ChartPlotArea
 
 Describes the plot area of the chart, including options for displaying bubble
 sizes, category names, and other visual elements.
@@ -287,10 +287,10 @@ sizes, category names, and other visual elements.
 | `show_percent`     | `Optional[bool]`                      | Specifies if percentages should be shown in the data label. |
 | `show_ser_name`    | `Optional[bool]`                      | Indicates if series names should be displayed in the data label. |
 | `show_val`         | `Optional[bool]`                      | Specifies if values should be shown in the data label.    |
-| `fill`             | `Optional[FillModel]`                 | Fill settings for the plot area.                         |
-| `num_fmt`          | `Optional[ChartCustomNumFmtModel]`     | Custom number format for the plot area.                  |
+| `fill`             | `Optional[Fill]`                 | Fill settings for the plot area.                         |
+| `num_fmt`          | `Optional[ChartCustomNumFmt]`     | Custom number format for the plot area.                  |
 
-## ChartAxisModel
+## ChartAxis
 
 Configures the axes of the chart, including grid lines, tick labels, axis
     scaling, and formatting.
@@ -298,7 +298,7 @@ Configures the axes of the chart, including grid lines, tick labels, axis
 | Attribute         | Type                                         | Description                                          |
 |-------------------|----------------------------------------------|------------------------------------------------------|
 | `none`            | `Optional[bool]`                           | Specifies if the axis should be hidden.             |
-| `font`            | `Optional[FontModel]`                      | Font settings for the axis labels.                  |
+| `font`            | `Optional[Font]`                      | Font settings for the axis labels.                  |
 | `major_grid_lines` | `Optional[bool]`                          | Specifies if major grid lines should be displayed.  |
 | `minor_grid_lines` | `Optional[bool]`                          | Specifies if minor grid lines should be displayed.  |
 | `major_unit`      | `Optional[float]`                         | The interval between major grid lines.             |
@@ -308,10 +308,10 @@ Configures the axes of the chart, including grid lines, tick labels, axis
 | `maximum`         | `Optional[float]`                         | The maximum value for the axis.                    |
 | `minimum`         | `Optional[float]`                         | The minimum value for the axis.                    |
 | `log_base`        | `Optional[float]`                         | The logarithmic base for the axis scale.           |
-| `num_fmt`         | `Optional[ChartCustomNumFmtModel]`         | Custom number format for the axis.                 |
-| `title`           | `Optional[List[RichTextRunModel]]`        | The title of the axis.                            |
+| `num_fmt`         | `Optional[ChartCustomNumFmt]`         | Custom number format for the axis.                 |
+| `title`           | `Optional[List[RichTextRun]]`        | The title of the axis.                            |
 
-## ChartCustomNumFmtModel
+## ChartCustomNumFmt
 
 Provides custom number formatting options for chart elements.
 
@@ -320,16 +320,16 @@ Provides custom number formatting options for chart elements.
 | `num_fmt`    | `Optional[str]`                      | The custom number format.                    |
 | `source_linked` | `Optional[bool]`                    | Specifies if the format is linked to the source. |
 
-## RichTextRunModel
+## RichTextRun
 
 Defines text content and its associated font settings within chart elements.
 
 | Attribute | Type                                    | Description                          |
 |-----------|-----------------------------------------|--------------------------------------|
 | `text`    | `str`                                    | The text content.                    |
-| `font`    | `Optional[FontModel]`                   | Font settings for the text.          |
+| `font`    | `Optional[Font]`                   | Font settings for the text.          |
 
-## ChartLegendModel
+## ChartLegend
 
 Specifies the legend's position and visibility of legend keys.
 
@@ -338,7 +338,7 @@ Specifies the legend's position and visibility of legend keys.
 | `position`       | `Optional[Literal['none', 'top', 'bottom', 'left', 'right', 'top_right']]` | The position of the legend.                        |
 | `show_legend_key`| `Optional[bool]`                            | Specifies if the legend key should be shown.       |
 
-## LineModel
+## Line
 
 Details the styling of lines within the chart, including line type, smoothness,
 width, and marker visibility.
@@ -350,18 +350,18 @@ width, and marker visibility.
 | `width`          | `Optional[float]`                    | The width of the line.                              |
 | `show_marker_line` | `Optional[bool]`                      | Indicates if the line should be shown on markers.    |
 
-## MarkerModel
+## Marker
 
 Configures markers used in the chart, including their symbols, sizes, and fill
 options.
 
 | Attribute   | Type                                  | Description                                   |
 |-------------|---------------------------------------|-----------------------------------------------|
-| `fill`      | `Optional[FillModel]`                 | Fill settings for the marker.                |
+| `fill`      | `Optional[Fill]`                 | Fill settings for the marker.                |
 | `symbol`    | `Optional[str or MarkerSymbol]`        | The symbol used for the marker.              |
 | `size`      | `Optional[int]`                       | The size of the marker.                      |
 
-## FillModel
+## Fill
 
 Defines the fill style for chart elements, including type (pattern or gradient),
 color, and shading.
@@ -373,7 +373,7 @@ color, and shading.
 | `color`     | `Optional[str]`                              | The fill color (supports hex color value).         |
 | `shading`   | `Optional[int]`                               | The shading index for the fill (0 to 5).           |
 
-## FontModel
+## Font
 
 Specifies the font settings for text within the chart, including bold, color,
 size, and alignment.

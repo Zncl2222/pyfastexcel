@@ -6,7 +6,7 @@ from typing import List, Literal, Optional
 from .enums import ChartDataLabelPosition, ChartLineType, ChartType, MarkerSymbol
 
 
-class FontModel(BaseModel):
+class Font(BaseModel):
     """
     Defines font settings for text elements in a chart.
 
@@ -32,7 +32,7 @@ class FontModel(BaseModel):
     vert_align: Optional[str] = Field(None, serialization_alias='VertAlign')
 
 
-class FillModel(BaseModel):
+class Fill(BaseModel):
     """
     Describes the fill settings.
 
@@ -50,17 +50,17 @@ class FillModel(BaseModel):
     shading: Optional[int] = Field(None, serialization_alias='Shading', gt=-1, lt=6)
 
 
-class MarkerModel(BaseModel):
+class Marker(BaseModel):
     """
     Defines the appearance and style of markers used in charts.
 
     Attributes:
-        fill (Optional[FillModel]): Fill settings for the marker.
+        fill (Optional[Fill]): Fill settings for the marker.
         symbol (Optional[str | MarkerSymbol]): The symbol used for the marker.
         size (Optional[int]): The size of the marker.
     """
 
-    fill: Optional[FillModel] = Field(None, serialization_alias='Fill')
+    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
     symbol: Optional[str | MarkerSymbol] = Field(None, serialization_alias='Symbol')
     size: Optional[int] = Field(None, serialization_alias='Size')
 
@@ -74,7 +74,7 @@ class MarkerModel(BaseModel):
         return MarkerSymbol.get_enum(symbol).value
 
 
-class LineModel(BaseModel):
+class Line(BaseModel):
     """
     Represents line settings for chart elements.
 
@@ -100,7 +100,7 @@ class LineModel(BaseModel):
         return ChartLineType.get_enum(ltype).value
 
 
-class ChartLegendModel(BaseModel):
+class ChartLegend(BaseModel):
     """
     Defines settings for the chart legend.
 
@@ -116,20 +116,20 @@ class ChartLegendModel(BaseModel):
     show_legend_key: Optional[bool] = Field(None, serialization_alias='ShowLegendKey')
 
 
-class RichTextRunModel(BaseModel):
+class RichTextRun(BaseModel):
     """
     Represents a text run with rich text formatting.
 
     Attributes:
         text (str): The text content.
-        font (Optional[FontModel]): Font settings for the text.
+        font (Optional[Font]): Font settings for the text.
     """
 
     text: str = Field(..., serialization_alias='Text')
-    font: Optional[FontModel] = Field(None, serialization_alias='Font')
+    font: Optional[Font] = Field(None, serialization_alias='Font')
 
 
-class ChartCustomNumFmtModel(BaseModel):
+class ChartCustomNumFmt(BaseModel):
     """
     Custom number formatting for chart elements.
 
@@ -142,13 +142,13 @@ class ChartCustomNumFmtModel(BaseModel):
     source_linked: Optional[bool] = Field(None, serialization_alias='SourceLinked')
 
 
-class ChartAxisModel(BaseModel):
+class ChartAxis(BaseModel):
     """
     Defines the settings for chart axes.
 
     Attributes:
         none (Optional[bool]): Specifies if the axis should be hidden.
-        font (Optional[FontModel]): Font settings for the axis labels.
+        font (Optional[Font]): Font settings for the axis labels.
         major_grid_lines (Optional[bool]): Specifies if major grid lines should be displayed.
         minor_grid_lines (Optional[bool]): Specifies if minor grid lines should be displayed.
         major_unit (Optional[float]): The interval between major grid lines.
@@ -159,12 +159,12 @@ class ChartAxisModel(BaseModel):
         maximum (Optional[float]): The maximum value for the axis.
         minimum (Optional[float]): The minimum value for the axis.
         log_base (Optional[float]): The logarithmic base for the axis scale.
-        num_fmt (Optional[ChartCustomNumFmtModel]): Custom number format for the axis.
-        title (Optional[List[RichTextRunModel]]): The title of the axis.
+        num_fmt (Optional[ChartCustomNumFmt]): Custom number format for the axis.
+        title (Optional[List[RichTextRun]]): The title of the axis.
     """
 
     none: Optional[bool] = Field(None, serialization_alias='None')
-    font: Optional[FontModel] = Field(None, serialization_alias='Font')
+    font: Optional[Font] = Field(None, serialization_alias='Font')
     major_grid_lines: Optional[bool] = Field(None, serialization_alias='MajorGridLines')
     minor_grid_lines: Optional[bool] = Field(None, serialization_alias='MinorGridLines')
     major_unit: Optional[float] = Field(None, serialization_alias='MajorUnit')
@@ -174,11 +174,11 @@ class ChartAxisModel(BaseModel):
     maximum: Optional[float] = Field(None, serialization_alias='Maximum')
     minimum: Optional[float] = Field(None, serialization_alias='Minimum')
     log_base: Optional[float] = Field(None, serialization_alias='LogBase')
-    num_fmt: Optional[ChartCustomNumFmtModel] = Field(None, serialization_alias='NumFmt')
-    title: Optional[List[RichTextRunModel]] = Field(None, serialization_alias='Title')
+    num_fmt: Optional[ChartCustomNumFmt] = Field(None, serialization_alias='NumFmt')
+    title: Optional[List[RichTextRun]] = Field(None, serialization_alias='Title')
 
 
-class ChartPlotAreaModel(BaseModel):
+class ChartPlotArea(BaseModel):
     """
     Represents the plot area of a chart.
 
@@ -193,8 +193,8 @@ class ChartPlotAreaModel(BaseModel):
         show_ser_name (Optional[bool]): Indicates if series names should be displayed in the
             data label.
         show_val (Optional[bool]): Specifies if values should be shown in the data label.
-        fill (Optional[FillModel]): Fill settings for the plot area.
-        num_fmt (Optional[ChartCustomNumFmtModel]): Custom number format for the plot area.
+        fill (Optional[Fill]): Fill settings for the plot area.
+        num_fmt (Optional[ChartCustomNumFmt]): Custom number format for the plot area.
     """
 
     second_plot_values: Optional[int] = Field(None, serialization_alias='SecondPlotValues')
@@ -204,11 +204,11 @@ class ChartPlotAreaModel(BaseModel):
     show_percent: Optional[bool] = Field(None, serialization_alias='ShowPercent')
     show_ser_name: Optional[bool] = Field(None, serialization_alias='ShowSerName')
     show_val: Optional[bool] = Field(None, serialization_alias='ShowVal')
-    fill: Optional[FillModel] = Field(None, serialization_alias='Fill')
-    num_fmt: Optional[ChartCustomNumFmtModel] = Field(None, serialization_alias='NumFmt')
+    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
+    num_fmt: Optional[ChartCustomNumFmt] = Field(None, serialization_alias='NumFmt')
 
 
-class GraphicOptionsModel(BaseModel):
+class GraphicOptions(BaseModel):
     """
     Defines various graphical options for chart elements.
 
@@ -241,7 +241,7 @@ class GraphicOptionsModel(BaseModel):
     positioning: Optional[str] = Field(None, serialization_alias='Positioning')
 
 
-class ChartDimensionModel(BaseModel):
+class ChartDimension(BaseModel):
     """
     Specifies the dimensions of a chart.
 
@@ -254,7 +254,7 @@ class ChartDimensionModel(BaseModel):
     height: Optional[int] = Field(None, serialization_alias='Height')
 
 
-class ChartSeriesModel(BaseModel):
+class ChartSeries(BaseModel):
     """
     Represents a data series in a chart.
 
@@ -263,9 +263,9 @@ class ChartSeriesModel(BaseModel):
         categories (str): The categories for the series (X value).
         values (str): The values for the series (Y value).
         sizes (Optional[str]): The sizes for bubble charts.
-        fill (Optional[FillModel]): Fill settings for the series.
-        line (Optional[LineModel]): Line settings for the series.
-        marker (Optional[MarkerModel]): Marker settings for the series.
+        fill (Optional[Fill]): Fill settings for the series.
+        line (Optional[Line]): Line settings for the series.
+        marker (Optional[Marker]): Marker settings for the series.
         data_label_position (Optional[str | ChartDataLabelPosition]): The position
             of data labels for the series.
     """
@@ -274,9 +274,9 @@ class ChartSeriesModel(BaseModel):
     categories: str = Field(..., serialization_alias='Categories')
     values: str = Field(..., serialization_alias='Values')
     sizes: Optional[str] = Field(None, serialization_alias='Sizes')
-    fill: Optional[FillModel] = Field(None, serialization_alias='Fill')
-    line: Optional[LineModel] = Field(None, serialization_alias='Line')
-    marker: Optional[MarkerModel] = Field(None, serialization_alias='Marker')
+    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
+    line: Optional[Line] = Field(None, serialization_alias='Line')
+    marker: Optional[Marker] = Field(None, serialization_alias='Marker')
     data_label_position: Optional[str | ChartDataLabelPosition] = Field(
         None, serialization_alias='DataLabelPosition'
     )
@@ -291,24 +291,24 @@ class ChartSeriesModel(BaseModel):
         return ChartDataLabelPosition.get_enum(label).value
 
 
-class ChartModel(BaseModel):
+class Chart(BaseModel):
     """
     Defines the configuration for a chart.
 
     Attributes:
         chart_type (str | ChartType): The type of chart, such as 'bar', 'line', etc.
-        series (List[ChartSeriesModel] | ChartSeriesModel): The data series to be plotted
+        series (List[ChartSeries] | ChartSeries): The data series to be plotted
             in the chart.
-        graph_format (Optional[GraphicOptionsModel]): Graphical options for the chart.
-        title (Optional[List[RichTextRunModel]]): The title of the chart.
-        legend (Optional[ChartLegendModel]): The legend settings for the chart.
-        dimension (Optional[ChartDimensionModel]): The dimensions of the chart.
+        graph_format (Optional[GraphicOptions]): Graphical options for the chart.
+        title (Optional[List[RichTextRun]]): The title of the chart.
+        legend (Optional[ChartLegend]): The legend settings for the chart.
+        dimension (Optional[ChartDimension]): The dimensions of the chart.
         vary_colors (Optional[bool]): Specifies if colors should vary by data point.
-        x_axis (Optional[ChartAxisModel]): The configuration of the X-axis.
-        y_axis (Optional[ChartAxisModel]): The configuration of the Y-axis.
-        plot_area (Optional[ChartPlotAreaModel]): The configuration of the plot area.
-        fill (Optional[FillModel]): The fill settings for the chart.
-        border (Optional[LineModel]): The border settings for the chart.
+        x_axis (Optional[ChartAxis]): The configuration of the X-axis.
+        y_axis (Optional[ChartAxis]): The configuration of the Y-axis.
+        plot_area (Optional[ChartPlotArea]): The configuration of the plot area.
+        fill (Optional[Fill]): The fill settings for the chart.
+        border (Optional[Line]): The border settings for the chart.
         show_blanks_as (Optional[str]): Specifies how blanks should be shown in the chart.
         bubble_size (Optional[int]): The size of bubbles in a bubble chart.
         hole_size (Optional[int]): The size of the hole in a doughnut chart.
@@ -316,21 +316,27 @@ class ChartModel(BaseModel):
     """
 
     chart_type: str | ChartType = Field(..., serialization_alias='Type')
-    series: List[ChartSeriesModel] | ChartSeriesModel = Field(None, serialization_alias='Series')
-    graph_format: Optional[GraphicOptionsModel] = Field(None, serialization_alias='Format')
-    title: Optional[List[RichTextRunModel]] = Field(None, serialization_alias='Title')
-    legend: Optional[ChartLegendModel] = Field(None, serialization_alias='Legend')
-    dimension: Optional[ChartDimensionModel] = Field(None, serialization_alias='Dimension')
+    series: List[ChartSeries] | ChartSeries = Field(None, serialization_alias='Series')
+    graph_format: Optional[GraphicOptions] = Field(None, serialization_alias='Format')
+    title: Optional[List[RichTextRun]] = Field(None, serialization_alias='Title')
+    legend: Optional[ChartLegend] = Field(None, serialization_alias='Legend')
+    dimension: Optional[ChartDimension] = Field(None, serialization_alias='Dimension')
     vary_colors: Optional[bool] = Field(None, serialization_alias='VaryColors')
-    x_axis: Optional[ChartAxisModel] = Field(None, serialization_alias='XAxis')
-    y_axis: Optional[ChartAxisModel] = Field(None, serialization_alias='YAxis')
-    plot_area: Optional[ChartPlotAreaModel] = Field(None, serialization_alias='PlotArea')
-    fill: Optional[FillModel] = Field(None, serialization_alias='Fill')
-    border: Optional[LineModel] = Field(None, serialization_alias='Border')
+    x_axis: Optional[ChartAxis] = Field(None, serialization_alias='XAxis')
+    y_axis: Optional[ChartAxis] = Field(None, serialization_alias='YAxis')
+    plot_area: Optional[ChartPlotArea] = Field(None, serialization_alias='PlotArea')
+    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
+    border: Optional[Line] = Field(None, serialization_alias='Border')
     show_blanks_as: Optional[str] = Field(None, serialization_alias='ShowBlanksAs')
     bubble_size: Optional[int] = Field(None, serialization_alias='BubbleSize')
     hole_size: Optional[int] = Field(None, serialization_alias='HoleSize')
     order: Optional[int] = Field(None, serialization_alias='order')
+
+    @field_serializer('series')
+    @classmethod
+    def series_serializer(cls, series: List[ChartSeries] | ChartSeries) -> List[ChartSeries]:
+        series = [series] if isinstance(series, ChartSeries) else series
+        return series
 
     @field_serializer('chart_type')
     @classmethod
