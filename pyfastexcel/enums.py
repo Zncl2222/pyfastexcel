@@ -102,3 +102,17 @@ class MarkerSymbol(BaseEnum):
     Triangle = 'triangle'
     X = 'x'
     Auto = 'auto'
+
+
+class PivotSubTotal(BaseEnum):
+    Average = 'Average'
+    Count = 'Count'
+    CountNums = 'CountNums'
+    Max = 'Max'
+    Min = 'Min'
+    Product = 'Product'
+    StdDev = 'StdDev'
+    StdDevp = 'StdDevp'
+    Sum = 'Sum'
+    Var = 'Var'
+    Varp = 'Varp'

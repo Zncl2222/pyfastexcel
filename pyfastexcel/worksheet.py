@@ -17,6 +17,7 @@ from .chart import (
     LineModel,
     ChartDimensionModel,
 )
+from .pivot import PivotTable, PivotTableField
 from .style import StyleManager
 from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import (
@@ -87,6 +88,7 @@ class WorkSheetBase:
         self._grouped_rows_list = []
         self._table_list = []
         self._chart_list = []
+        self._pivot_table_list = []
         # Using pyfastexcel to write as default
         self._engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
 
@@ -185,6 +187,7 @@ class WorkSheetBase:
             'GroupedCol': self._grouped_columns_list,
             'Table': self._table_list,
             'Chart': self._chart_list,
+            'PivotTable': self._pivot_table_list,
         }
         return self._sheet
 
@@ -203,6 +206,7 @@ class WorkSheetBase:
             'GroupedCol': [],
             'Table': [],
             'Chart': [],
+            'PivotTable': [],
         }
 
     def _validate_value_and_set_default(self, value: Any):
@@ -782,16 +786,7 @@ class WorkSheet(WorkSheetBase):
         self._table_list.append(table)
 
     @overload
-    def add_chart(self, cell: str, chart_model: ChartModel | List[ChartModel]) -> None:
-        """
-        Adds one or more charts using ChartModel objects.
-
-        Args:
-            cell (str): The cell reference where the chart(s) will be added.
-            chart_model (ChartModel | List[ChartModel]): A single ChartModel object or a list
-                of ChartModel objects defining the chart(s) to be added.
-        """
-        ...
+    def add_chart(self, cell: str, chart_model: ChartModel | List[ChartModel]): ...
 
     @overload
     def add_chart(
@@ -813,34 +808,7 @@ class WorkSheet(WorkSheetBase):
         bubble_size: Optional[int] = None,
         hole_size: Optional[int] = None,
         order: Optional[int] = None,
-    ) -> None:
-        """
-        Adds a chart by specifying chart attributes directly.
-
-        Args:
-            cell (str): The cell reference where the chart will be added.
-            chart_type (str): The type of chart (e.g., 'bar', 'line').
-            series (List[ChartSeriesModel] | ChartSeriesModel): The data series to be plotted.
-            graph_format (Optional[GraphicOptionsModel]): Graphical options for the chart.
-            title (Optional[List[RichTextRunModel]]): The title of the chart.
-            legend (Optional[ChartLegendModel]): Legend settings for the chart.
-            dimension (Optional[ChartDimensionModel]): Dimensions of the chart.
-            vary_colors (Optional[bool]): Whether to vary colors by data point.
-            x_axis (Optional[ChartAxisModel]): Configuration of the X-axis.
-            y_axis (Optional[ChartAxisModel]): Configuration of the Y-axis.
-            plot_area (Optional[ChartPlotAreaModel]): Configuration of the plot area.
-            fill (Optional[FillModel]): Fill settings for the chart.
-            border (Optional[LineModel]): Border settings for the chart.
-            show_blanks_as (Optional[str]): How to display blanks in the chart.
-            bubble_size (Optional[int]): Size of bubbles in a bubble chart.
-            hole_size (Optional[int]): Size of the hole in a doughnut chart.
-            order (Optional[int]): The order of the series in the chart.
-
-        Raises:
-            ValueError: If neither 'chart_model' nor 'chart_type' and 'series' are provided,
-                        or if other invalid combinations of arguments are supplied.
-        """
-        ...
+    ): ...
 
     def add_chart(
         self,
@@ -862,7 +830,7 @@ class WorkSheet(WorkSheetBase):
         bubble_size: Optional[int] = None,
         hole_size: Optional[int] = None,
         order: Optional[int] = None,
-    ) -> None:
+    ):
         if chart_model is not None:
             if isinstance(chart_model, list):
                 self._chart_list.append(
@@ -897,3 +865,121 @@ class WorkSheet(WorkSheetBase):
             self._chart_list.append({'cell': cell, 'chart': [chart.model_dump(by_alias=True)]})
         else:
             raise ValueError('Invalid arguments provided to add_chart function')
+
+    @overload
+    def add_pivot_table(self, pivot_table: PivotTable | list[PivotTable]) -> None:
+        """
+        Adds a pivot table to the worksheet.
+
+        Args:
+            pivot_table (PivotTable | list[PivotTable]): The pivot table to add to the worksheet.
+        """
+        ...
+
+    @overload
+    def add_pivot_table(
+        self,
+        data_range: str,
+        pivot_table_range: str,
+        rows: list[PivotTableField] = None,
+        pivot_filter: list[PivotTableField] = None,
+        columns: list[PivotTableField] = None,
+        data: list[PivotTableField] = None,
+        row_grand_totals: Optional[bool] = None,
+        column_grand_totals: Optional[bool] = None,
+        show_drill: Optional[bool] = None,
+        show_row_headers: Optional[bool] = None,
+        show_column_headers: Optional[bool] = None,
+        show_row_stripes: Optional[bool] = None,
+        show_col_stripes: Optional[bool] = None,
+        show_last_column: Optional[bool] = None,
+        use_auto_formatting: Optional[bool] = None,
+        page_over_then_down: Optional[bool] = None,
+        merge_item: Optional[bool] = None,
+        compact_data: Optional[bool] = None,
+        show_error: Optional[bool] = None,
+        pivot_table_style_name: Optional[str] = None,
+    ) -> None:
+        """
+        Add Pivot table.
+
+        Args:
+            data_range (str): The range of data to be used in the pivot table, e.g., "Sheet1!A1:B2".
+            pivot_table_range (str): The range where the pivot table will be positioned, e.g., "Sheet1!C3:D4".
+            rows (list[PivotTableField]): List of fields used as rows in the pivot table.
+            filter ([PivotTableField]): List of fields used as filters in the pivot table.
+            columns (list[PivotTableField]): List of fields used as columns in the pivot table.
+            data (list[PivotTableField]): List of fields used as data fields in the pivot table.
+            row_grand_totals (Optional[bool Indicates whether to show row grand totals.
+            column_grand_totals (Optional[bool]): Indicates whether to show column grand.
+            show_drill (Optional[bool]): Indicates whether to show drill indicators.
+            show_row_headers (Optional[bool]): Indicates whether to show row headers.
+            show_column_headers (Optional[bool]): Indicates whether to show column headers.
+            show_row_stripes (Optional[bool]): Indicates whether to show row stripes.
+            show_col_stripes (Optional[bool]): Indicates whether to show column stripes.
+            show_last_column (Optional[bool]): Indicates whether to show the last column.
+            use_auto_formatting (Optional[bool]): Indicates whether to use automatic formatting.
+            page_over_then_down (Optional[bool]): Indicates whether pages should be ordered from top to bottom
+                then left to right.
+            merge_item (Optional[bool]): Indicates whether to merge items.
+            compact_data (Optional[bool]): Indicates whether to show in a compact form.
+            show_errorOptional[bool]): Indicates whether to show errors.
+            pivot_table_style_name (Optional[str]): Specifies the style the pivot table.
+        """
+        ...
+
+    def add_pivot_table(
+        self,
+        pivot_table: Optional[PivotTable | list[PivotTable]] = None,
+        data_range: Optional[str] = None,
+        pivot_table_range: Optional[str] = None,
+        rows: Optional[list[PivotTableField]] = None,
+        pivot_filter: Optional[list[PivotTableField]] = None,
+        columns: Optional[list[PivotTableField]] = None,
+        data: Optional[list[PivotTableField]] = None,
+        row_grand_totals: Optional[bool] = None,
+        column_grand_totals: Optional[bool] = None,
+        show_drill: Optional[bool] = None,
+        show_row_headers: Optional[bool] = None,
+        show_column_headers: Optional[bool] = None,
+        show_row_stripes: Optional[bool] = None,
+        show_col_stripes: Optional[bool] = None,
+        show_last_column: Optional[bool] = None,
+        use_auto_formatting: Optional[bool] = None,
+        page_over_then_down: Optional[bool] = None,
+        merge_item: Optional[bool] = None,
+        compact_data: Optional[bool] = None,
+        show_error: Optional[bool] = None,
+        pivot_table_style_name: Optional[str] = None,
+    ) -> None:
+        if pivot_table is not None:
+            if isinstance(pivot_table, list):
+                self._pivot_table_list.extend(
+                    [pivot.model_dump(by_alias=True) for pivot in pivot_table],
+                )
+            else:
+                self._pivot_table_list.append(pivot_table.model_dump(by_alias=True))
+        elif data_range is not None and pivot_table_range is not None:
+            pivot_table = PivotTable(
+                data_range=data_range,
+                pivot_table_range=pivot_table_range,
+                rows=rows,
+                pivot_filter=pivot_filter,
+                columns=columns,
+                data=data,
+                row_grand_totals=row_grand_totals,
+                column_grand_totals=column_grand_totals,
+                show_drill=show_drill,
+                show_row_headers=show_row_headers,
+                show_column_headers=show_column_headers,
+                show_row_stripes=show_row_stripes,
+                show_col_stripes=show_col_stripes,
+                show_last_column=show_last_column,
+                use_auto_formatting=use_auto_formatting,
+                page_over_then_down=page_over_then_down,
+                merge_item=merge_item,
+                compact_data=compact_data,
+                show_error=show_error,
+                pivot_table_style_name=pivot_table_style_name,
+            )
+            self._pivot_table_list.append(pivot_table.model_dump(by_alias=True))
