@@ -126,7 +126,8 @@ func testExport(t *testing.T) {
 				"Comment":    [],
 				"NoStyle": "false",
 				"Table": [],
-				"Chart": []
+				"Chart": [],
+				"PivotTable": []
 			}
 		}
 	}`
