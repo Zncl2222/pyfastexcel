@@ -8,7 +8,7 @@ import (
 
 func TestGetLineStyle(t *testing.T) {
 	lineData := map[string]interface{}{
-		"Type":   0.0,
+		"Type":   1.0,
 		"Smooth": true,
 		"Width":  2.0,
 	}
@@ -51,7 +51,7 @@ func TestGetSeriesStruct(t *testing.T) {
 			"Values":     "B1:B10",
 			"Sizes":      "C1:C10",
 			"Fill":       map[string]interface{}{"Color": "0000FF"},
-			"Line":       map[string]interface{}{"Type": 0.0, "Width": 1.0},
+			"Line":       map[string]interface{}{"Type": 1.0, "Width": 1.0},
 			"Marker":     map[string]interface{}{"Symbol": "square", "Size": 5.0},
 		},
 	}
@@ -337,7 +337,7 @@ func TestGetChartFill(t *testing.T) {
 
 func TestGetBorderStruct(t *testing.T) {
 	borderData := map[string]interface{}{
-		"Type":   0.0,
+		"Type":   1.0,
 		"Smooth": true,
 		"Width":  2.5,
 	}
