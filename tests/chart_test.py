@@ -7,16 +7,16 @@ from pyfastexcel.worksheet import WorkSheet
 
 from pyfastexcel.enums import ChartType, ChartLineType, ChartDataLabelPosition, MarkerSymbol
 from pyfastexcel.chart import (
-    ChartSeriesModel,
-    GraphicOptionsModel,
-    RichTextRunModel,
-    FontModel,
-    ChartAxisModel,
-    ChartLegendModel,
-    MarkerModel,
-    ChartModel,
-    ChartCustomNumFmtModel,
-    LineModel,
+    ChartSeries,
+    GraphicOptions,
+    RichTextRun,
+    Font,
+    ChartAxis,
+    ChartLegend,
+    Marker,
+    Chart,
+    ChartCustomNumFmt,
+    Line,
 )
 
 
@@ -47,10 +47,10 @@ def get_wb() -> tuple[Workbook, WorkSheet]:
 )
 def test_chart_type(chart_type, expected_type):
     _, ws = get_wb()
-    chart1 = ChartModel(
+    chart1 = Chart(
         chart_type=chart_type,
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
@@ -79,10 +79,10 @@ def test_chart_type(chart_type, expected_type):
 )
 def test_chart_series_data_label_position(data_label_position, expected_type):
     _, ws = get_wb()
-    chart1 = ChartModel(
+    chart1 = Chart(
         chart_type='Col',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
@@ -108,14 +108,14 @@ def test_chart_series_data_label_position(data_label_position, expected_type):
 )
 def test_chart_series_marker_symbol(symbol, expected_type):
     _, ws = get_wb()
-    chart1 = ChartModel(
+    chart1 = Chart(
         chart_type='Col',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
-                marker=MarkerModel(symbol=symbol),
+                marker=Marker(symbol=symbol),
             )
         ],
     )
@@ -140,14 +140,14 @@ def test_chart_series_marker_symbol(symbol, expected_type):
 )
 def test_chart_series_line_ltype(ltype, expected_type):
     _, ws = get_wb()
-    chart1 = ChartModel(
+    chart1 = Chart(
         chart_type='Col',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
-                line=LineModel(ltype=ltype),
+                line=Line(ltype=ltype),
             )
         ],
     )
@@ -158,15 +158,15 @@ def test_chart_series_line_ltype(ltype, expected_type):
 def test_marker_and_line_with_none_value():
     _, ws = get_wb()
 
-    chart = ChartModel(
+    chart = Chart(
         chart_type='Line',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
-                marker=MarkerModel(symbol=None),
-                line=LineModel(ltype=None),
+                marker=Marker(symbol=None),
+                line=Line(ltype=None),
             )
         ],
     )
@@ -179,36 +179,36 @@ def test_marker_and_line_with_none_value():
 def test_add_chart2():
     wb, ws = get_wb()
 
-    chart1 = ChartModel(
+    chart1 = Chart(
         chart_type='Col',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
             )
         ],
     )
-    chart1 = ChartModel(
+    chart1 = Chart(
         chart_type='Col',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
             )
         ],
     )
-    chart2 = ChartModel(
+    chart2 = Chart(
         chart_type='Line',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
             )
         ],
-        format=GraphicOptionsModel(
+        format=GraphicOptions(
             scale_x=1,
             scale_y=1,
             offset_x=15,
@@ -217,34 +217,32 @@ def test_add_chart2():
             lock_aspect_ratio=False,
             locked=True,
         ),
-        y_axis=ChartAxisModel(
-            font=FontModel(
+        y_axis=ChartAxis(
+            font=Font(
                 bold=True,
                 color='FF0000',
                 size=19,
             ),
-            num_fmt=ChartCustomNumFmtModel(num_fmt='0.00%'),
+            num_fmt=ChartCustomNumFmt(num_fmt='0.00%'),
             title=[
-                RichTextRunModel(
+                RichTextRun(
                     text='Y軸',
                 )
             ],
         ),
-        x_axis=ChartAxisModel(
-            font=FontModel(
+        x_axis=ChartAxis(
+            font=Font(
                 color='00FF00',
                 size=26,
             ),
             title=[
-                RichTextRunModel(
+                RichTextRun(
                     text='X軸',
                 )
             ],
         ),
-        title=[
-            RichTextRunModel(text='群組柱形圖 - 折線圖', font=FontModel(bold=True, color='#FF0000'))
-        ],
-        legend=ChartLegendModel(
+        title=[RichTextRun(text='群組柱形圖 - 折線圖', font=Font(bold=True, color='#FF0000'))],
+        legend=ChartLegend(
             position='left',
             show_legend_key=True,
         ),
@@ -262,13 +260,13 @@ def test_add_chart2():
         'N1',
         chart_type='Col',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
             )
         ],
-        legend=ChartLegendModel(position='left'),
+        legend=ChartLegend(position='left'),
     )
 
     wb.add_chart(
@@ -288,13 +286,13 @@ def test_add_chart2():
         'R1',
         chart_type='Col',
         series=[
-            ChartSeriesModel(
+            ChartSeries(
                 name='Sheet1!$A$2',
                 categories='Sheet1!$B$2:$C$2',
                 values='Sheet1!$B$3:$C$3',
             )
         ],
-        legend=ChartLegendModel(position='left'),
+        legend=ChartLegend(position='left'),
     )
 
     wb.read_lib_and_create_excel()

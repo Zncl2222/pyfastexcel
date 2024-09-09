@@ -6,16 +6,16 @@ from openpyxl_style_writer import CustomStyle
 from pydantic import validate_call as pydantic_validate_call
 
 from .chart import (
-    ChartModel,
-    ChartSeriesModel,
-    GraphicOptionsModel,
-    RichTextRunModel,
-    ChartLegendModel,
-    ChartAxisModel,
-    ChartPlotAreaModel,
-    FillModel,
-    LineModel,
-    ChartDimensionModel,
+    Chart,
+    ChartSeries,
+    GraphicOptions,
+    RichTextRun,
+    ChartLegend,
+    ChartAxis,
+    ChartPlotArea,
+    Fill,
+    Line,
+    ChartDimension,
 )
 from .pivot import PivotTable, PivotTableField
 from .style import StyleManager
@@ -786,24 +786,24 @@ class WorkSheet(WorkSheetBase):
         self._table_list.append(table)
 
     @overload
-    def add_chart(self, cell: str, chart_model: ChartModel | List[ChartModel]): ...
+    def add_chart(self, cell: str, chart_model: Chart | List[Chart]): ...
 
     @overload
     def add_chart(
         self,
         cell: str,
         chart_type: str,
-        series: List[ChartSeriesModel] | ChartSeriesModel,
-        graph_format: Optional[GraphicOptionsModel] = None,
-        title: Optional[List[RichTextRunModel]] = None,
-        legend: Optional[ChartLegendModel] = None,
-        dimension: Optional[ChartDimensionModel] = None,
+        series: List[ChartSeries] | ChartSeries,
+        graph_format: Optional[GraphicOptions] = None,
+        title: Optional[List[RichTextRun]] = None,
+        legend: Optional[ChartLegend] = None,
+        dimension: Optional[ChartDimension] = None,
         vary_colors: Optional[bool] = None,
-        x_axis: Optional[ChartAxisModel] = None,
-        y_axis: Optional[ChartAxisModel] = None,
-        plot_area: Optional[ChartPlotAreaModel] = None,
-        fill: Optional[FillModel] = None,
-        border: Optional[LineModel] = None,
+        x_axis: Optional[ChartAxis] = None,
+        y_axis: Optional[ChartAxis] = None,
+        plot_area: Optional[ChartPlotArea] = None,
+        fill: Optional[Fill] = None,
+        border: Optional[Line] = None,
         show_blanks_as: Optional[str] = None,
         bubble_size: Optional[int] = None,
         hole_size: Optional[int] = None,
@@ -813,19 +813,19 @@ class WorkSheet(WorkSheetBase):
     def add_chart(
         self,
         cell: str,
-        chart_model: Optional[List[ChartModel] | ChartModel] = None,
+        chart_model: Optional[List[Chart] | Chart] = None,
         chart_type: Optional[str] = None,
-        series: Optional[List[ChartSeriesModel] | ChartSeriesModel] = None,
-        graph_format: Optional[GraphicOptionsModel] = None,
-        title: Optional[List[RichTextRunModel]] = None,
-        legend: Optional[ChartLegendModel] = None,
-        dimension: Optional[ChartDimensionModel] = None,
+        series: Optional[List[ChartSeries] | ChartSeries] = None,
+        graph_format: Optional[GraphicOptions] = None,
+        title: Optional[List[RichTextRun]] = None,
+        legend: Optional[ChartLegend] = None,
+        dimension: Optional[ChartDimension] = None,
         vary_colors: Optional[bool] = None,
-        x_axis: Optional[ChartAxisModel] = None,
-        y_axis: Optional[ChartAxisModel] = None,
-        plot_area: Optional[ChartPlotAreaModel] = None,
-        fill: Optional[FillModel] = None,
-        border: Optional[LineModel] = None,
+        x_axis: Optional[ChartAxis] = None,
+        y_axis: Optional[ChartAxis] = None,
+        plot_area: Optional[ChartPlotArea] = None,
+        fill: Optional[Fill] = None,
+        border: Optional[Line] = None,
         show_blanks_as: Optional[str] = None,
         bubble_size: Optional[int] = None,
         hole_size: Optional[int] = None,
@@ -844,7 +844,7 @@ class WorkSheet(WorkSheetBase):
                     {'cell': cell, 'chart': [chart_model.model_dump(by_alias=True)]}
                 )
         elif chart_type is not None and series is not None:
-            chart = ChartModel(
+            chart = Chart(
                 chart_type=chart_type,
                 series=series,
                 graph_format=graph_format,

@@ -551,7 +551,7 @@ ws.create_table(
 ## Add Chart
 
 The add_chart method allows for adding charts to a worksheet, either by
-specifying chart attributes directly or by using predefined ChartModel
+specifying chart attributes directly or by using predefined Chart
 objects. This method is overloaded to accommodate different ways of
 defining and adding charts.
 
@@ -560,19 +560,19 @@ defining and adding charts.
 | Parameter            | Data Type | Description                                      |
 |----------------------|-----------|--------------------------------------------------|
 | `cell`         | str       | The cell reference range, e.g., 'Sheet1!A1:B3'.         |
-| `chart_model`         | ChartModel or list[ChartModel]      | The pydantic ChartModel       |
+| `chart_model`         | Chart or list[Chart]      | The pydantic Chart       |
 
 ```python
 from pyfastexcel import Workbook
 from pyfastexcel.chart import (
-    ChartModel,
-    ChartSeriesModel,
-    RichTextRunModel,
-    FontModel,
-    ChartAxisModel,
-    ChartLegendModel,
-    FillModel,
-    MarkerModel,
+    Chart,
+    ChartSeries,
+    RichTextRun,
+    Font,
+    ChartAxis,
+    ChartLegend,
+    Fill,
+    Marker,
 )
 
 wb = Workbook()
@@ -583,45 +583,45 @@ ws[1] = ['Food', 123, 125, 645]
 ws[2] = ['Book', 456, 789, 321]
 ws[3] = ['Phone', 777, 66, 214]
 
-column_chart = ChartModel(
+column_chart = Chart(
     chart_type='col',
     series=[
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A2',
             categories='Sheet1!B1:D1',
             values='Sheet1!B2:D2',
-            fill=FillModel(ftype='pattern', pattern=1, color='ebce42'),
-            marker=MarkerModel(symbol='none'),
+            fill=Fill(ftype='pattern', pattern=1, color='ebce42'),
+            marker=Marker(symbol='none'),
         ),
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A3',
             categories='Sheet1!B1:D1',
             values='Sheet1!B3:D3',
-            fill=FillModel(ftype='pattern', pattern=1, color='29a64b'),
-            marker=MarkerModel(symbol='none'),
+            fill=Fill(ftype='pattern', pattern=1, color='29a64b'),
+            marker=Marker(symbol='none'),
         ),
     ],
-    legend=ChartLegendModel(position='top', show_legend_key=True),
+    legend=ChartLegend(position='top', show_legend_key=True),
 )
 
-line_chart = ChartModel(
+line_chart = Chart(
     chart_type='line',
     series=[
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A4',
             categories='Sheet1!B1:D1',
             values='Sheet1!B4:D4',
-            fill=FillModel(ftype='pattern', pattern=1, color='0000FF'),
-            marker=MarkerModel(
+            fill=Fill(ftype='pattern', pattern=1, color='0000FF'),
+            marker=Marker(
                 symbol='circle',
-                fill=FillModel(ftype='pattern', pattern=1, color='FFFF00'),
+                fill=Fill(ftype='pattern', pattern=1, color='FFFF00'),
             ),
         ),
     ],
-    title=[RichTextRunModel(text='Example Chart', font=FontModel(color='FF0000', bold=True))],
-    x_axis=ChartAxisModel(major_grid_lines=True, font=FontModel(color='000000')),
-    y_axis=ChartAxisModel(major_grid_lines=True, font=FontModel(color='000000')),
-    legend=ChartLegendModel(position='top', show_legend_key=True),
+    title=[RichTextRun(text='Example Chart', font=Font(color='FF0000', bold=True))],
+    x_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
+    y_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
+    legend=ChartLegend(position='top', show_legend_key=True),
 )
 ws.add_chart('E1', [column_chart, line_chart])
 ```
@@ -630,17 +630,17 @@ ws.add_chart('E1', [column_chart, line_chart])
 |--------------------|------------------------|----------------------------------------------------------------|
 | `cell`             | str                    | The cell reference where the chart will be added.              |
 | `chart_type`       | str                    | The type of chart (e.g., 'bar', 'line').                       |
-| `series`           | List[ChartSeriesModel] or ChartSeriesModel | The data series to be plotted.                                |
-| `graph_format`     | Optional[GraphicOptionsModel] | Graphical options for the chart.                              |
-| `title`            | Optional[List[RichTextRunModel]] | The title of the chart.                                      |
-| `legend`           | Optional[ChartLegendModel] | Legend settings for the chart.                                |
-| `dimension`        | Optional[ChartDimensionModel] | Dimensions of the chart.                                     |
+| `series`           | List[ChartSeries] or ChartSeries | The data series to be plotted.                                |
+| `graph_format`     | Optional[GraphicOptions] | Graphical options for the chart.                              |
+| `title`            | Optional[List[RichTextRun]] | The title of the chart.                                      |
+| `legend`           | Optional[ChartLegend] | Legend settings for the chart.                                |
+| `dimension`        | Optional[ChartDimension] | Dimensions of the chart.                                     |
 | `vary_colors`      | Optional[bool]        | Whether to vary colors by data point.                          |
-| `x_axis`           | Optional[ChartAxisModel] | Configuration of the X-axis.                                  |
-| `y_axis`           | Optional[ChartAxisModel] | Configuration of the Y-axis.                                  |
-| `plot_area`        | Optional[ChartPlotAreaModel] | Configuration of the plot area.                               |
-| `fill`             | Optional[FillModel]    | Fill settings for the chart.                                  |
-| `border`           | Optional[LineModel]    | Border settings for the chart.                                |
+| `x_axis`           | Optional[ChartAxis] | Configuration of the X-axis.                                  |
+| `y_axis`           | Optional[ChartAxis] | Configuration of the Y-axis.                                  |
+| `plot_area`        | Optional[ChartPlotArea] | Configuration of the plot area.                               |
+| `fill`             | Optional[Fill]    | Fill settings for the chart.                                  |
+| `border`           | Optional[Line]    | Border settings for the chart.                                |
 | `show_blanks_as`   | Optional[str]          | How to display blanks in the chart.                            |
 | `bubble_size`      | Optional[int]          | Size of bubbles in a bubble chart.                             |
 | `hole_size`        | Optional[int]          | Size of the hole in a doughnut chart.                          |
@@ -649,14 +649,14 @@ ws.add_chart('E1', [column_chart, line_chart])
 ```python
 from pyfastexcel import Workbook
 from pyfastexcel.chart import (
-    ChartModel,
-    ChartSeriesModel,
-    RichTextRunModel,
-    FontModel,
-    ChartAxisModel,
-    ChartLegendModel,
-    FillModel,
-    MarkerModel,
+    Chart,
+    ChartSeries,
+    RichTextRun,
+    Font,
+    ChartAxis,
+    ChartLegend,
+    Fill,
+    Marker,
 )
 
 wb = Workbook()
@@ -671,22 +671,22 @@ ws.add_chart(
     'E1',
     chart_type='col',
     series=[
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A2',
             categories='Sheet1!B1:D1',
             values='Sheet1!B2:D2',
-            fill=FillModel(ftype='pattern', pattern=1, color='ebce42'),
-            marker=MarkerModel(symbol='none'),
+            fill=Fill(ftype='pattern', pattern=1, color='ebce42'),
+            marker=Marker(symbol='none'),
         ),
-        ChartSeriesModel(
+        ChartSeries(
             name='Sheet1!A3',
             categories='Sheet1!B1:D1',
             values='Sheet1!B3:D3',
-            fill=FillModel(ftype='pattern', pattern=1, color='29a64b'),
-            marker=MarkerModel(symbol='none'),
+            fill=Fill(ftype='pattern', pattern=1, color='29a64b'),
+            marker=Marker(symbol='none'),
         ),
     ],
-    legend=ChartLegendModel(position='top', show_legend_key=True),
+    legend=ChartLegend(position='top', show_legend_key=True),
 )
 ```
 
