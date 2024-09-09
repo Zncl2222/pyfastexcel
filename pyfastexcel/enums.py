@@ -84,9 +84,10 @@ class ChartDataLabelPosition(BaseEnum):
 
 
 class ChartLineType(BaseEnum):
-    Solid = 0
-    NONE = 1
-    Automatic = 2
+    Unset = 0
+    Solid = 1
+    NONE = 2
+    Automatic = 3
 
 
 class MarkerSymbol(BaseEnum):
