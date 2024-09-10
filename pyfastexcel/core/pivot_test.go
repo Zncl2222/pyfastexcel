@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/xuri/excelize/v2"
@@ -45,12 +46,17 @@ func TestGetPivotTableField(t *testing.T) {
 func TestCreatePivotTable(t *testing.T) {
 	// Initialize an excel file
 	file := excelize.NewFile()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 
 	// Mock pivot table data
 	pivotData := []interface{}{
 		map[string]interface{}{
-			"DataRange":       "Sheet1!A1:D10",
-			"PivotTableRange": "Sheet1!F1:G10",
+			"DataRange":       "Sheet1!A1:E31",
+			"PivotTableRange": "Sheet1!G2:M34",
 			"Rows": []interface{}{
 				map[string]interface{}{
 					"Name": "RowField",
