@@ -1,3 +1,71 @@
+# PivotTable
+
+Create a PivotTable in pyfastexcel required the following classes, `PivotTableField` and `PivotTable`. The `PivotTableField` class represents a field within a PivotTable, which includes various settings like name, data, compact display, and subtotal configurations. The `PivotTable` class represents a PivotTable configuration, including data ranges, field settings, and display options.
+
+## Example
+
+```python
+import random
+
+from pyfastexcel import Workbook
+from pyfastexcel.pivot import PivotTable, PivotTableField
+
+
+wb = Workbook()
+ws = wb['Sheet1']
+
+columns = ['Year', 'Month', 'Market', 'Location', 'Sales']
+month = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+]
+year = [2024, 2025, 2026, 2027, 2028]
+location = ['North', 'South', 'East', 'West']
+market = ['A', 'B', 'C', 'D']
+
+ws[0] = columns
+for i in range(1, 60):
+    ws[f'A{i+1}'] = random.choice(year)
+    ws[f'B{i+1}'] = random.choice(month)
+    ws[f'C{i+1}'] = random.choice(market)
+    ws[f'D{i+1}'] = random.choice(location)
+    ws[f'E{i+1}'] = random.randint(-1000, 10000)
+
+pivot = PivotTable(
+    data_range='Sheet1!A1:E60',
+    pivot_table_range='Sheet1!H2:N60',
+    rows=[PivotTableField(data='Year', default_subtotal=True), PivotTableField(data='Month')],
+    pivot_filter=[PivotTableField(data='Market')],
+    columns=[PivotTableField(data='Location')],
+    data=[PivotTableField(data='Sales', name='Summation', subtotal='sum')],
+    show_drill=True,
+    row_grand_totals=True,
+    column_grand_totals=True,
+    show_row_headers=True,
+    show_column_headers=True,
+    show_last_column=True,
+    pivot_table_style_name='PivotStyleLight16',
+)
+ws.add_pivot_table(pivot)
+wb.save('PivotTableExample.xlsx')
+```
+
+<div align='center'>
+
+<img src='../images/pivot_table.png'>
+
+</div>
+
 ## PivotTableField
 
 Represents a field within a PivotTable, which includes various settings like name,

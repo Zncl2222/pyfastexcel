@@ -36,6 +36,7 @@ nav:
     - Workbook: workbook.md
     - WorkSheet: worksheet.md
     - Chart: chart.md
+    - PivotTable: pivot.md
     - Common: common.md
   - Advanced Usage:
       - StreamWriter: writer.md

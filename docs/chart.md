@@ -1,10 +1,10 @@
 # Chart
 
-Plotting charts in Pyfastexcel requires multiple configurations. To ensure the
+Plotting charts in pyfastexcel requires multiple configurations. To ensure the
 accuracy of these configurations and validate the argument values, the chart
-functionality is implemented using Pydantic models. In this section, we will
-introduce each chart's Pydantic model and explain how to use them to plot
-charts in Pyfastexcel.
+functionality is implemented using pydantic models. In this section, we will
+introduce each chart's pydantic model and explain how to use them to plot
+charts in pyfastexcel.
 
 ## Example
 
