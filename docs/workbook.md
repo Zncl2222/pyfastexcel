@@ -71,7 +71,7 @@ wb = Workbook(plain_data=data)
 wb.save('plain_data.xlsx')
 ```
 
-!!! note="Note"
+!!! note "Note"
     "You can only specify either `pre_allocate` or `plain_data` at a time, not both.
 
 ## Create the WorkSheet
@@ -110,7 +110,7 @@ for `StreamWriter` to use.
 wb.switch_sheet('Switch Sheet')
 ```
 
-!!! not "Note"
+!!! note "Note"
     If the sheet does not exist, this function will create one and
     switch `self.sheet`.
 
@@ -443,7 +443,7 @@ It is not recommended to use this function when dealing with large files.
 | `hidden`       | bool             | Whether to hide the group or not.                |
 | `engine`       | Literal['pyfastexcel', 'openpyxl'] | The engine to group columns    |
 
-```python
+```python title='Group Columns'
 wb.group_columns('Sheet1', 'A', 'C', 1, False)
 ```
 
@@ -473,7 +473,7 @@ It is not recommended to use this function when dealing with large files.
 | `hidden`       | bool             | Whether to hide the group or not.                |
 | `engine`       | Literal['pyfastexcel', 'openpyxl'] | The engine to group columns    |
 
-```python
+```python title='Group Rows'
 wb.group_rows('Sheet1', 1, 3, 1, False)
 ```
 
@@ -502,7 +502,7 @@ Create a table in a sheet.
 | `show_row_stripes`   | bool      | Whether to display row stripes.                  |
 | `show_column_stripes`| bool      | Whether to display column stripes.               |
 
-```python
+```python title='Create Table'
 ws.create_table(
     'A1:B3',
     'table_name',
@@ -529,7 +529,7 @@ defining and adding charts.
 | `cell`         | str       | The cell reference range, e.g., 'Sheet1!A1:B3'.         |
 | `chart_model`         | Chart or list[Chart]      | The pydantic Chart       |
 
-```python
+```python title='Add Chart Using Chart Ojbect'
 from pyfastexcel import Workbook
 from pyfastexcel.chart import (
     Chart,
@@ -615,7 +615,7 @@ wb.add_chart('Sheet1', 'E1', [column_chart, line_chart])
 | `hole_size`        | Optional[int]          | Size of the hole in a doughnut chart.                          |
 | `order`            | Optional[int]          | The order of the series in the chart.                          |
 
-```python
+```python title='Add Chart'
 from pyfastexcel import Workbook
 from pyfastexcel.chart import (
     Chart,
@@ -729,7 +729,7 @@ wb.add_pivot_table('Sheet1', pivot_table=[pivot_table_object1, pivot_table_objec
 | `show_error`           | `Optional[bool]`         | Whether to display errors in the pivot table.                                |
 | `pivot_table_style_name` | `Optional[str]`         | The style name to apply to the pivot table.                                  |
 
-```python
+```python title='Add PivotTable'
 from pyfastexcel.pivot import PivotTableField
 
 # Add a pivot table by specifying the data range, pivot table range, and fields
