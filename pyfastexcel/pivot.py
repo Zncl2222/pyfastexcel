@@ -82,7 +82,7 @@ class PivotTable(BaseModel):
     columns: list[PivotTableField] = Field([PivotTableField()], serialization_alias='Columns')
     data: list[PivotTableField] = Field([PivotTableField()], serialization_alias='Data')
     row_grand_totals: Optional[bool] = Field(None, serialization_alias='RowGrandTotals')
-    column_grand_totals: Optional[bool] = Field(None, serialization_alias='ColumnGrandTotals')
+    column_grand_totals: Optional[bool] = Field(None, serialization_alias='ColGrandTotals')
     show_drill: Optional[bool] = Field(None, serialization_alias='ShowDrill')
     show_row_headers: Optional[bool] = Field(None, serialization_alias='ShowRowHeaders')
     show_column_headers: Optional[bool] = Field(None, serialization_alias='ShowColHeaders')
