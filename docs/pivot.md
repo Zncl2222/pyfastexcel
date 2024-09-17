@@ -57,7 +57,32 @@ pivot = PivotTable(
     pivot_table_style_name='PivotStyleLight16',
 )
 ws.add_pivot_table(pivot)
+
 wb.save('PivotTableExample.xlsx')
+```
+
+You can also set up the pivot table using the following style
+
+```python
+pivot = PivotTable(
+    data_range='Sheet1!A1:E60',
+    pivot_table_range='Sheet1!H3:N60',
+)
+pivot.rows[0].data = 'Year'
+pivot.rows[0].default_subtotal = True
+pivot.rows.append(PivotTableField(data='Month'))
+pivot.pivot_filter[0].data = 'Market'
+pivot.columns[0].data = 'Location'
+pivot.data[0].data = 'Sales'
+pivot.data[0].name = 'Summation'
+pivot.data[0].subtotal = 'sum'
+pivot.show_drill = True
+pivot.row_grand_totals = True
+pivot.column_grand_totals = True
+pivot.show_row_headers = True
+pivot.show_column_headers = True
+pivot.show_last_column = True
+pivot.pivot_table_style_name = 'PivotStyleLight16'
 ```
 
 <div align='center'>
