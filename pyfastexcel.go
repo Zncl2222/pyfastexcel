@@ -29,11 +29,20 @@ import (
 //   - Remember to free the memory allocated for the returned pointer using `C.free`.
 //
 //export Export
-func Export(data *C.char) *C.char {
+func Export(data *C.char, useCatchPanic int64) *C.char {
+	if useCatchPanic != 0 {
+		defer catchPanic()
+	}
 	goStringData := C.GoString(data)
 	result := core.WriteExcel(goStringData)
 	encodedRes := C.CString(result)
 	return encodedRes
+}
+
+func catchPanic() {
+	if r := recover(); r != nil {
+		fmt.Printf("Recovered from panic: %v\n", r)
+	}
 }
 
 // FreeCPointer frees the memory allocated for a C char pointer.
@@ -136,7 +145,7 @@ func testExport(t *testing.T) {
 	cInputData := C.CString(inputData)
 
 	// Call the Export function
-	encodedExcel := Export(cInputData)
+	encodedExcel := Export(cInputData, 1)
 
 	// Free the allocated memory for cInputData
 	FreeCPointer(cInputData)
