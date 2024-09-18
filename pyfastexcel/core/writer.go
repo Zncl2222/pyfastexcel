@@ -409,6 +409,7 @@ func addComment(file *excelize.File, sheet string, comment []interface{}) {
 func streamWriter(file *excelize.File, data map[string]interface{}) {
 	sheetCount := 1
 	hasSheet1 := false
+	var pivotTableList [][]interface{}
 	for s := range data {
 		if s == "Sheet1" {
 			hasSheet1 = true
@@ -489,9 +490,14 @@ func streamWriter(file *excelize.File, data map[string]interface{}) {
 			fmt.Println(err)
 		}
 
-		// Create Pivot Table. It should Create after the data is written,
-		// so it should create after streamWriter.Flush()
-		createPivotTable(file, sheetData["PivotTable"].([]interface{}))
+		// To prevent the pivot table from being created before the data is written
+		// we store the pivot table data in a list and create it after the data is written
+		pivotTableList = append(pivotTableList, sheetData["PivotTable"].([]interface{}))
+	}
+
+	// Create Pivot Table. It should Create after the data is written
+	for _, pivot := range pivotTableList {
+		createPivotTable(file, pivot)
 	}
 }
 
@@ -620,6 +626,7 @@ func setCellHeightNormalWriter(file *excelize.File, sheet string, config map[str
 func normalWriter(file *excelize.File, data map[string]interface{}) {
 	sheetCount := 1
 	hasSheet1 := false
+	var pivotTableList [][]interface{}
 	for s := range data {
 		if s == "Sheet1" {
 			hasSheet1 = true
@@ -698,7 +705,14 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 		// Excelize should create table with the existed row.
 		createTable(file, sheet, sheetData["Table"].([]interface{}))
 
-		// Create Pivot Table (Should Create after the data is written)
-		createPivotTable(file, sheetData["PivotTable"].([]interface{}))
+		// To prevent the pivot table from being created before the data is written
+		// we store the pivot table data in a list and create it after the data is written
+		pivotTableList = append(pivotTableList, sheetData["PivotTable"].([]interface{}))
 	}
+
+	// Create Pivot Table. It should Create after the data is written
+	for _, pivot := range pivotTableList {
+		createPivotTable(file, pivot)
+	}
+
 }
