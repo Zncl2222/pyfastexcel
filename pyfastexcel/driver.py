@@ -136,7 +136,9 @@ class ExcelDriver:
         if sheet_name not in self.sheet_list:
             raise KeyError(f'{sheet_name} Sheet Does Not Exist.')
 
-    def read_lib_and_create_excel(self, lib_path: str = None) -> bytes:
+    def read_lib_and_create_excel(
+        self, lib_path: str = None, ignore_go_panic: bool = True
+    ) -> bytes:
         """
         Reads the library and creates the Excel file.
 
@@ -146,6 +148,7 @@ class ExcelDriver:
         Returns:
             bytes: The byte data of the created Excel file.
         """
+        ignore_go_panic = 0 if ignore_go_panic is False else 1
         pyfastexcel = self._read_lib(lib_path)
         self._create_style()
 
@@ -185,9 +188,9 @@ class ExcelDriver:
         create_excel = pyfastexcel.Export
         free_pointer = pyfastexcel.FreeCPointer
         free_pointer.argtypes = [ctypes.c_void_p]
-        create_excel.argtypes = [ctypes.c_char_p]
+        create_excel.argtypes = [ctypes.c_char_p, ctypes.c_int64]
         create_excel.restype = ctypes.c_void_p
-        byte_data = create_excel(json_data)
+        byte_data = create_excel(json_data, ignore_go_panic)
         self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
         free_pointer(byte_data)
         StyleManager.reset_style_configs()
