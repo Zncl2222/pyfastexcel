@@ -320,33 +320,47 @@ Configure the pane settings for a specific sheet in an Excel file using the prov
 ```python title='Panes Configuration'
 from pyfastexcel.utils import Selection
 
-# Set panes with Selection instance
+# Freeze 1 to 6 rows
 ws.set_panes(
     freeze=True,
-    split=False,
-    x_split=0,
-    y_split=0,
-    top_left_cell="A1",
-    active_pane="topRight",
+    y_split=6,
+    top_left_cell="A34",
+    active_pane="bottomLeft",
     selection=[
-        Selection(sq_ref="A1", active_cell="A1", pane="topRight")
+        Selection(sq_ref="A7", active_cell="A7", pane="bottomLeft")
     ],
 )
 
 # Set panes's selection with dict
 ws.set_panes(
     freeze=True,
-    split=False,
-    x_split=0,
-    y_split=0,
-    top_left_cell="A1",
-    active_pane="topRight",
+    y_split=6,
+    top_left_cell="A34",
+    active_pane="bottomLeft",
     selection=[
         {
-            "sq_ref": "A1",
-            "active_cell": "A1",
-            "pane": "topRight",
+            "sq_ref": "A7",
+            "active_cell": "A7",
+            "pane": "bottomLeft",
         }
+    ],
+)
+```
+
+The example to split the panes
+
+```python
+from pyfastexcel.utils import Selection
+
+
+ws.set_panes(
+    split=True,
+    x_split=3500,
+    y_split=3500,
+    top_left_cell="L30",
+    active_pane="bottomLeft",
+    selection=[
+        Selection(sq_ref="A1", active_cell="A1", pane="topRight")
     ],
 )
 ```
@@ -405,21 +419,21 @@ from pyfastexcel.utils import CommentText
 comment_text = CommentText(text='Comment', bold=True)
 ws.add_comment("A1", "pyfastexcel", comment_text)
 
-# Add a comment to cell A1 with list of CommentText Instance
+# Add a comment to cell B1 with list of CommentText Instance
 comment_text = CommentText(text='Comment', bold=True)
 comment_text2 = CommentText(text=' Comment two', color='00ff00')
-ws.add_comment("A1", "pyfastexcel", [comment_text, comment_text2])
+ws.add_comment("B1", "pyfastexcel", [comment_text, comment_text2])
 
-# Add a comment to cell A1, and use string as the comment text
-ws.add_comment("A1", "pyfastexcel", "This is a comment.")
+# Add a comment to cell C1, and use string as the comment text
+ws.add_comment("C1", "pyfastexcel", "This is a comment.")
 
-# Add a comment to cell A1, and use dictionary as the comment text and set the font style
-ws.add_comment("A1", "pyfastexcel", {"text": "This is a comment.", 'bold': True, 'italic': True})
+# Add a comment to cell D1, and use dictionary as the comment text and set the font style
+ws.add_comment("D1", "pyfastexcel", {"text": "This is a comment.", 'bold': True, 'italic': True})
 
-# Add a comment to cell A1, and use list of dictionary as the comment text and set the font style
+# Add a comment to cell E1, and use list of dictionary as the comment text and set the font style
 # This will create "This is a comment" with bold and italic font style, and "This is another comment" with bold and red color font style.
 ws.add_comment(
-    "A1",
+    "E1",
     "pyfastexcel",
     [
         {
@@ -540,7 +554,7 @@ Create a table in a sheet.
 ws.create_table(
     'A1:B3',
     'table_name',
-    'TableStyleLight1,
+    'TableStyleLight1',
     True,
     True,
     False,
@@ -708,7 +722,7 @@ This function allows you to add a pivot table to a worksheet using either a `Piv
 ```python title='Add Pivot Table using PivotTable object'
 from pyfastexcle.pivot import PivotTable, PivotTableField
 
-pivot_table_object = PivotTableField(
+pivot_table_object = PivotTable(
     data_range="Sheet1!A1:B10",
     pivot_table_range="Sheet1!C3:D10",
     rows=[PivotTableField()],
@@ -719,17 +733,9 @@ pivot_table_object = PivotTableField(
     pivot_table_style_name="PivotStyleMedium9"
 )
 
-pivot_table_object2 = PivotTableField(
-    data_range="Sheet1!A1:B10",
-    pivot_table_range="Sheet1!C3:D10",
-    pivot_table_style_name="PivotStyleMedium9"
-)
-
 # Add a pivot table using a PivotTable object
 ws.add_pivot_table(pivot_table=pivot_table_object)
 
-# Add multiple pivot tables using a list of PivotTable objects
-ws.add_pivot_table(pivot_table=[pivot_table_object1, pivot_table_object2])
 ```
 
 ### Adding a Pivot Table by Specifying Ranges and Fields
