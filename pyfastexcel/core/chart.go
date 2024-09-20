@@ -234,7 +234,7 @@ func getBorderStruct(border interface{}) excelize.ChartLine {
 	return chartBorder
 }
 
-func addChart(file *excelize.File, sheet string, charts []interface{}) {
+func (ew *ExcelWriter) addChart(sheet string, charts []interface{}) {
 	for _, chart := range charts {
 		chart := chart.(map[string]interface{})
 		chartData := chart["chart"].([]interface{})
@@ -277,6 +277,6 @@ func addChart(file *excelize.File, sheet string, charts []interface{}) {
 				HoleSize:   holeSize,
 			})
 		}
-		file.AddChart(sheet, cell, comboCharts[0], comboCharts[1:]...)
+		ew.File.AddChart(sheet, cell, comboCharts[0], comboCharts[1:]...)
 	}
 }

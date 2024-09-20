@@ -22,6 +22,15 @@ type (
 	}
 )
 
+type ExcelWriter struct {
+	File       *excelize.File
+	StyleMap   map[string]interface{}
+	Content    map[string]interface{}
+	FileProps  map[string]interface{}
+	Protection map[string]interface{}
+	Engine     interface{}
+}
+
 // WriteExcel takes a JSON string containing file properties, styles,
 // and content and returns a base64 encoded string of the generated Excel file.
 //
@@ -44,21 +53,32 @@ func WriteExcel(data string) string {
 		panic(err)
 	}
 
-	file := excelize.NewFile()
-	styleMap = CreateStyle(file, strJson["style"].(map[string]interface{}))
-	setFileProps(file, strJson["file_props"].(map[string]interface{}))
-	if len(strJson["protection"].(map[string]interface{})) != 0 {
-		setProtection(file, strJson["protection"].(map[string]interface{}))
+	writer := ExcelWriter{
+		File:       excelize.NewFile(),
+		StyleMap:   strJson["style"].(map[string]interface{}),
+		Content:    strJson["content"].(map[string]interface{}),
+		FileProps:  strJson["file_props"].(map[string]interface{}),
+		Protection: strJson["protection"].(map[string]interface{}),
+		Engine:     strJson["engine"],
+	}
+	return writer.writeExcel()
+}
+
+func (ew *ExcelWriter) writeExcel() string {
+	styleMap = CreateStyle(ew.File, ew.StyleMap)
+	ew.setFileProps(ew.FileProps)
+	if len(ew.Protection) != 0 {
+		ew.setProtection(ew.Protection)
 	}
 
-	if strJson["engine"] == "normalWriter" {
-		normalWriter(file, strJson["content"].(map[string]interface{}))
+	if ew.Engine == "normalWriter" {
+		ew.performNormalWrite()
 	} else {
-		streamWriter(file, strJson["content"].(map[string]interface{}))
+		ew.performStreamWrite()
 	}
 
 	// Save data in buffer and encode binary data to base64
-	buffer, _ := file.WriteToBuffer()
+	buffer, _ := ew.File.WriteToBuffer()
 	byteResults := []byte(buffer.Bytes())
 	encodedString := base64.StdEncoding.EncodeToString(byteResults)
 
@@ -147,11 +167,11 @@ func streamCreateTable(sw *excelize.StreamWriter, tables []interface{}) {
 //	  // Add more tables as needed
 //	}
 //	createTable(file, "Sheet1", tables)
-func createTable(file *excelize.File, sheet string, tables []interface{}) {
+func (ew *ExcelWriter) createTable(sheet string, tables []interface{}) {
 	for _, table := range tables {
 		t := table.(map[string]interface{})
 		showRowStripes := t["show_row_stripes"].(bool)
-		err := file.AddTable(sheet, &excelize.Table{
+		err := ew.File.AddTable(sheet, &excelize.Table{
 			Range:             t["range"].(string),
 			Name:              t["name"].(string),
 			StyleName:         t["style_name"].(string),
@@ -173,8 +193,8 @@ func createTable(file *excelize.File, sheet string, tables []interface{}) {
 //
 //	file (*excelize.File): The Excel file object.
 //	config (map[string]interface{}): Map containing key-value pairs for document properties.
-func setFileProps(file *excelize.File, config map[string]interface{}) {
-	err := file.SetDocProps(&excelize.DocProperties{
+func (ew *ExcelWriter) setFileProps(config map[string]interface{}) {
+	err := ew.File.SetDocProps(&excelize.DocProperties{
 		Category:       config["Category"].(string),
 		ContentStatus:  config["ContentStatus"].(string),
 		Created:        config["Created"].(string),
@@ -202,8 +222,8 @@ func setFileProps(file *excelize.File, config map[string]interface{}) {
 //
 //	file (*excelize.File): The Excel file object.
 //	config (map[string]interface{}): Map containing key-value pairs for protection properties.
-func setProtection(file *excelize.File, config map[string]interface{}) {
-	err := file.ProtectWorkbook(&excelize.WorkbookProtectionOptions{
+func (ew *ExcelWriter) setProtection( config map[string]interface{}) {
+	err := ew.File.ProtectWorkbook(&excelize.WorkbookProtectionOptions{
 		AlgorithmName: config["algorithm"].(string),
 		Password:      config["password"].(string),
 		LockStructure: config["lock_structure"].(bool),
@@ -276,9 +296,9 @@ func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
 //	file (*excelize.File): The Excelize file.
 //	sheet (string): The name of the sheet to apply the auto filter.
 //	autoFilters ([]interface{}): A slice of cell ranges where the auto filter will be applied.
-func setAutoFilter(file *excelize.File, sheet string, autoFilters []interface{}) {
+func (ew *ExcelWriter) setAutoFilter( sheet string, autoFilters []interface{}) {
 	for _, filter := range autoFilters {
-		file.AutoFilter(sheet, filter.(string), []excelize.AutoFilterOptions{})
+		ew.File.AutoFilter(sheet, filter.(string), []excelize.AutoFilterOptions{})
 	}
 }
 
@@ -289,7 +309,7 @@ func setAutoFilter(file *excelize.File, sheet string, autoFilters []interface{})
 //	file (*excelize.File): The Excelize file.
 //	sheet (string): The name of the sheet to configure the panes.
 //	panes (map[string]interface{}): A map containing the pane settings, including freeze, split, x_split, y_split, top_left_cell, active_pane, and selection.
-func setPanes(file *excelize.File, sheet string, panes map[string]interface{}) {
+func (ew *ExcelWriter) setPanes(sheet string, panes map[string]interface{}) {
 	if len(panes) != 0 {
 		var selection []excelize.Selection
 		for _, val := range panes["selection"].([]interface{}) {
@@ -299,7 +319,7 @@ func setPanes(file *excelize.File, sheet string, panes map[string]interface{}) {
 				Pane:       val.(map[string]interface{})["pane"].(string),
 			})
 		}
-		file.SetPanes(sheet, &excelize.Panes{
+		ew.File.SetPanes(sheet, &excelize.Panes{
 			Freeze:      panes["freeze"].(bool),
 			Split:       panes["split"].(bool),
 			XSplit:      int(panes["x_split"].(float64)),
@@ -320,7 +340,7 @@ func setPanes(file *excelize.File, sheet string, panes map[string]interface{}) {
 //	validation ([]interface{}): A slice containing the data validation settings,
 //		each represented as a map with keys like sq_ref, set_range_start, set_range_stop,
 //		input_title, input_body, error_title, error_body, drop_list, and sqref_drop_list.
-func setDataValidation(file *excelize.File, sheet string, validation []interface{}) {
+func (ew *ExcelWriter) setDataValidation(sheet string, validation []interface{}) {
 	dv := excelize.NewDataValidation(true)
 	for _, v := range validation {
 		dv.SetSqref(v.(map[string]interface{})["sq_ref"].(string))
@@ -366,7 +386,7 @@ func setDataValidation(file *excelize.File, sheet string, validation []interface
 			dv.SetSqrefDropList(v.(map[string]interface{})["sqref_drop_list"].(string))
 		}
 
-		file.AddDataValidation(sheet, dv)
+		ew.File.AddDataValidation(sheet, dv)
 	}
 }
 
@@ -377,7 +397,7 @@ func setDataValidation(file *excelize.File, sheet string, validation []interface
 // file (*excelize.File): The Excelize file.
 // sheet (string): The name of the sheet to add the comments.
 // comment ([]interface{}): An array containing the comment data, including the cell, author, and paragraph.
-func addComment(file *excelize.File, sheet string, comment []interface{}) {
+func (ew *ExcelWriter) addComment(sheet string, comment []interface{}) {
 	for _, c := range comment {
 		paragraph := make([]excelize.RichTextRun, 0)
 		commentData := c.(map[string]interface{})
@@ -391,7 +411,7 @@ func addComment(file *excelize.File, sheet string, comment []interface{}) {
 				},
 			)
 		}
-		file.AddComment(sheet, excelize.Comment{
+		ew.File.AddComment(sheet, excelize.Comment{
 			Cell:      commentData["cell"].(string),
 			Author:    commentData["author"].(string),
 			Paragraph: paragraph,
@@ -406,44 +426,44 @@ func addComment(file *excelize.File, sheet string, comment []interface{}) {
 //
 //	file (*excelize.File): The Excel file object.
 //	data (map[string]interface{}): Map containing data for each sheet.
-func streamWriter(file *excelize.File, data map[string]interface{}) {
+func (ew *ExcelWriter) performStreamWrite() {
 	sheetCount := 1
 	hasSheet1 := false
 	var pivotTableList [][]interface{}
-	for s := range data {
+	for s := range ew.Content {
 		if s == "Sheet1" {
 			hasSheet1 = true
 		}
 	}
-	for sheet := range data {
-		sheetData := data[sheet].(map[string]interface{})
+	for sheet := range ew.Content {
+		sheetData := ew.Content[sheet].(map[string]interface{})
 		// Create Sheet and Wrtie Header
 		if !hasSheet1 && sheetCount == 1 {
-			file.SetSheetName("Sheet1", sheet)
+			ew.File.SetSheetName("Sheet1", sheet)
 			hasSheet1 = true
 		} else {
-			file.NewSheet(sheet)
+			ew.File.NewSheet(sheet)
 			sheetCount++
 		}
 
 		// Add Chart
-		addChart(file, sheet, sheetData["Chart"].([]interface{}))
+		ew.addChart(sheet, sheetData["Chart"].([]interface{}))
 
 		// Set DataValidations
-		setDataValidation(file, sheet, sheetData["DataValidation"].([]interface{}))
+		ew.setDataValidation(sheet, sheetData["DataValidation"].([]interface{}))
 
 		// Add Comment
-		addComment(file, sheet, sheetData["Comment"].([]interface{}))
+		ew.addComment(sheet, sheetData["Comment"].([]interface{}))
 
 		// Set Panes
-		panes := data[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
-		setPanes(file, sheet, panes)
+		panes := ew.Content[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
+		ew.setPanes(sheet, panes)
 
 		// Set AutoFilters
-		autoFilters := data[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
-		setAutoFilter(file, sheet, autoFilters)
+		autoFilters := ew.Content[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
+		ew.setAutoFilter(sheet, autoFilters)
 
-		streamWriter, _ := file.NewStreamWriter(sheet)
+		streamWriter, _ := ew.File.NewStreamWriter(sheet)
 
 		// CellWidtrh should be set before SetRow
 		// Height should be set with SetRow in StreamWriter
@@ -497,7 +517,7 @@ func streamWriter(file *excelize.File, data map[string]interface{}) {
 
 	// Create Pivot Table. It should Create after the data is written
 	for _, pivot := range pivotTableList {
-		createPivotTable(file, pivot)
+		ew.createPivotTable(pivot)
 	}
 }
 
@@ -510,7 +530,7 @@ func streamWriter(file *excelize.File, data map[string]interface{}) {
 //	group ([]interface{}): A slice of row groups, where each group is represented
 //	    as a map containing "start_row" (float64), "end_row" (float64, optional),
 //	    "outline_level" (float64), and "hidden" (bool).
-func groupRow(file *excelize.File, sheet string, group []interface{}) {
+func (ew *ExcelWriter) groupRow(sheet string, group []interface{}) {
 	var endRow int
 	for _, g := range group {
 		startRow := int(g.(map[string]interface{})["start_row"].(float64))
@@ -523,9 +543,9 @@ func groupRow(file *excelize.File, sheet string, group []interface{}) {
 			endRow = int(g.(map[string]interface{})["end_row"].(float64))
 		}
 		for i := startRow; i <= endRow; i++ {
-			file.SetRowOutlineLevel(sheet, i, outlineLevel)
+			ew.File.SetRowOutlineLevel(sheet, i, outlineLevel)
 			if hidden {
-				file.SetRowVisible(sheet, i, false)
+				ew.File.SetRowVisible(sheet, i, false)
 			}
 		}
 	}
@@ -541,7 +561,7 @@ func groupRow(file *excelize.File, sheet string, group []interface{}) {
 //	group ([]interface{}): A slice of column groups, where each group is represented
 //	    as a map containing "start_col" (string), "end_col" (string, optional),
 //	    "outline_level" (float64), and "hidden" (bool).
-func groupCol(file *excelize.File, sheet string, group []interface{}) {
+func (ew *ExcelWriter) groupCol(sheet string, group []interface{}) {
 	for _, g := range group {
 		startCol := g.(map[string]interface{})["start_col"].(string)
 		endCol, ok := g.(map[string]interface{})["end_col"].(string)
@@ -554,9 +574,9 @@ func groupCol(file *excelize.File, sheet string, group []interface{}) {
 		endColNum, _ := excelize.ColumnNameToNumber(endCol)
 		for i := startColNum; i <= endColNum; i++ {
 			col, _ := excelize.ColumnNumberToName(i)
-			file.SetColOutlineLevel(sheet, col, outlineLevel)
+			ew.File.SetColOutlineLevel(sheet, col, outlineLevel)
 		}
-		file.SetColVisible(sheet, startCol+":"+endCol, !hidden)
+		ew.File.SetColVisible(sheet, startCol+":"+endCol, !hidden)
 	}
 }
 
@@ -567,12 +587,12 @@ func groupCol(file *excelize.File, sheet string, group []interface{}) {
 //	file (*excelize.File): The excelize file.
 //	cell ([]interface{}): A slice of cell ranges to merge, where each cell range is
 //	    represented as a pair of strings (top-left and bottom-right cells).
-func mergeCellNormalWriter(file *excelize.File, sheet string, cell []interface{}) {
+func (ew *ExcelWriter) mergeCellNormalWriter(sheet string, cell []interface{}) {
 	for _, col := range cell {
 		cellRange := col.([]interface{})
 		topLeft := cellRange[0].(string)
 		bottomRight := cellRange[1].(string)
-		file.MergeCell(sheet, topLeft, bottomRight)
+		ew.File.MergeCell(sheet, topLeft, bottomRight)
 	}
 }
 
@@ -584,7 +604,7 @@ func mergeCellNormalWriter(file *excelize.File, sheet string, cell []interface{}
 //	sheet (string): The name of the worksheet.
 //	config (map[string]interface{}): A map containing column width configurations, where the key is the column
 //	    index as a string and the value is the width as a float64.
-func setCellWidthNormalWriter(file *excelize.File, sheet string, config map[string]interface{}) {
+func (ew *ExcelWriter) setCellWidthNormalWriter(sheet string, config map[string]interface{}) {
 	if config["Width"] == nil {
 		return
 	}
@@ -592,7 +612,7 @@ func setCellWidthNormalWriter(file *excelize.File, sheet string, config map[stri
 		for col := range width {
 			colIndex, _ := strconv.Atoi(col)
 			colName, _ := excelize.ColumnNumberToName(colIndex)
-			file.SetColWidth(sheet, colName, colName, width[col].(float64))
+			ew.File.SetColWidth(sheet, colName, colName, width[col].(float64))
 		}
 	}
 }
@@ -605,14 +625,14 @@ func setCellWidthNormalWriter(file *excelize.File, sheet string, config map[stri
 //	sheet (string): The name of the worksheet.
 //	config (map[string]interface{}): A map containing row height configurations, where the key is the row
 //	    index as a string and the value is the height as a float64.
-func setCellHeightNormalWriter(file *excelize.File, sheet string, config map[string]interface{}) {
+func (ew *ExcelWriter) setCellHeightNormalWriter(sheet string, config map[string]interface{}) {
 	if config["Height"] == nil {
 		return
 	}
 	if height := config["Height"].(map[string]interface{}); height != nil {
 		for row := range height {
 			rowIndex, _ := strconv.Atoi(row)
-			file.SetRowHeight(sheet, rowIndex, height[row].(float64))
+			ew.File.SetRowHeight(sheet, rowIndex, height[row].(float64))
 		}
 	}
 }
@@ -623,56 +643,56 @@ func setCellHeightNormalWriter(file *excelize.File, sheet string, config map[str
 //
 //	file (*excelize.File): The Excel file object.
 //	data (map[string]interface{}): Map containing data for each sheet.
-func normalWriter(file *excelize.File, data map[string]interface{}) {
+func (ew *ExcelWriter) performNormalWrite() {
 	sheetCount := 1
 	hasSheet1 := false
 	var pivotTableList [][]interface{}
-	for s := range data {
+	for s := range ew.Content {
 		if s == "Sheet1" {
 			hasSheet1 = true
 		}
 	}
-	for sheet := range data {
-		sheetData := data[sheet].(map[string]interface{})
+	for sheet := range ew.Content {
+		sheetData := ew.Content[sheet].(map[string]interface{})
 		// Create Sheet and Wrtie Header
 		if !hasSheet1 && sheetCount == 1 {
-			file.SetSheetName("Sheet1", sheet)
+			ew.File.SetSheetName("Sheet1", sheet)
 			hasSheet1 = true
 		} else {
-			file.NewSheet(sheet)
+			ew.File.NewSheet(sheet)
 			sheetCount++
 		}
 
 		// Add Chart
-		addChart(file, sheet, sheetData["Chart"].([]interface{}))
+		ew.addChart(sheet, sheetData["Chart"].([]interface{}))
 
 		// Set DataValidations
-		setDataValidation(file, sheet, sheetData["DataValidation"].([]interface{}))
+		ew.setDataValidation(sheet, sheetData["DataValidation"].([]interface{}))
 
 		// Add Comment
-		addComment(file, sheet, sheetData["Comment"].([]interface{}))
+		ew.addComment(sheet, sheetData["Comment"].([]interface{}))
 
 		// Set Panes
-		panes := data[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
-		setPanes(file, sheet, panes)
+		panes := ew.Content[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
+		ew.setPanes(sheet, panes)
 
 		// Set AutoFilters
-		autoFilters := data[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
-		setAutoFilter(file, sheet, autoFilters)
+		autoFilters := ew.Content[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
+		ew.setAutoFilter(sheet, autoFilters)
 
 		// Set Cell Width and Height
-		setCellWidthNormalWriter(file, sheet, sheetData)
-		setCellHeightNormalWriter(file, sheet, sheetData)
+		ew.setCellWidthNormalWriter(sheet, sheetData)
+		ew.setCellHeightNormalWriter(sheet, sheetData)
 
 		// Merge Cell
-		mergeCellNormalWriter(file, sheet, sheetData["MergeCells"].([]interface{}))
+		ew.mergeCellNormalWriter(sheet, sheetData["MergeCells"].([]interface{}))
 
 		// Group col and row
 		if sheetData["GroupedRow"] != nil {
-			groupRow(file, sheet, sheetData["GroupedRow"].([]interface{}))
+			ew.groupRow(sheet, sheetData["GroupedRow"].([]interface{}))
 		}
 		if sheetData["GroupedCol"] != nil {
-			groupCol(file, sheet, sheetData["GroupedCol"].([]interface{}))
+			ew.groupCol(sheet, sheetData["GroupedCol"].([]interface{}))
 		}
 
 		// Write Data
@@ -685,25 +705,25 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 				colCell, _ := excelize.CoordinatesToCellName(col+startedRow, i+startedRow)
 				v := item.([]interface{})
 				if len(v) == 0 {
-					file.SetCellValue(sheet, colCell, "")
-					file.SetCellStyle(sheet, colCell, colCell, styleMap["DEFAULT_STYLE"])
+					ew.File.SetCellValue(sheet, colCell, "")
+					ew.File.SetCellStyle(sheet, colCell, colCell, styleMap["DEFAULT_STYLE"])
 				} else {
 					switch value := v[0].(type) {
 					case string:
 						if strings.HasPrefix(value, "=") {
-							file.SetCellFormula(sheet, colCell, value)
+							ew.File.SetCellFormula(sheet, colCell, value)
 						} else {
-							file.SetCellValue(sheet, colCell, value)
+							ew.File.SetCellValue(sheet, colCell, value)
 						}
 					default:
-						file.SetCellValue(sheet, colCell, value)
+						ew.File.SetCellValue(sheet, colCell, value)
 					}
-					file.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
+					ew.File.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
 				}
 			}
 		}
 		// Excelize should create table with the existed row.
-		createTable(file, sheet, sheetData["Table"].([]interface{}))
+		ew.createTable(sheet, sheetData["Table"].([]interface{}))
 
 		// To prevent the pivot table from being created before the data is written
 		// we store the pivot table data in a list and create it after the data is written
@@ -712,7 +732,7 @@ func normalWriter(file *excelize.File, data map[string]interface{}) {
 
 	// Create Pivot Table. It should Create after the data is written
 	for _, pivot := range pivotTableList {
-		createPivotTable(file, pivot)
+		ew.createPivotTable(pivot)
 	}
 
 }
