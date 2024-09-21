@@ -83,10 +83,9 @@ Here is the example usage:
 from pyfastexcel import Workbook
 from pyfastexcel.utils import set_custom_style
 
-# CustomStyle will be integrate to the pyfatexcel in next version
-# Beside, CustomStyle will be re-implement in future to make it no-longer
+# CustomStyle will be re-implement in future to make it no-longer
 # depend on openpyxl_style writer and openpyxl
-from openpyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 
 
 if __name__ == '__main__':
