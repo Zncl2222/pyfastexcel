@@ -85,7 +85,10 @@ func TestCreatePivotTable(t *testing.T) {
 			"ShowLastColumn": false,
 		},
 	}
+	ew := ExcelWriter{
+		File: file,
+	}
 
 	// Call the function to test
-	createPivotTable(file, pivotData)
+	ew.createPivotTable(pivotData)
 }
