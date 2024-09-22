@@ -71,6 +71,12 @@ def merge_cell_examples(wb: Workbook):
     ws.merge_cell('D1:G5')
 
 
+def merge_cell_examples_stream_writer(wb: Workbook):
+    ws = setup(wb, 'MergeCells')
+    ws.merge_cell('A1', 'C1')
+    ws.merge_cell('D1:G5')
+
+
 def set_panes_split_examples(wb: Workbook):
     ws = setup(wb, 'SetPanes')
 
@@ -254,4 +260,17 @@ if __name__ == '__main__':
     create_table_examples(wb)
     add_chart_examples(wb)
     add_pivot_table_examples(wb)
-    wb.save('FullExamples.xlsx')
+    wb.save('FullExamples_NormalWriter.xlsx')
+
+    wb = Workbook()
+    set_style(wb)
+    merge_cell_examples_stream_writer(wb)
+    wb.remove_sheet('Sheet1')
+    set_panes_split_examples(wb)
+    set_panes_freeze_examples(wb)
+    set_data_validation_examples(wb)
+    add_comment_examples(wb)
+    create_table_examples(wb)
+    add_chart_examples(wb)
+    add_pivot_table_examples(wb)
+    wb.save('FullExamples_StreamWriter.xlsx')

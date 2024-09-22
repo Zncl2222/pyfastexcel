@@ -456,7 +456,8 @@ func TestAddChart(t *testing.T) {
 			"cell": "A1",
 		},
 	}
+	ew := ExcelWriter{File: file}
 
-	addChart(file, sheet, charts)
+	ew.addChart(sheet, charts)
 	file.Close()
 }

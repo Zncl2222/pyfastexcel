@@ -27,7 +27,7 @@ func getPivotTableField(field interface{}) []excelize.PivotTableField {
 	return pivotTableFields
 }
 
-func createPivotTable(file *excelize.File, pivot_data []interface{}) {
+func (ew *ExcelWriter) createPivotTable(pivot_data []interface{}) {
 	for _, pivot := range pivot_data {
 		pivotMap := pivot.(map[string]interface{})
 
@@ -56,7 +56,7 @@ func createPivotTable(file *excelize.File, pivot_data []interface{}) {
 			showLastColumn = pivotMap["ShowLastColumn"].(bool)
 		}
 
-		err := file.AddPivotTable(&excelize.PivotTableOptions{
+		err := ew.File.AddPivotTable(&excelize.PivotTableOptions{
 			DataRange:       pivotMap["DataRange"].(string),
 			PivotTableRange: pivotMap["PivotTableRange"].(string),
 			Rows:            getPivotTableField(pivotMap["Rows"]),
