@@ -134,10 +134,11 @@ func testExport(t *testing.T) {
 				"Panes":      {},
 				"DataValidation": [],
 				"Comment":    [],
-				"NoStyle": "false",
+				"NoStyle": false,
 				"Table": [],
 				"Chart": [],
-				"PivotTable": []
+				"PivotTable": [],
+				"SheetVisible": true
 			}
 		}
 	}`
