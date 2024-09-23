@@ -73,6 +73,7 @@ func init() {
 			"lock_structure": true,
 			"lock_windows":   false,
 		},
+		"sheet_order": []interface{}{"TestingSheet2", "Sheet2WithNoWidth", "Sheet3WithNoHeight", "Sheet4WithNoWidthAndHeight"},
 		"content": map[string]interface{}{
 			"TestingSheet2": map[string]interface{}{
 				"Header": [][]string{
@@ -225,7 +226,8 @@ func init() {
 			"lock_structure": true,
 			"lock_windows":   false,
 		},
-		"engine": "normalWriter",
+		"engine":      "normalWriter",
+		"sheet_order": []interface{}{"TestingSheet2", "Sheet2WithNoWidth", "Sheet3WithNoHeight", "Sheet4WithNoWidthAndHeight"},
 		"content": map[string]interface{}{
 			"TestingSheet2": map[string]interface{}{
 				"Header": [][]string{
@@ -368,6 +370,7 @@ func TestWriteExcel2(t *testing.T) {
 			"PivotTable":     []interface{}{},
 		},
 	}
+	data["sheet_order"] = []interface{}{"Sheet1"}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -429,6 +432,7 @@ func TestWriteExcel2NormalWriter(t *testing.T) {
 			"PivotTable":     []interface{}{},
 		},
 	}
+	dataNormalWriter["sheet_order"] = []interface{}{"Sheet1"}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("Error:", err)

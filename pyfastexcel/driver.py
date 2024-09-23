@@ -182,6 +182,7 @@ class ExcelDriver:
             'file_props': self.file_props,
             'style': self.style._style_map,
             'protection': self.protection,
+            'sheet_order': self._sheet_list,
             'engine': engine,
         }
         json_data = msgspec.json.encode(results)

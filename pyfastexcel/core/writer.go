@@ -28,6 +28,7 @@ type ExcelWriter struct {
 	Content    map[string]interface{}
 	FileProps  map[string]interface{}
 	Protection map[string]interface{}
+	SheetOrder []interface{}
 	Engine     interface{}
 }
 
@@ -59,6 +60,7 @@ func WriteExcel(data string) string {
 		Content:    strJson["content"].(map[string]interface{}),
 		FileProps:  strJson["file_props"].(map[string]interface{}),
 		Protection: strJson["protection"].(map[string]interface{}),
+		SheetOrder: strJson["sheet_order"].([]interface{}),
 		Engine:     strJson["engine"],
 	}
 	return writer.writeExcel()
@@ -222,7 +224,7 @@ func (ew *ExcelWriter) setFileProps(config map[string]interface{}) {
 //
 //	file (*excelize.File): The Excel file object.
 //	config (map[string]interface{}): Map containing key-value pairs for protection properties.
-func (ew *ExcelWriter) setProtection( config map[string]interface{}) {
+func (ew *ExcelWriter) setProtection(config map[string]interface{}) {
 	err := ew.File.ProtectWorkbook(&excelize.WorkbookProtectionOptions{
 		AlgorithmName: config["algorithm"].(string),
 		Password:      config["password"].(string),
@@ -296,7 +298,7 @@ func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
 //	file (*excelize.File): The Excelize file.
 //	sheet (string): The name of the sheet to apply the auto filter.
 //	autoFilters ([]interface{}): A slice of cell ranges where the auto filter will be applied.
-func (ew *ExcelWriter) setAutoFilter( sheet string, autoFilters []interface{}) {
+func (ew *ExcelWriter) setAutoFilter(sheet string, autoFilters []interface{}) {
 	for _, filter := range autoFilters {
 		ew.File.AutoFilter(sheet, filter.(string), []excelize.AutoFilterOptions{})
 	}
@@ -435,7 +437,8 @@ func (ew *ExcelWriter) performStreamWrite() {
 			hasSheet1 = true
 		}
 	}
-	for sheet := range ew.Content {
+	for _, sheet := range ew.SheetOrder {
+		sheet := sheet.(string)
 		sheetData := ew.Content[sheet].(map[string]interface{})
 		// Create Sheet and Wrtie Header
 		if !hasSheet1 && sheetCount == 1 {
@@ -652,7 +655,8 @@ func (ew *ExcelWriter) performNormalWrite() {
 			hasSheet1 = true
 		}
 	}
-	for sheet := range ew.Content {
+	for _, sheet := range ew.SheetOrder {
+		sheet := sheet.(string)
 		sheetData := ew.Content[sheet].(map[string]interface{})
 		// Create Sheet and Wrtie Header
 		if !hasSheet1 && sheetCount == 1 {
