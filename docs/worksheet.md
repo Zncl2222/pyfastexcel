@@ -240,6 +240,21 @@ Set row height
 ws.set_cell_height(15, 20)
 ```
 
+## Set Sheet Visibility
+
+Set the visibility of the sheet. The following example will display the `Sheet2` and hide the `Sheet1`.
+
+```python title="Set Sheet Visibility"
+from pyfastexcel import Workbook
+
+wb = Workbook()
+wb.create_sheet('Sheet2')
+ws = wb['Sheet1']
+# Set the sheet to be hidden
+ws.sheet_visible = False
+wb.save('sheet_visibility.xlsx')
+```
+
 ## Merge Cell
 
 The cell can be merged through the function. You can choose to use either two
