@@ -117,6 +117,7 @@ func testExport(t *testing.T) {
 			"Created": "",
 			"Modified": ""
 		},
+		"sheet_order": ["Sheet1"],
 		"content": {
 			"Sheet1": {
 				"Header": [
