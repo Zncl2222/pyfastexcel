@@ -1009,3 +1009,16 @@ def test_create_table_failed_final_validation(ws1, ws2, cell_range):
     with pytest.raises(ValueError):
         ws.create_table(cell_range, 'test')
         wb.read_lib_and_create_excel()
+
+
+def test_sheet_visible():
+    wb = Workbook()
+    wb.create_sheet('Sheet2')
+    wb.create_sheet('Sheet3')
+
+    wb['Sheet2'].sheet_visible = False
+    assert not wb['Sheet2'].sheet_visible
+    print(wb['Sheet1'].sheet_visible)
+
+    with pytest.raises(ValueError):
+        wb['Sheet1'].sheet_visible = 'qwe'

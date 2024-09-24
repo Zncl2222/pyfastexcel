@@ -89,6 +89,7 @@ class WorkSheetBase:
         self._table_list = []
         self._chart_list = []
         self._pivot_table_list = []
+        self._sheet_visible = True
         # Using pyfastexcel to write as default
         self._engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
 
@@ -126,6 +127,16 @@ class WorkSheetBase:
     @property
     def sheet(self):
         return self._transfer_to_dict()
+
+    @property
+    def sheet_visible(self):
+        return self._sheet_visible
+
+    @sheet_visible.setter
+    def sheet_visible(self, value: bool):
+        if not isinstance(value, bool):
+            raise ValueError('Sheet visible should be a boolean.')
+        self._sheet_visible = value
 
     def _apply_style_to_string_target(self, target: str, style: str) -> None:
         row, col = cell_reference_to_index(target)
@@ -188,6 +199,7 @@ class WorkSheetBase:
             'Table': self._table_list,
             'Chart': self._chart_list,
             'PivotTable': self._pivot_table_list,
+            'SheetVisible': self._sheet_visible,
         }
         return self._sheet
 
@@ -207,6 +219,7 @@ class WorkSheetBase:
             'Table': [],
             'Chart': [],
             'PivotTable': [],
+            'SheetVisible': True,
         }
 
     def _validate_value_and_set_default(self, value: Any):

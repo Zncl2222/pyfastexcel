@@ -516,6 +516,11 @@ func (ew *ExcelWriter) performStreamWrite() {
 		// To prevent the pivot table from being created before the data is written
 		// we store the pivot table data in a list and create it after the data is written
 		pivotTableList = append(pivotTableList, sheetData["PivotTable"].([]interface{}))
+
+		// Set Sheet Visible
+		if err := ew.File.SetSheetVisible(sheet, sheetData["SheetVisible"].(bool)); err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	// Create Pivot Table. It should Create after the data is written
@@ -732,6 +737,11 @@ func (ew *ExcelWriter) performNormalWrite() {
 		// To prevent the pivot table from being created before the data is written
 		// we store the pivot table data in a list and create it after the data is written
 		pivotTableList = append(pivotTableList, sheetData["PivotTable"].([]interface{}))
+
+		// Set Sheet Visible
+		if err := ew.File.SetSheetVisible(sheet, sheetData["SheetVisible"].(bool)); err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	// Create Pivot Table. It should Create after the data is written
