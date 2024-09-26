@@ -24,6 +24,8 @@ github.com/xuri/excelize/v2 v2.8.1 h1:pZLMEwK8ep+CLIUWpWmvW8IWE/yxqG0I1xcN6cVMGu
 github.com/xuri/excelize/v2 v2.8.1/go.mod h1:oli1E4C3Pa5RXg1TBXn4ENCXDV5JUMlBluUhG7c+CEE=
 github.com/xuri/excelize/v2 v2.8.2-0.20240908041958-ad8541790df7 h1:D0+SpB1JK1srjHa4J6XEbYK8EzjTCNkgJNqBtjjdgKk=
 github.com/xuri/excelize/v2 v2.8.2-0.20240908041958-ad8541790df7/go.mod h1:kxyKDbXLj92CdrUHEZL2ZORNdcgwTlz3+9mrPMsEWAo=
+github.com/xuri/excelize/v2 v2.8.2-0.20240921073936-41c7dd30ce7e h1:9UoqZmYeb3ZN7rj3PEdm1rfP9dSPMwGfbaFyt+idd5E=
+github.com/xuri/excelize/v2 v2.8.2-0.20240921073936-41c7dd30ce7e/go.mod h1:kxyKDbXLj92CdrUHEZL2ZORNdcgwTlz3+9mrPMsEWAo=
 github.com/xuri/nfp v0.0.0-20230919160717-d98342af3f05 h1:qhbILQo1K3mphbwKh1vNm4oGezE1eF9fQWmNiIpSfI4=
 github.com/xuri/nfp v0.0.0-20230919160717-d98342af3f05/go.mod h1:WwHg+CVyzlv/TX9xqBFXEZAuxOPxn2k1GNHwG41IIUQ=
 github.com/xuri/nfp v0.0.0-20240318013403-ab9948c2c4a7 h1:hPVCafDV85blFTabnqKgNhDCkJX25eik94Si9cTER4A=
