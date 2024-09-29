@@ -30,36 +30,6 @@ func getPivotTableField(field interface{}) []excelize.PivotTableField {
 func (ew *ExcelWriter) createPivotTable(pivot_data []interface{}) {
 	for _, pivot := range pivot_data {
 		pivotMap := pivot.(map[string]interface{})
-
-		rowGrandTotals := false
-		if pivotMap["RowGrandTotals"] != nil {
-			rowGrandTotals = pivotMap["RowGrandTotals"].(bool)
-		}
-		colGrandTotals := false
-		if pivotMap["ColGrandTotals"] != nil {
-			colGrandTotals = pivotMap["ColGrandTotals"].(bool)
-		}
-		showDrill := false
-		if pivotMap["ShowDrill"] != nil {
-			showDrill = pivotMap["ShowDrill"].(bool)
-		}
-		showRowHeaders := false
-		if pivotMap["ShowRowHeaders"] != nil {
-			showRowHeaders = pivotMap["ShowRowHeaders"].(bool)
-		}
-		showColHeaders := false
-		if pivotMap["ShowColHeaders"] != nil {
-			showColHeaders = pivotMap["ShowColHeaders"].(bool)
-		}
-		showLastColumn := false
-		if pivotMap["ShowLastColumn"] != nil {
-			showLastColumn = pivotMap["ShowLastColumn"].(bool)
-		}
-		classicLayout := false
-		if pivotMap["ClassicLayout"] != nil {
-			classicLayout = pivotMap["ClassicLayout"].(bool)
-		}
-
 		err := ew.File.AddPivotTable(&excelize.PivotTableOptions{
 			DataRange:       pivotMap["DataRange"].(string),
 			PivotTableRange: pivotMap["PivotTableRange"].(string),
@@ -67,13 +37,13 @@ func (ew *ExcelWriter) createPivotTable(pivot_data []interface{}) {
 			Filter:          getPivotTableField(pivotMap["Filter"]),
 			Columns:         getPivotTableField(pivotMap["Columns"]),
 			Data:            getPivotTableField(pivotMap["Data"]),
-			RowGrandTotals:  rowGrandTotals,
-			ColGrandTotals:  colGrandTotals,
-			ShowDrill:       showDrill,
-			ShowRowHeaders:  showRowHeaders,
-			ShowColHeaders:  showColHeaders,
-			ShowLastColumn:  showLastColumn,
-			ClassicLayout:   classicLayout,
+			RowGrandTotals:  getBoolValue(pivotMap, "RowGrandTotals", false),
+			ColGrandTotals:  getBoolValue(pivotMap, "ColGrandTotals", false),
+			ShowDrill:       getBoolValue(pivotMap, "ShowDrill", false),
+			ShowRowHeaders:  getBoolValue(pivotMap, "ShowRowHeaders", false),
+			ShowColHeaders:  getBoolValue(pivotMap, "ShowColHeaders", false),
+			ShowLastColumn:  getBoolValue(pivotMap, "ShowLastColumn", false),
+			ClassicLayout:   getBoolValue(pivotMap, "ClassicLayout", false),
 		})
 		if err != nil {
 			fmt.Println(err)
