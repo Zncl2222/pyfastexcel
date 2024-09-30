@@ -55,6 +55,10 @@ func (ew *ExcelWriter) createPivotTable(pivot_data []interface{}) {
 		if pivotMap["ShowLastColumn"] != nil {
 			showLastColumn = pivotMap["ShowLastColumn"].(bool)
 		}
+		classicLayout := false
+		if pivotMap["ClassicLayout"] != nil {
+			classicLayout = pivotMap["ClassicLayout"].(bool)
+		}
 
 		err := ew.File.AddPivotTable(&excelize.PivotTableOptions{
 			DataRange:       pivotMap["DataRange"].(string),
@@ -69,6 +73,7 @@ func (ew *ExcelWriter) createPivotTable(pivot_data []interface{}) {
 			ShowRowHeaders:  showRowHeaders,
 			ShowColHeaders:  showColHeaders,
 			ShowLastColumn:  showLastColumn,
+			ClassicLayout:   classicLayout,
 		})
 		if err != nil {
 			fmt.Println(err)

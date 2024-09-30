@@ -71,7 +71,8 @@ class PivotTable(BaseModel):
             then left to right.
         merge_item (Optional[bool]): Indicates whether to merge items.
         compact_data (Optional[bool]): Indicates whether to show in a compact form.
-        show_errorOptional[bool]): Indicates whether to show errors.
+        show_error (Optional[bool]): Indicates whether to show errors.
+        classic_layout (Optional[bool]): Indicates whether to use classic layout.
         pivot_table_style_name (Optional[str]): Specifies the style the pivot table.
     """
 
@@ -94,6 +95,7 @@ class PivotTable(BaseModel):
     merge_item: Optional[bool] = Field(None, serialization_alias='MergeItem')
     compact_data: Optional[bool] = Field(None, serialization_alias='CompactData')
     show_error: Optional[bool] = Field(None, serialization_alias='ShowError')
+    classic_layout: Optional[bool] = Field(None, serialization_alias='ClassicLayout')
     pivot_table_style_name: Optional[str] = Field(None, serialization_alias='PivotTableStyleName')
 
     @field_validator('data_range')
