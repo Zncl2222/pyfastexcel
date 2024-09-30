@@ -126,6 +126,72 @@ chart = Chart(
 ws.add_chart('E1', chart)
 ```
 
+For those who prefer a more concise style, you can try to plot chart like the following
+code snippet.
+
+!!! note "Note"
+    Not all attributes support the following style. For example, the `title` attribute.
+    Check the default value of each attribute in the ChartModel and it's SubModel.
+
+<details>
+
+<summary>Code Snippet</summary>
+
+```python
+from pyfastexcel import Workbook
+from pyfastexcel.chart import (
+    Chart,
+    ChartSeries,
+    RichTextRun,
+    Font,
+    ChartAxis,
+    ChartLegend,
+    Fill,
+    Marker,
+)
+
+wb = Workbook()
+ws = wb['Sheet1']
+
+ws[0] = ['Category', '2024/01', '2024/02', '2024/03']
+ws[1] = ['Food', 123, 125, 645]
+ws[2] = ['Book', 456, 789, 321]
+ws[3] = ['Phone', 777, 66, 214]
+
+chart = Chart(chart_type='col')
+chart.series = [
+    ChartSeries(
+        name='Sheet1!A2',
+        categories='Sheet1!B1:D1',
+        values='Sheet1!B2:D2',
+        fill=Fill(ftype='pattern', pattern=1, color='ebce42'),
+    ),
+    ChartSeries(
+        name='Sheet1!A3',
+        categories='Sheet1!B1:D1',
+        values='Sheet1!B3:D3',
+        fill=Fill(ftype='pattern', pattern=1, color='29a64b'),
+    ),
+    ChartSeries(
+        name='Sheet1!A4',
+        categories='Sheet1!B1:D1',
+        values='Sheet1!B4:D4',
+        fill=Fill(ftype='pattern', pattern=1, color='0000FF'),
+    ),
+]
+chart.title = [RichTextRun(text='Example Chart', font=Font(color='FF0000', bold=True))]
+chart.x_axis.major_grid_lines = True
+chart.x_axis.font.color = '000000'
+chart.y_axis.major_grid_lines = True
+chart.y_axis.font.color = '000000'
+chart.legend.position = 'top'
+chart.legend.show_legend_key = True
+
+ws.add_chart('E1', chart)
+```
+
+</details>
+
 <div align='center'>
 
 <img src='../images/column_chart.png'>
@@ -176,25 +242,26 @@ column_chart = Chart(
     legend=ChartLegend(position='top', show_legend_key=True),
 )
 
-line_chart = Chart(
-    chart_type='line',
-    series=[
-        ChartSeries(
-            name='Sheet1!A4',
-            categories='Sheet1!B1:D1',
-            values='Sheet1!B4:D4',
-            fill=Fill(ftype='pattern', pattern=1, color='0000FF'),
-            marker=Marker(
-                symbol='circle',
-                fill=Fill(ftype='pattern', pattern=1, color='FFFF00'),
-            ),
-        ),
-    ],
-    title=[RichTextRun(text='Example Chart', font=Font(color='FF0000', bold=True))],
-    x_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
-    y_axis=ChartAxis(major_grid_lines=True, font=Font(color='000000')),
-    legend=ChartLegend(position='top', show_legend_key=True),
+# Another coding style to plot the chart
+line_chart = Chart(chart_type='line')
+line_chart.series = ChartSeries(
+    name='Sheet1!A4',
+    categories='Sheet1!B1:D1',
+    values='Sheet1!B4:D4',
+    fill=Fill(ftype='pattern', pattern=1, color='0000FF'),
+    marker=Marker(
+        symbol='circle',
+        fill=Fill(ftype='pattern', pattern=1, color='FFFF00'),
+    ),
 )
+line_chart.title = [RichTextRun(text='Example Chart', font=Font(color='FF0000', bold=True))]
+line_chart.x_axis.major_grid_lines = True
+line_chart.x_axis.font.color = '000000'
+line_chart.y_axis.major_grid_lines = True
+line_chart.y_axis.font.color = '000000'
+line_chart.legend.position = 'top'
+line_chart.legend.show_legend_key = True
+
 ws.add_chart('E1', [column_chart, line_chart])
 ```
 

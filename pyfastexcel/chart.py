@@ -164,7 +164,7 @@ class ChartAxis(BaseModel):
     """
 
     none: Optional[bool] = Field(None, serialization_alias='None')
-    font: Optional[Font] = Field(None, serialization_alias='Font')
+    font: Optional[Font] = Field(Font(), serialization_alias='Font')
     major_grid_lines: Optional[bool] = Field(None, serialization_alias='MajorGridLines')
     minor_grid_lines: Optional[bool] = Field(None, serialization_alias='MinorGridLines')
     major_unit: Optional[float] = Field(None, serialization_alias='MajorUnit')
@@ -174,7 +174,7 @@ class ChartAxis(BaseModel):
     maximum: Optional[float] = Field(None, serialization_alias='Maximum')
     minimum: Optional[float] = Field(None, serialization_alias='Minimum')
     log_base: Optional[float] = Field(None, serialization_alias='LogBase')
-    num_fmt: Optional[ChartCustomNumFmt] = Field(None, serialization_alias='NumFmt')
+    num_fmt: Optional[ChartCustomNumFmt] = Field(ChartCustomNumFmt(), serialization_alias='NumFmt')
     title: Optional[List[RichTextRun]] = Field(None, serialization_alias='Title')
 
 
@@ -205,7 +205,7 @@ class ChartPlotArea(BaseModel):
     show_ser_name: Optional[bool] = Field(None, serialization_alias='ShowSerName')
     show_val: Optional[bool] = Field(None, serialization_alias='ShowVal')
     fill: Optional[Fill] = Field(None, serialization_alias='Fill')
-    num_fmt: Optional[ChartCustomNumFmt] = Field(None, serialization_alias='NumFmt')
+    num_fmt: Optional[ChartCustomNumFmt] = Field(ChartCustomNumFmt(), serialization_alias='NumFmt')
 
 
 class GraphicOptions(BaseModel):
@@ -274,9 +274,9 @@ class ChartSeries(BaseModel):
     categories: str = Field(..., serialization_alias='Categories')
     values: str = Field(..., serialization_alias='Values')
     sizes: Optional[str] = Field(None, serialization_alias='Sizes')
-    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
-    line: Optional[Line] = Field(None, serialization_alias='Line')
-    marker: Optional[Marker] = Field(None, serialization_alias='Marker')
+    fill: Optional[Fill] = Field(Fill(), serialization_alias='Fill')
+    line: Optional[Line] = Field(Line(), serialization_alias='Line')
+    marker: Optional[Marker] = Field(Marker(), serialization_alias='Marker')
     data_label_position: Optional[str | ChartDataLabelPosition] = Field(
         None, serialization_alias='DataLabelPosition'
     )
@@ -317,16 +317,16 @@ class Chart(BaseModel):
 
     chart_type: str | ChartType = Field(..., serialization_alias='Type')
     series: List[ChartSeries] | ChartSeries = Field(None, serialization_alias='Series')
-    graph_format: Optional[GraphicOptions] = Field(None, serialization_alias='Format')
+    graph_format: Optional[GraphicOptions] = Field(GraphicOptions(), serialization_alias='Format')
     title: Optional[List[RichTextRun]] = Field(None, serialization_alias='Title')
-    legend: Optional[ChartLegend] = Field(None, serialization_alias='Legend')
-    dimension: Optional[ChartDimension] = Field(None, serialization_alias='Dimension')
+    legend: Optional[ChartLegend] = Field(ChartLegend(), serialization_alias='Legend')
+    dimension: Optional[ChartDimension] = Field(ChartDimension(), serialization_alias='Dimension')
     vary_colors: Optional[bool] = Field(None, serialization_alias='VaryColors')
-    x_axis: Optional[ChartAxis] = Field(None, serialization_alias='XAxis')
-    y_axis: Optional[ChartAxis] = Field(None, serialization_alias='YAxis')
-    plot_area: Optional[ChartPlotArea] = Field(None, serialization_alias='PlotArea')
-    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
-    border: Optional[Line] = Field(None, serialization_alias='Border')
+    x_axis: Optional[ChartAxis] = Field(ChartAxis(), serialization_alias='XAxis')
+    y_axis: Optional[ChartAxis] = Field(ChartAxis(), serialization_alias='YAxis')
+    plot_area: Optional[ChartPlotArea] = Field(ChartPlotArea(), serialization_alias='PlotArea')
+    fill: Optional[Fill] = Field(Fill(), serialization_alias='Fill')
+    border: Optional[Line] = Field(Line(), serialization_alias='Border')
     show_blanks_as: Optional[str] = Field(None, serialization_alias='ShowBlanksAs')
     bubble_size: Optional[int] = Field(None, serialization_alias='BubbleSize')
     hole_size: Optional[int] = Field(None, serialization_alias='HoleSize')
