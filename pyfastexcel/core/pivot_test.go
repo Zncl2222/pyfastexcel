@@ -83,6 +83,7 @@ func TestCreatePivotTable(t *testing.T) {
 			"ShowRowHeaders": true,
 			"ShowColHeaders": true,
 			"ShowLastColumn": false,
+			"ClassicLayout":  false,
 		},
 	}
 	ew := ExcelWriter{

@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/perimeterx/marshmallow v1.1.5
-	github.com/xuri/excelize/v2 v2.8.2-0.20240908041958-ad8541790df7
+	github.com/xuri/excelize/v2 v2.8.2-0.20240921073936-41c7dd30ce7e
 )
 
 require (

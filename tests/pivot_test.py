@@ -105,6 +105,30 @@ def test_pivot_table(case):
     wb.read_lib_and_create_excel()
 
 
+def test_pivot_table_classic_layout():
+    wb, ws = get_wb()
+
+    pivot_table = PivotTable(
+        data_range='Sheet1!A1:E31',
+        pivot_table_range='Sheet1!G2:M34',
+        rows=[
+            PivotTableField(data='Month', default_subtotal=True),
+            PivotTableField(data='Year'),
+        ],
+        pivot_filter=[PivotTableField(data='mart')],
+        columns=[PivotTableField(data='Type', default_subtotal=True)],
+        data=[PivotTableField(data='Sales', name='Summarize', subtotal='sum')],
+        row_grand_totals=True,
+        column_grand_totals=True,
+        show_drill=True,
+        show_row_headers=True,
+        show_last_column=True,
+        classic_layout=True,
+    )
+    ws.add_pivot_table(pivot_table)
+    wb.read_lib_and_create_excel()
+
+
 @pytest.mark.parametrize(
     'data',
     [('A1:E31'), ('Sheet1A1:E31')],
