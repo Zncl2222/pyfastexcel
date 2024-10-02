@@ -253,14 +253,6 @@ func (ew *ExcelWriter) addChart(sheet string, charts []interface{}) {
 			plotArea := getPlotAreaStruct(c["PlotArea"])
 			fill := getChartFill(c["Fill"])
 			border := getBorderStruct(c["Border"])
-			bubbleSize := 100
-			if c["BubbleSize"] != nil {
-				bubbleSize = int(c["BubbleSize"].(float64))
-			}
-			holeSize := 75
-			if c["HoleSize"] != nil {
-				holeSize = int(c["HoleSize"].(float64))
-			}
 			comboCharts = append(comboCharts, &excelize.Chart{
 				Type:       chartType,
 				Series:     series,
@@ -273,8 +265,8 @@ func (ew *ExcelWriter) addChart(sheet string, charts []interface{}) {
 				PlotArea:   plotArea,
 				Fill:       fill,
 				Border:     border,
-				BubbleSize: bubbleSize,
-				HoleSize:   holeSize,
+				BubbleSize: int(getFloat64Value(c, "BubbleSize", 100.0)),
+				HoleSize:   int(getFloat64Value(c, "HoleSize", 75.0)),
 			})
 		}
 		ew.File.AddChart(sheet, cell, comboCharts[0], comboCharts[1:]...)
