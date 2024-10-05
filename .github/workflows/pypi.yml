@@ -20,13 +20,16 @@ jobs:
     strategy:
       matrix:
       # Currently use ubuntu 20.04 to aviod GLIBC verion issue
-        runs-on: [ubuntu-20.04, windows-latest]
+        runs-on: [ubuntu-20.04, windows-latest, macos-13]
     runs-on: ${{ matrix.runs-on }}
     if: startsWith(github.ref, 'refs/tags/') || github.event_name != 'release'
     steps:
       - uses: actions/checkout@v4
       - name: Set up Golang
         uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          check-latest: true
       - name: Build windows shared library
         run: |
           go env -w CGO_ENABLED="1"
@@ -39,6 +42,9 @@ jobs:
       - name: Set file name ubuntu
         if: matrix.runs-on == 'ubuntu-latest'
         run: echo "filename=pyfastexcel.so" >> "$GITHUB_ENV"
+      - name: Set file name macos
+        if: matrix.runs-on == 'macos-13'
+        run: echo "filename=pyfastexcel.dylib" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.runs-on }}-shared-library
@@ -59,6 +65,7 @@ jobs:
       - run: |
           mv ./pyfastexcel.so ./pyfastexcel
           mv ./pyfastexcel.dll ./pyfastexcel
+          mv ./pyfastexcel.dylib ./pyfastexcel
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -89,6 +96,7 @@ jobs:
       - run: |
           mv ./pyfastexcel.so ./pyfastexcel
           mv ./pyfastexcel.dll ./pyfastexcel
+          mv ./pyfastexcel.dylib ./pyfastexcel
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

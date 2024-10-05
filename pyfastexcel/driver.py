@@ -232,7 +232,7 @@ class ExcelDriver:
         excel_stream.close()
         return decoded_bytes
 
-    def _read_lib(self, lib_path: str) -> ctypes.CDLL:
+    def _read_lib(self, lib_path: str) -> ctypes.CDLL:  # pragma: no cover
         """
         Reads a shared-library for writing Excel.
 
@@ -247,7 +247,14 @@ class ExcelDriver:
                 lib_path = str(list(BASE_DIR.glob('**/*.so'))[0])
             elif sys.platform.startswith('win32'):
                 lib_path = str(list(BASE_DIR.glob('**/*.dll'))[0])
-        lib = ctypes.CDLL(lib_path, winmode=0)
+            elif sys.platform.startswith('darwin'):
+                lib_path = str(list(BASE_DIR.glob('**/*.dylib'))[0])
+
+        # On macOS, there is no winmode parameter, so we should not pass it
+        if sys.platform.startswith('win32') or sys.platform.startswith('linux'):
+            lib = ctypes.CDLL(lib_path, winmode=0)
+        else:
+            lib = ctypes.CDLL(lib_path)
         return lib
 
     def _get_default_file_props(self) -> dict[str, str]:

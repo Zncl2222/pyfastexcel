@@ -4,8 +4,14 @@ ifeq ($(OS),Windows_NT)
     # Windows
     SHARED_LIBRARY := pyfastexcel.dll
 else
-    # Linux
-    SHARED_LIBRARY := pyfastexcel.so
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        # Linux
+        SHARED_LIBRARY := pyfastexcel.so
+    else ifeq ($(UNAME_S),Darwin)
+        # macOS
+        SHARED_LIBRARY := pyfastexcel.dylib
+    endif
 endif
 
 GO_SOURCE := pyfastexcel.go
