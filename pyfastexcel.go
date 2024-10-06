@@ -138,7 +138,8 @@ func testExport(t *testing.T) {
 				"Table": [],
 				"Chart": [],
 				"PivotTable": [],
-				"SheetVisible": true
+				"SheetVisible": true,
+				"WriterEngine": "StreamWriter"
 			}
 		}
 	}`
