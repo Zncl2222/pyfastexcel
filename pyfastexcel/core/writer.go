@@ -53,7 +53,6 @@ func WriteExcel(data string) string {
 	if err != nil {
 		panic(err)
 	}
-
 	writer := ExcelWriter{
 		File:       excelize.NewFile(),
 		StyleMap:   strJson["style"].(map[string]interface{}),
@@ -61,7 +60,7 @@ func WriteExcel(data string) string {
 		FileProps:  strJson["file_props"].(map[string]interface{}),
 		Protection: strJson["protection"].(map[string]interface{}),
 		SheetOrder: strJson["sheet_order"].([]interface{}),
-		Engine:     strJson["engine"],
+		// Engine:     strJson["engine"],
 	}
 	return writer.writeExcel()
 }
@@ -73,10 +72,52 @@ func (ew *ExcelWriter) writeExcel() string {
 		ew.setProtection(ew.Protection)
 	}
 
-	if ew.Engine == "normalWriter" {
-		ew.performNormalWrite()
-	} else {
-		ew.performStreamWrite()
+	sheetCount := 1
+	hasSheet1 := false
+	var pivotTableList [][]interface{}
+	for s := range ew.Content {
+		if s == "Sheet1" {
+			hasSheet1 = true
+		}
+	}
+	for _, sheet := range ew.SheetOrder {
+		sheet := sheet.(string)
+		sheetData := ew.Content[sheet].(map[string]interface{})
+
+		if !hasSheet1 && sheetCount == 1 {
+			ew.File.SetSheetName("Sheet1", sheet)
+			hasSheet1 = true
+		} else {
+			ew.File.NewSheet(sheet)
+			sheetCount++
+		}
+		if sheetData["WriterEngine"] == "NormalWriter" {
+			ew.performNormalWrite(sheet, sheetData)
+			// Excelize should create table with the existed row.
+			ew.createTable(sheet, sheetData["Table"].([]interface{}))
+		} else {
+			streamWriter := ew.performStreamWrite(sheet, sheetData)
+			// Create Stream Table
+			// Excelize should create table with the existed row.
+			streamCreateTable(streamWriter, sheetData["Table"].([]interface{}))
+
+			if err := streamWriter.Flush(); err != nil {
+				fmt.Println(err)
+			}
+		}
+		// To prevent the pivot table from being created before the data is written
+		// we store the pivot table data in a list and create it after the data is written
+		pivotTableList = append(pivotTableList, sheetData["PivotTable"].([]interface{}))
+
+		// Set Sheet Visible
+		if err := ew.File.SetSheetVisible(sheet, sheetData["SheetVisible"].(bool)); err != nil {
+			fmt.Println(err)
+		}
+
+		// Create Pivot Table. It should Create after the data is written
+		for _, pivot := range pivotTableList {
+			ew.createPivotTable(pivot)
+		}
 	}
 
 	// Save data in buffer and encode binary data to base64
@@ -428,105 +469,63 @@ func (ew *ExcelWriter) addComment(sheet string, comment []interface{}) {
 //
 //	file (*excelize.File): The Excel file object.
 //	data (map[string]interface{}): Map containing data for each sheet.
-func (ew *ExcelWriter) performStreamWrite() {
-	sheetCount := 1
-	hasSheet1 := false
-	var pivotTableList [][]interface{}
-	for s := range ew.Content {
-		if s == "Sheet1" {
-			hasSheet1 = true
-		}
-	}
-	for _, sheet := range ew.SheetOrder {
-		sheet := sheet.(string)
-		sheetData := ew.Content[sheet].(map[string]interface{})
-		// Create Sheet and Wrtie Header
-		if !hasSheet1 && sheetCount == 1 {
-			ew.File.SetSheetName("Sheet1", sheet)
-			hasSheet1 = true
-		} else {
-			ew.File.NewSheet(sheet)
-			sheetCount++
-		}
+func (ew *ExcelWriter) performStreamWrite(sheet string, sheetData map[string]interface{}) *excelize.StreamWriter {
+	// Add Chart
+	ew.addChart(sheet, sheetData["Chart"].([]interface{}))
 
-		// Add Chart
-		ew.addChart(sheet, sheetData["Chart"].([]interface{}))
+	// Set DataValidations
+	ew.setDataValidation(sheet, sheetData["DataValidation"].([]interface{}))
 
-		// Set DataValidations
-		ew.setDataValidation(sheet, sheetData["DataValidation"].([]interface{}))
+	// Add Comment
+	ew.addComment(sheet, sheetData["Comment"].([]interface{}))
 
-		// Add Comment
-		ew.addComment(sheet, sheetData["Comment"].([]interface{}))
+	// Set Panes
+	panes := ew.Content[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
+	ew.setPanes(sheet, panes)
 
-		// Set Panes
-		panes := ew.Content[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
-		ew.setPanes(sheet, panes)
+	// Set AutoFilters
+	autoFilters := ew.Content[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
+	ew.setAutoFilter(sheet, autoFilters)
 
-		// Set AutoFilters
-		autoFilters := ew.Content[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
-		ew.setAutoFilter(sheet, autoFilters)
+	streamWriter, _ := ew.File.NewStreamWriter(sheet)
 
-		streamWriter, _ := ew.File.NewStreamWriter(sheet)
+	// CellWidtrh should be set before SetRow
+	// Height should be set with SetRow in StreamWriter
+	setCellWidth(streamWriter, sheetData)
+	rowHeightMap := getRowHeightMap(sheetData)
 
-		// CellWidtrh should be set before SetRow
-		// Height should be set with SetRow in StreamWriter
-		setCellWidth(streamWriter, sheetData)
-		rowHeightMap := getRowHeightMap(sheetData)
+	mergeCell(streamWriter, sheetData["MergeCells"].([]interface{}))
 
-		mergeCell(streamWriter, sheetData["MergeCells"].([]interface{}))
-
-		// Write Data
-		startedRow := 1
-		excelData := sheetData["Data"].([]interface{})
-		if sheetData["NoStyle"] == false {
-			for i, rowData := range excelData {
-				for j, cellData := range rowData.([]interface{}) {
-					if cellData == nil {
-						continue
-					}
-					excelData[i].([]interface{})[j] = createCell(cellData.([]interface{}))
-				}
-			}
-		}
-
+	// Write Data
+	startedRow := 1
+	excelData := sheetData["Data"].([]interface{})
+	if sheetData["NoStyle"] == false {
 		for i, rowData := range excelData {
-			row := rowData.([]interface{})
-			cell, _ := excelize.CoordinatesToCellName(1, i+startedRow)
-
-			// Write cell with Height if rowHeightMap key found
-			if rowHeight, ok := rowHeightMap[strconv.Itoa(i+startedRow)]; ok {
-				if err := streamWriter.SetRow(cell, row, rowHeight); err != nil {
-					fmt.Println(err)
+			for j, cellData := range rowData.([]interface{}) {
+				if cellData == nil {
+					continue
 				}
-			} else {
-				if err := streamWriter.SetRow(cell, row); err != nil {
-					fmt.Println(err)
-				}
+				excelData[i].([]interface{})[j] = createCell(cellData.([]interface{}))
 			}
 		}
-
-		// Create Stream Table
-		// Excelize should create table with the existed row.
-		streamCreateTable(streamWriter, sheetData["Table"].([]interface{}))
-
-		if err := streamWriter.Flush(); err != nil {
-			fmt.Println(err)
-		}
-
-		// To prevent the pivot table from being created before the data is written
-		// we store the pivot table data in a list and create it after the data is written
-		pivotTableList = append(pivotTableList, sheetData["PivotTable"].([]interface{}))
-
-		// Set Sheet Visible
-		if err := ew.File.SetSheetVisible(sheet, sheetData["SheetVisible"].(bool)); err != nil {
-			fmt.Println(err)
-		}
 	}
 
-	// Create Pivot Table. It should Create after the data is written
-	for _, pivot := range pivotTableList {
-		ew.createPivotTable(pivot)
+	for i, rowData := range excelData {
+		row := rowData.([]interface{})
+		cell, _ := excelize.CoordinatesToCellName(1, i+startedRow)
+
+		// Write cell with Height if rowHeightMap key found
+		if rowHeight, ok := rowHeightMap[strconv.Itoa(i+startedRow)]; ok {
+			if err := streamWriter.SetRow(cell, row, rowHeight); err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			if err := streamWriter.SetRow(cell, row); err != nil {
+				fmt.Println(err)
+			}
+		}
 	}
+	return streamWriter
 }
 
 // groupRow groups rows in an Excel worksheet using the provided file.
@@ -651,102 +650,65 @@ func (ew *ExcelWriter) setCellHeightNormalWriter(sheet string, config map[string
 //
 //	file (*excelize.File): The Excel file object.
 //	data (map[string]interface{}): Map containing data for each sheet.
-func (ew *ExcelWriter) performNormalWrite() {
-	sheetCount := 1
-	hasSheet1 := false
-	var pivotTableList [][]interface{}
-	for s := range ew.Content {
-		if s == "Sheet1" {
-			hasSheet1 = true
-		}
+func (ew *ExcelWriter) performNormalWrite(sheet string, sheetData map[string]interface{}) {
+
+	// Add Chart
+	ew.addChart(sheet, sheetData["Chart"].([]interface{}))
+
+	// Set DataValidations
+	ew.setDataValidation(sheet, sheetData["DataValidation"].([]interface{}))
+
+	// Add Comment
+	ew.addComment(sheet, sheetData["Comment"].([]interface{}))
+
+	// Set Panes
+	panes := ew.Content[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
+	ew.setPanes(sheet, panes)
+
+	// Set AutoFilters
+	autoFilters := ew.Content[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
+	ew.setAutoFilter(sheet, autoFilters)
+
+	// Set Cell Width and Height
+	ew.setCellWidthNormalWriter(sheet, sheetData)
+	ew.setCellHeightNormalWriter(sheet, sheetData)
+
+	// Merge Cell
+	ew.mergeCellNormalWriter(sheet, sheetData["MergeCells"].([]interface{}))
+
+	// Group col and row
+	if sheetData["GroupedRow"] != nil {
+		ew.groupRow(sheet, sheetData["GroupedRow"].([]interface{}))
 	}
-	for _, sheet := range ew.SheetOrder {
-		sheet := sheet.(string)
-		sheetData := ew.Content[sheet].(map[string]interface{})
-		// Create Sheet and Wrtie Header
-		if !hasSheet1 && sheetCount == 1 {
-			ew.File.SetSheetName("Sheet1", sheet)
-			hasSheet1 = true
-		} else {
-			ew.File.NewSheet(sheet)
-			sheetCount++
-		}
+	if sheetData["GroupedCol"] != nil {
+		ew.groupCol(sheet, sheetData["GroupedCol"].([]interface{}))
+	}
 
-		// Add Chart
-		ew.addChart(sheet, sheetData["Chart"].([]interface{}))
+	// Write Data
+	startedRow := 1
+	excelData := sheetData["Data"].([]interface{})
+	for i, rowData := range excelData {
+		row := rowData.([]interface{})
 
-		// Set DataValidations
-		ew.setDataValidation(sheet, sheetData["DataValidation"].([]interface{}))
-
-		// Add Comment
-		ew.addComment(sheet, sheetData["Comment"].([]interface{}))
-
-		// Set Panes
-		panes := ew.Content[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
-		ew.setPanes(sheet, panes)
-
-		// Set AutoFilters
-		autoFilters := ew.Content[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
-		ew.setAutoFilter(sheet, autoFilters)
-
-		// Set Cell Width and Height
-		ew.setCellWidthNormalWriter(sheet, sheetData)
-		ew.setCellHeightNormalWriter(sheet, sheetData)
-
-		// Merge Cell
-		ew.mergeCellNormalWriter(sheet, sheetData["MergeCells"].([]interface{}))
-
-		// Group col and row
-		if sheetData["GroupedRow"] != nil {
-			ew.groupRow(sheet, sheetData["GroupedRow"].([]interface{}))
-		}
-		if sheetData["GroupedCol"] != nil {
-			ew.groupCol(sheet, sheetData["GroupedCol"].([]interface{}))
-		}
-
-		// Write Data
-		startedRow := 1
-		excelData := sheetData["Data"].([]interface{})
-		for i, rowData := range excelData {
-			row := rowData.([]interface{})
-
-			for col, item := range row {
-				colCell, _ := excelize.CoordinatesToCellName(col+startedRow, i+startedRow)
-				v := item.([]interface{})
-				if len(v) == 0 {
-					ew.File.SetCellValue(sheet, colCell, "")
-					ew.File.SetCellStyle(sheet, colCell, colCell, styleMap["DEFAULT_STYLE"])
-				} else {
-					switch value := v[0].(type) {
-					case string:
-						if strings.HasPrefix(value, "=") {
-							ew.File.SetCellFormula(sheet, colCell, value)
-						} else {
-							ew.File.SetCellValue(sheet, colCell, value)
-						}
-					default:
+		for col, item := range row {
+			colCell, _ := excelize.CoordinatesToCellName(col+startedRow, i+startedRow)
+			v := item.([]interface{})
+			if len(v) == 0 {
+				ew.File.SetCellValue(sheet, colCell, "")
+				ew.File.SetCellStyle(sheet, colCell, colCell, styleMap["DEFAULT_STYLE"])
+			} else {
+				switch value := v[0].(type) {
+				case string:
+					if strings.HasPrefix(value, "=") {
+						ew.File.SetCellFormula(sheet, colCell, value)
+					} else {
 						ew.File.SetCellValue(sheet, colCell, value)
 					}
-					ew.File.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
+				default:
+					ew.File.SetCellValue(sheet, colCell, value)
 				}
+				ew.File.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
 			}
 		}
-		// Excelize should create table with the existed row.
-		ew.createTable(sheet, sheetData["Table"].([]interface{}))
-
-		// To prevent the pivot table from being created before the data is written
-		// we store the pivot table data in a list and create it after the data is written
-		pivotTableList = append(pivotTableList, sheetData["PivotTable"].([]interface{}))
-
-		// Set Sheet Visible
-		if err := ew.File.SetSheetVisible(sheet, sheetData["SheetVisible"].(bool)); err != nil {
-			fmt.Println(err)
-		}
 	}
-
-	// Create Pivot Table. It should Create after the data is written
-	for _, pivot := range pivotTableList {
-		ew.createPivotTable(pivot)
-	}
-
 }

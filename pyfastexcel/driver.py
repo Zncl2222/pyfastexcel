@@ -158,7 +158,7 @@ class ExcelDriver:
         use_openpyxl = False
         for sheet in self._sheet_list:
             self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
-            if self.workbook[sheet]._engine == 'openpyxl':
+            if self.workbook[sheet]._excel_engine == 'openpyxl':
                 use_openpyxl = True
             if len(self.workbook[sheet]._grouped_columns_list) != 0:
                 set_group_columns = True
@@ -170,20 +170,12 @@ class ExcelDriver:
                     table_list=self.workbook[sheet]._table_list,
                 )
 
-        # Set writer (if some of the function that excelize StremWriter is not support, and
-        # system will use normal writer to write the excel)
-        if (set_group_columns or set_row_columns) and use_openpyxl is False:
-            engine = 'normalWriter'
-        else:
-            engine = 'streamWriter'
-
         results = {
             'content': self._dict_wb,
             'file_props': self.file_props,
             'style': self.style._style_map,
             'protection': self.protection,
             'sheet_order': self._sheet_list,
-            'engine': engine,
         }
         json_data = msgspec.json.encode(results)
         create_excel = pyfastexcel.Export
