@@ -98,6 +98,7 @@ func init() {
 				"Chart":        []interface{}{},
 				"PivotTable":   []interface{}{},
 				"SheetVisible": true,
+				"WriterEngine": "StreamWriter",
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -121,6 +122,7 @@ func init() {
 				"Chart":        []interface{}{},
 				"PivotTable":   []interface{}{},
 				"SheetVisible": true,
+				"WriterEngine": "StreamWriter",
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -141,6 +143,7 @@ func init() {
 				"Chart":          []interface{}{},
 				"PivotTable":     []interface{}{map[string]interface{}{"DataRange": "Sheet1$A1:C1", "PivotTableRange": "Sheet1$D1:F1", "ShowDrill": true, "Rows": []interface{}{}, "Filter": []interface{}{}, "Columns": []interface{}{}, "Data": []interface{}{}}},
 				"SheetVisible":   false,
+				"WriterEngine":   "StreamWriter",
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -165,6 +168,7 @@ func init() {
 				"Chart":        []interface{}{},
 				"PivotTable":   []interface{}{},
 				"SheetVisible": true,
+				"WriterEngine": "StreamWriter",
 			},
 		},
 	}
@@ -258,6 +262,7 @@ func init() {
 				"Chart":        []interface{}{},
 				"PivotTable":   []interface{}{},
 				"SheetVisible": true,
+				"WriterEngine": "NormalWriter",
 			},
 			"Sheet2WithNoWidth": map[string]interface{}{
 				"Header": [][]string{
@@ -283,6 +288,7 @@ func init() {
 				"Chart":        []interface{}{},
 				"PivotTable":   []interface{}{},
 				"SheetVisible": true,
+				"WriterEngine": "NormalWriter",
 			},
 			"Sheet3WithNoHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -305,6 +311,7 @@ func init() {
 				"Chart":          []interface{}{},
 				"PivotTable":     []interface{}{},
 				"SheetVisible":   false,
+				"WriterEngine":   "NormalWriter",
 			},
 			"Sheet4WithNoWidthAndHeight": map[string]interface{}{
 				"Header": [][]string{
@@ -331,6 +338,7 @@ func init() {
 				"Chart":        []interface{}{},
 				"PivotTable":   []interface{}{},
 				"SheetVisible": false,
+				"WriterEngine": "NormalWriter",
 			},
 		},
 	}
@@ -377,6 +385,7 @@ func TestWriteExcel2(t *testing.T) {
 			"Chart":          []interface{}{},
 			"PivotTable":     []interface{}{},
 			"SheetVisible":   true,
+			"WriterEngine":   "StreamWriter",
 		},
 	}
 	data["sheet_order"] = []interface{}{"Sheet1"}
@@ -440,6 +449,7 @@ func TestWriteExcel2NormalWriter(t *testing.T) {
 			"Chart":          []interface{}{},
 			"PivotTable":     []interface{}{},
 			"SheetVisible":   true,
+			"WriterEngine":   "NormalWriter",
 		},
 	}
 	dataNormalWriter["sheet_order"] = []interface{}{"Sheet1"}

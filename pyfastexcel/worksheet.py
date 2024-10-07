@@ -91,7 +91,8 @@ class WorkSheetBase:
         self._pivot_table_list = []
         self._sheet_visible = True
         # Using pyfastexcel to write as default
-        self._engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
+        self._excel_engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
+        self._writer_engine: Literal['NotmalWriter', 'StreamWriter'] = 'StreamWriter'
 
         if plain_data is not None and pre_allocate is not None:
             raise ValueError(
@@ -200,6 +201,7 @@ class WorkSheetBase:
             'Chart': self._chart_list,
             'PivotTable': self._pivot_table_list,
             'SheetVisible': self._sheet_visible,
+            'WriterEngine': self._writer_engine,
         }
         return self._sheet
 
@@ -220,6 +222,7 @@ class WorkSheetBase:
             'Chart': [],
             'PivotTable': [],
             'SheetVisible': True,
+            'WriterEngine': 'StreamWriter',
         }
 
     def _validate_value_and_set_default(self, value: Any):
@@ -717,7 +720,8 @@ class WorkSheet(WorkSheetBase):
                 'hidden': hidden,
             }
         )
-        self._engine = engine
+        self._excel_engine = engine
+        self._writer_engine = 'NormalWriter'
 
     @pydantic_validate_call
     def group_rows(
@@ -752,7 +756,8 @@ class WorkSheet(WorkSheetBase):
                 'hidden': hidden,
             }
         )
-        self._engine = engine
+        self._excel_engine = engine
+        self._writer_engine = 'NormalWriter'
 
     @validate_call
     def create_table(
