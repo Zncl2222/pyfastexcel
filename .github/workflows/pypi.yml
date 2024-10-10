@@ -34,21 +34,28 @@ jobs:
         run: |
           go env -w CGO_ENABLED="1"
           make
-      - name: Set file name windows
-        if: matrix.runs-on == 'windows-latest'
-        shell: pwsh
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
         run: |
-          echo "filename=pyfastexcel.dll" >> $env:GITHUB_ENV
-      - name: Set file name ubuntu
-        if: matrix.runs-on == 'ubuntu-latest'
-        run: echo "filename=pyfastexcel.so" >> "$GITHUB_ENV"
-      - name: Set file name macos
+          python -m pip install --upgrade pip
+          pip install setuptools wheel
+      - name: Build the wheel
+        if: matrix.runs-on == 'windows-latest'
+        run: python setup.py bdist_wheel --plat-name=win-amd64
+      - name: Build the wheel ubuntu
+        if: matrix.runs-on == 'ubuntu-20.04'
+        run: python setup.py bdist_wheel --plat-name=manylinux2014_x86_64
+      - name: Build the wheel macos
         if: matrix.runs-on == 'macos-13'
-        run: echo "filename=pyfastexcel.dylib" >> "$GITHUB_ENV"
+        run: python setup.py bdist_wheel --plat-name=macosx_10_9_x86_64
+
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.runs-on }}-shared-library
-          path: ./pyfastexcel/${{ env.filename }}
+          name: python-wheel-${{ matrix.runs-on }}
+          path: dist/*.whl
 
   test-release:
     runs-on: ubuntu-latest
@@ -62,23 +69,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           merge-multiple: true
-      - run: |
-          mv ./pyfastexcel.so ./pyfastexcel
-          mv ./pyfastexcel.dll ./pyfastexcel
-          mv ./pyfastexcel.dylib ./pyfastexcel
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-      - name: Build package
-        run: python -m build
+          path: dist/
+
       - name: Publish distribution to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          verbose: true
           repository-url: https://test.pypi.org/legacy/
 
   release-job:
@@ -93,19 +89,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           merge-multiple: true
-      - run: |
-          mv ./pyfastexcel.so ./pyfastexcel
-          mv ./pyfastexcel.dll ./pyfastexcel
-          mv ./pyfastexcel.dylib ./pyfastexcel
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-      - name: Build package
-        run: python -m build
+          path: dist/
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
