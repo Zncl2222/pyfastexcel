@@ -77,6 +77,45 @@ jobs:
           verbose: true
           repository-url: https://test.pypi.org/legacy/
 
+  test-download-and-run:
+    needs: test-release
+    name: Test Package Installation on Multiple OS
+    if: always()
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        runs-on: [ubuntu-latest, ubuntu-22.04, ubuntu-20.04, windows-latest, macos-13]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      - name: Checkout code (optional, for tests, but package will be pip-installed)
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Remove local package from PYTHONPATH on Linux/macOS
+        if: runner.os != 'Windows'
+        run: |
+          rm -rf ./pyfastexcel
+
+      - name: Remove local package from PYTHONPATH on Windows
+        if: runner.os == 'Windows'
+        run: Remove-Item -Recurse -Force .\pyfastexcel
+        shell: pwsh
+
+      - name: Install published package from PyPI
+        run: |
+          python -m pip install --upgrade pip
+          pip install eval-type-backport
+          pip install -i https://test.pypi.org/simple/ pyfastexcel --pre --extra-index-url https://pypi.org/simple/
+
+      - name: Run tests
+        run: |
+          python examples/full_examples.py
+
   release-job:
     runs-on: ubuntu-latest
     needs: [build-shared-library]
