@@ -78,9 +78,9 @@ If you prefer to build the package manually, follow these steps:
 
 | Operating System | Version                         |
 | ---------------- | ------------------------------- |
-| **Linux**        | Ubuntu 18.04 or higher           |
-| **macOS**        | macOS 13 or higher               |
-| **Windows**      | Windows 10 or higher             |
+| **Linux**        | Ubuntu 18.04 or higher          |
+| **macOS**        | macOS 13 (x86-64)               |
+| **Windows**      | Windows 10 or higher            |
 
 
 ### Python Versions

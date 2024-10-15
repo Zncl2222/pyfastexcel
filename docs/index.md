@@ -110,6 +110,20 @@ If you prefer to build the package manually, follow these steps:
 
 6. Import the project and start using it!
 
+## Requirements
+
+| Operating System | Version                         |
+| ---------------- | ------------------------------- |
+| **Linux**        | Ubuntu 18.04 or higher          |
+| **macOS**        | macOS 13 (x86-64)               |
+| **Windows**      | Windows 10 or higher            |
+
+
+### Python Versions
+
+- **Python 3.8 or higher**
+
+For earlier versions of Python or other operating systems, compatibility is not guaranteed.
 
 ## Benchmark
 
