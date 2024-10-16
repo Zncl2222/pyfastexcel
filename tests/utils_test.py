@@ -96,9 +96,9 @@ def test_seperate_alpha_numeric_error(index, error_type):
 @pytest.mark.parametrize(
     'index, alpha, num',
     [
-        ('A1', 'A', '1'),
-        ('XD6', 'XD', '6'),
-        ('ZZ999', 'ZZ', '999'),
+        ('A1', 'A', 1),
+        ('XD6', 'XD', 6),
+        ('ZZ999', 'ZZ', 999),
     ],
 )
 def test_seperate_alpha_numeric(index, alpha, num):

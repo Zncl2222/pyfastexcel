@@ -53,7 +53,7 @@ def test_workbook(range_slice, values, expected_output):
         sheet_info_actual_output = ws.sheet['Data']
         assert sheet_info_actual_output == expected_output
     else:
-        actual_output = [tuple([cell for cell in row]) for row in ws[range_slice]]
+        actual_output = ws[range_slice]
     assert actual_output == expected_output
 
 
@@ -199,6 +199,8 @@ def test_invalid_assignment(input_data, expected_exception):
             ],
         ),
         ('A1:G100', [1, 2, 3], ValueError),
+        ('A1:C4', [[1, 2, 3], [1, 2, 3]], ValueError),
+        ('A1:C4', [[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3, 4]], ValueError),
     ],
 )
 def test_workbook_slice(row_slice, value_list, expected_output):
@@ -208,8 +210,7 @@ def test_workbook_slice(row_slice, value_list, expected_output):
     if not isinstance(expected_output, list):
         with pytest.raises(expected_output):
             ws[row_slice] = value_list
-        with pytest.raises(expected_output):
-            print(ws[row_slice])
+        print(ws[row_slice])
     else:
         ws[row_slice] = value_list
         print(ws[row_slice])
