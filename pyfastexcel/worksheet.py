@@ -144,7 +144,7 @@ class WorkSheetBase:
         self._data[row][col] = (self._data[row][col][0], style)
 
     def _apply_style_to_slice_target(self, target: slice, style: str) -> None:
-        start_row, start_col, col_stop = self._extract_slice_indices(target)
+        start_row, start_col, _, col_stop = self._extract_slice_indices(target)
         for col in range(start_col, col_stop + 1):
             self._data[start_row][col] = (self._data[start_row][col][0], style)
 
@@ -297,31 +297,51 @@ class WorkSheetBase:
             raise TypeError('Key should be a string or slice.')
 
     def _get_cell_by_slice(self, cell_slice: slice) -> list[tuple]:
-        _, start_row = _separate_alpha_numeric(cell_slice.start)
-        _, stop_row = _separate_alpha_numeric(cell_slice.stop)
-        if start_row != stop_row:
-            raise ValueError('Only support row-wise slicing.')
-        return self._data[int(start_row) - 1]
+        start_column, start_row = _separate_alpha_numeric(cell_slice.start)
+        end_column, end_row = _separate_alpha_numeric(cell_slice.stop)
+        start_column = column_to_index(start_column)
+        end_column = column_to_index(end_column)
+
+        if start_row == end_row:
+            return self._data[start_row - 1]
+
+        return [row[start_column - 1 : end_column] for row in self._data[start_row - 1 : end_row]]
 
     def _get_cell_by_location(self, key: str) -> tuple:
         row, col = cell_reference_to_index(key)
         return self._data[row][col]
 
-    def _extract_slice_indices(self, cell_slice: slice) -> tuple[int, int, int]:
+    def _extract_slice_indices(self, cell_slice: slice) -> tuple[int, int, int, int]:
         _, start_row = _separate_alpha_numeric(cell_slice.start)
         _, stop_row = _separate_alpha_numeric(cell_slice.stop)
-        if start_row != stop_row:
-            raise ValueError('Only support row-wise slicing.')
         start_row, start_col = cell_reference_to_index(cell_slice.start)
-        _, col_stop = cell_reference_to_index(cell_slice.stop)
-        self._expand_row_and_cols(start_row, col_stop)
-        return start_row, start_col, col_stop
+        stop_row, stop_col = cell_reference_to_index(cell_slice.stop)
+        self._expand_row_and_cols(max(start_row, stop_row), stop_col)
+        return start_row, start_col, stop_row, stop_col
 
     def _set_cell_by_slice(self, cell_slice: slice, value: Any) -> None:
-        start_row, start_col, col_stop = self._extract_slice_indices(cell_slice)
-        for idx, col in enumerate(range(start_col, col_stop + 1)):
-            val = self._validate_value_and_set_default(value[idx])
-            self._data[start_row][col] = val
+        start_row, start_col, stop_row, stop_col = self._extract_slice_indices(cell_slice)
+
+        for i, row in enumerate(range(start_row, stop_row + 1)):
+            if not isinstance(value[i], list):
+                if len(value) != (stop_col - start_col + 1):
+                    raise ValueError(
+                        'The column-shape of the given value is not consistent to the target slice.'
+                    )
+                for idx, col in enumerate(range(start_col, stop_col + 1)):
+                    val = self._validate_value_and_set_default(value[idx])
+                    self._data[start_row][col] = val
+            else:
+                if len(value[i]) != (stop_col - start_col + 1):
+                    raise ValueError(
+                        f'The column-shape in row {i} is not consistent to the target slice.'
+                    )
+                if len(value) != stop_row - start_row + 1:
+                    raise ValueError(
+                        'The row-shape of the given value is not consistnet to the target slice.'
+                    )
+                val = [self._validate_value_and_set_default(v) for v in value[i]]
+                self._data[row][start_col : stop_col + 1] = val
 
     def _set_row_by_index(self, row: int, value: Any) -> None:
         if row < 0 or row > 1048575:

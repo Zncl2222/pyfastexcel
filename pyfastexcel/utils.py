@@ -105,7 +105,7 @@ def transfer_string_slice_to_slice(string_slice: str) -> slice:
     return slice(f'{alpha_start}{row_start}', f'{alpha_end}{row_end}')
 
 
-def _separate_alpha_numeric(input_string: str) -> tuple[str, str]:
+def _separate_alpha_numeric(input_string: str) -> tuple[str, int]:
     '''
     Separate the alpha and numeric part of a string.
     Return alpha_part at first index and num_part at second index.
@@ -114,7 +114,7 @@ def _separate_alpha_numeric(input_string: str) -> tuple[str, str]:
     num_part = re.findall(r'[0-9]+', input_string)
     if len(alpha_part) == 0 or len(num_part) == 0:
         raise ValueError(f'Invalid input string {input_string}.')
-    return alpha_part[0], num_part[0]
+    return alpha_part[0], int(num_part[0])
 
 
 def _is_valid_column(column: str) -> bool:
