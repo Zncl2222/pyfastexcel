@@ -119,6 +119,23 @@ ws['A2':'D2'] = [
     6,  # (1)
     (8, 'bold_style')
 ]
+
+# Assign data to the range A2:D3. The dimensions of the input data
+# must match the selected range.
+ws['A2':'D3'] = [
+    [
+        (2, 'bold_style'),
+        ('12', 'bold_style'),
+        6,  # (1)
+        (8, 'bold_style')
+    ],
+    [
+        (1, 'bold_style'),
+        (2, 'bold_style'),
+        3,  # (1)
+        (9, 'bold_style')
+    ],
+]
 ```
 
 1. The default style will be used.
