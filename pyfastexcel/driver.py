@@ -70,6 +70,7 @@ class ExcelDriver:
         'SHA-384',
         'SHA-512',
     )
+    DEBUG = False
 
     def __init__(self, pre_allocate: dict[str, int] = None, plain_data: list[list[str]] = None):
         """
@@ -180,12 +181,12 @@ class ExcelDriver:
         json_data = msgspec.json.encode(results)
         create_excel = pyfastexcel.Export
         free_pointer = pyfastexcel.FreeCPointer
-        free_pointer.argtypes = [ctypes.c_void_p]
+        free_pointer.argtypes = [ctypes.c_void_p, ctypes.c_int64]
         create_excel.argtypes = [ctypes.c_char_p, ctypes.c_int64]
         create_excel.restype = ctypes.c_void_p
         byte_data = create_excel(json_data, ignore_go_panic)
         self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
-        free_pointer(byte_data)
+        free_pointer(byte_data, 1 if self.DEBUG else 0)
         StyleManager.reset_style_configs()
 
         # Due to Streaming API of Excelize can't group column currently
