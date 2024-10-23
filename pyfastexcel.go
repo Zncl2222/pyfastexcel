@@ -50,11 +50,14 @@ func catchPanic() {
 // Args:
 //
 //	cptr (*C.char): The C char pointer to be freed.
+//	printMsg (int64): The flag to print message.
 //
 //export FreeCPointer
-func FreeCPointer(cptr *C.char) {
+func FreeCPointer(cptr *C.char, printMsg int64) {
 	C.free(unsafe.Pointer(cptr))
-	fmt.Println("C Pointer Free Successfully !")
+	if printMsg == 1 {
+		fmt.Println("C Pointer Free Successfully !")
+	}
 }
 
 // testExport is a trick method to test cgo in golang standard test module
@@ -151,7 +154,7 @@ func testExport(t *testing.T) {
 	encodedExcel := Export(cInputData, 1)
 
 	// Free the allocated memory for cInputData
-	FreeCPointer(cInputData)
+	FreeCPointer(cInputData, 1)
 
 	// Convert the result back to a Go string
 	goEncodedExcel := C.GoString(encodedExcel)
