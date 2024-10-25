@@ -290,7 +290,9 @@ func setCellWidth(streamWriter *excelize.StreamWriter, config map[string]interfa
 	width := config["Width"].(map[string]interface{})
 	for col := range width {
 		cidx, _ := strconv.Atoi(col)
-		streamWriter.SetColWidth(cidx, cidx, width[col].(float64))
+		if err := streamWriter.SetColWidth(cidx, cidx, width[col].(float64)); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -328,7 +330,9 @@ func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
 		cellRange := col.([]interface{})
 		topLeft := cellRange[0].(string)
 		bottomRight := cellRange[1].(string)
-		sw.MergeCell(topLeft, bottomRight)
+		if err := sw.MergeCell(topLeft, bottomRight); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -341,7 +345,9 @@ func mergeCell(sw *excelize.StreamWriter, cell []interface{}) {
 //	autoFilters ([]interface{}): A slice of cell ranges where the auto filter will be applied.
 func (ew *ExcelWriter) setAutoFilter(sheet string, autoFilters []interface{}) {
 	for _, filter := range autoFilters {
-		ew.File.AutoFilter(sheet, filter.(string), []excelize.AutoFilterOptions{})
+		if err := ew.File.AutoFilter(sheet, filter.(string), []excelize.AutoFilterOptions{}); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -362,7 +368,7 @@ func (ew *ExcelWriter) setPanes(sheet string, panes map[string]interface{}) {
 				Pane:       val.(map[string]interface{})["pane"].(string),
 			})
 		}
-		ew.File.SetPanes(sheet, &excelize.Panes{
+		err := ew.File.SetPanes(sheet, &excelize.Panes{
 			Freeze:      panes["freeze"].(bool),
 			Split:       panes["split"].(bool),
 			XSplit:      int(panes["x_split"].(float64)),
@@ -371,6 +377,9 @@ func (ew *ExcelWriter) setPanes(sheet string, panes map[string]interface{}) {
 			ActivePane:  panes["active_pane"].(string),
 			Selection:   selection,
 		})
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -429,7 +438,9 @@ func (ew *ExcelWriter) setDataValidation(sheet string, validation []interface{})
 			dv.SetSqrefDropList(v.(map[string]interface{})["sqref_drop_list"].(string))
 		}
 
-		ew.File.AddDataValidation(sheet, dv)
+		if err := ew.File.AddDataValidation(sheet, dv); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -454,12 +465,15 @@ func (ew *ExcelWriter) addComment(sheet string, comment []interface{}) {
 				},
 			)
 		}
-		ew.File.AddComment(sheet, excelize.Comment{
+		err := ew.File.AddComment(sheet, excelize.Comment{
 			Cell:      commentData["cell"].(string),
 			Author:    commentData["author"].(string),
 			Paragraph: paragraph,
 		},
 		)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -599,7 +613,9 @@ func (ew *ExcelWriter) mergeCellNormalWriter(sheet string, cell []interface{}) {
 		cellRange := col.([]interface{})
 		topLeft := cellRange[0].(string)
 		bottomRight := cellRange[1].(string)
-		ew.File.MergeCell(sheet, topLeft, bottomRight)
+		if err := ew.File.MergeCell(sheet, topLeft, bottomRight); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -619,7 +635,9 @@ func (ew *ExcelWriter) setCellWidthNormalWriter(sheet string, config map[string]
 		for col := range width {
 			colIndex, _ := strconv.Atoi(col)
 			colName, _ := excelize.ColumnNumberToName(colIndex)
-			ew.File.SetColWidth(sheet, colName, colName, width[col].(float64))
+			if err := ew.File.SetColWidth(sheet, colName, colName, width[col].(float64)); err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 }
@@ -639,7 +657,9 @@ func (ew *ExcelWriter) setCellHeightNormalWriter(sheet string, config map[string
 	if height := config["Height"].(map[string]interface{}); height != nil {
 		for row := range height {
 			rowIndex, _ := strconv.Atoi(row)
-			ew.File.SetRowHeight(sheet, rowIndex, height[row].(float64))
+			if err := ew.File.SetRowHeight(sheet, rowIndex, height[row].(float64)); err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 }
@@ -694,20 +714,32 @@ func (ew *ExcelWriter) performNormalWrite(sheet string, sheetData map[string]int
 			colCell, _ := excelize.CoordinatesToCellName(col+startedRow, i+startedRow)
 			v := item.([]interface{})
 			if len(v) == 0 {
-				ew.File.SetCellValue(sheet, colCell, "")
-				ew.File.SetCellStyle(sheet, colCell, colCell, styleMap["DEFAULT_STYLE"])
+				if err := ew.File.SetCellValue(sheet, colCell, ""); err != nil {
+					fmt.Println(err)
+				}
+				if err := ew.File.SetCellStyle(sheet, colCell, colCell, styleMap["DEFAULT_STYLE"]); err != nil {
+					fmt.Println(err)
+				}
 			} else {
 				switch value := v[0].(type) {
 				case string:
 					if strings.HasPrefix(value, "=") {
-						ew.File.SetCellFormula(sheet, colCell, value)
+						if err := ew.File.SetCellFormula(sheet, colCell, value); err != nil {
+							fmt.Println(err)
+						}
 					} else {
-						ew.File.SetCellValue(sheet, colCell, value)
+						if err := ew.File.SetCellValue(sheet, colCell, value); err != nil {
+							fmt.Println(err)
+						}
 					}
 				default:
-					ew.File.SetCellValue(sheet, colCell, value)
+					if err := ew.File.SetCellValue(sheet, colCell, value); err != nil {
+						fmt.Println(err)
+					}
 				}
-				ew.File.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)])
+				if err := ew.File.SetCellStyle(sheet, colCell, colCell, styleMap[item.([]interface{})[1].(string)]); err != nil {
+					fmt.Println(err)
+				}
 			}
 		}
 	}

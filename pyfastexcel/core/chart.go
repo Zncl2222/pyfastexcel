@@ -1,6 +1,8 @@
 package core
 
 import (
+	"fmt"
+
 	"github.com/xuri/excelize/v2"
 )
 
@@ -269,6 +271,8 @@ func (ew *ExcelWriter) addChart(sheet string, charts []interface{}) {
 				HoleSize:   int(getFloat64Value(c, "HoleSize", 75.0)),
 			})
 		}
-		ew.File.AddChart(sheet, cell, comboCharts[0], comboCharts[1:]...)
+		if err := ew.File.AddChart(sheet, cell, comboCharts[0], comboCharts[1:]...); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
