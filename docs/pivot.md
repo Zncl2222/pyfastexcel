@@ -130,4 +130,5 @@ Represents a PivotTable configuration, including data ranges, field settings, an
 | `merge_item`          | `Optional[bool]`                        | Indicates whether to merge items in the pivot table.                                  |
 | `compact_data`        | `Optional[bool]`                        | Indicates whether to display data in compact form.                                    |
 | `show_error`          | `Optional[bool]`                        | Indicates whether to display errors.                                                  |
+| `classic_layout`      | `Optional[bool]`                        | Specifies whether to apply the classic layout style to the pivot table.               |
 | `pivot_table_style_name` | `Optional[str]`                      | Specifies the style for the pivot table, chosen from a predefined set of styles.      |
