@@ -136,8 +136,11 @@ if __name__ == '__main__':
 
 ```
 
-You can also using the `StreamWriter` which was the
-subclass of `Workbook` to write excel row by row, see more in [StreamWriter](https://pyfastexcel.readthedocs.io/en/stable/writer/).
+For row-by-row Excel writing, consider using `StreamWriter`, a
+subclass of Workbook. This class is optimized for streaming large datasets.
+Learn more in the [StreamWriter](https://pyfastexcel.readthedocs.io/en/stable/writer/) documentation.
+
+Explore additional examples in the [FullExamples](https://github.com/Zncl2222/pyfastexcel/tree/main/examples).
 
 ## Documentation
 
