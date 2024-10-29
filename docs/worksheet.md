@@ -793,6 +793,7 @@ ws.add_pivot_table(pivot_table=pivot_table_object)
 | `merge_item`           | `Optional[bool]`         | Whether to merge items.                                                      |
 | `compact_data`         | `Optional[bool]`         | Whether to display data in a compact form.                                   |
 | `show_error`           | `Optional[bool]`         | Whether to display errors in the pivot table.                                |
+| `classic_layout`       | `Optional[bool]`          | Specifies whether to apply the classic layout style to the pivot table.      |
 | `pivot_table_style_name` | `Optional[str]`         | The style name to apply to the pivot table.                                  |
 
 ```python title='Add PivotTable'
