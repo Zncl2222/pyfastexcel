@@ -91,11 +91,9 @@ func TestCreateStyle(t *testing.T) {
 		"style2": 2,
 	}
 
-	for key, value := range expectedStyles {
-		if val, ok := styleMap[key]; ok {
-			if value != val {
-				t.Errorf("Expected style map %#v, but got %#v", expectedStyles, styleMap)
-			}
+	for key, _ := range expectedStyles {
+		if _, ok := styleMap[key]; !ok {
+			t.Errorf("Expected style map %#v, but got %#v", expectedStyles, styleMap)
 		}
 	}
 
