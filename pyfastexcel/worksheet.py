@@ -144,9 +144,10 @@ class WorkSheetBase:
         self._data[row][col] = (self._data[row][col][0], style)
 
     def _apply_style_to_slice_target(self, target: slice, style: str) -> None:
-        start_row, start_col, _, col_stop = self._extract_slice_indices(target)
-        for col in range(start_col, col_stop + 1):
-            self._data[start_row][col] = (self._data[start_row][col][0], style)
+        start_row, start_col, stop_row, stop_col = self._extract_slice_indices(target)
+        for row in range(start_row, stop_row + 1):
+            for col in range(start_col, stop_col + 1):
+                self._data[row][col] = (self._data[row][col][0], style)
 
     def _apply_style_to_list_target(self, target: list[int, int], style: str) -> None:
         row = target[0]
@@ -467,6 +468,7 @@ class WorkSheet(WorkSheetBase):
         if isinstance(target, str):
             if ':' in target:
                 target = transfer_string_slice_to_slice(target)
+                print(target)
                 self._apply_style_to_slice_target(target, style)
             else:
                 self._apply_style_to_string_target(target, style)
