@@ -225,6 +225,9 @@ ws.set_style('B1', 'bold_style')
 ws.set_style('C1:E1', 'bold_style')
 ws.set_style(slice('F1', 'H1'), 'bold_style')
 
+# Set style across the row
+ws.set_style("C1:E3", 'bold_style')
+
 # Set style with the row and column index ([0, 8] = 'I1')
 ws.set_style([0, 8], 'bold_style')
 ```
