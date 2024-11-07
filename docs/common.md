@@ -48,8 +48,8 @@ Converts an index to an Excel column name.
 |--------------|-------------|--------------------------|
 | `index`      | int         | The index                |
 
-```python title="column_to_index"
+```python title="index_to_column"
 from pyfastexcel.utils import index_to_column
 
-column = column_to_index(1) # column = 'A'
+column = index_to_column(1) # column = 'A'
 ```
