@@ -30,3 +30,7 @@ $(SHARED_LIBRARY): $(GO_SOURCE)
 clean:
 	@echo "Cleaning up..."
 	$(CLEAN_CMD)
+
+test:
+	@echo "Running tests with pytest..."
+	pytest -s -v --cov --cov-report=term --cov-report=html
