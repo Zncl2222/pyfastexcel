@@ -216,6 +216,28 @@ class Workbook(ExcelDriver):
         active_pane: Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', ''] = '',
         selection: Optional[SetPanesSelection | list[Selection] | Selection] = None,
     ) -> None:
+        """
+        Sets the panes for the worksheet with options for freezing, splitting, and selection.
+
+        Args:
+            sheet (str): The name of the sheet.
+            freeze (bool): Whether to freeze the panes.
+            split (bool): Whether to split the panes.
+            x_split (int): The column position to split or freeze.
+            y_split (int): The row position to split or freeze.
+            top_left_cell (str): The top-left cell in the split or frozen panes.
+            active_pane (Literal['bottomLeft', 'bottomRight', 'topLeft', 'topRight', '']):
+            The active pane.
+            selection (Optional[SetPanesSelection | list[Selection]]): The selection
+            details for the panes.
+
+        Raises:
+            ValueError: If x_split or y_split is negative, or if active_pane is
+                invalid.
+
+        Returns:
+            None
+        """
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_panes(
             freeze=freeze,
@@ -236,6 +258,23 @@ class Workbook(ExcelDriver):
         drop_list: Optional[list[str | int | float] | str] = None,
         error_msg: Optional[list[str]] = None,
     ):
+        """
+        Set data validation for the specified range.
+
+        Args:
+            sheet (str): The name of the sheet.
+            sq_ref (str): The range to set the data validation.
+            set_range (list[int | float]): The range of values to set the data validation.
+            input (list[str]): The input message for the data validation.
+            drop_list (list[str] | str): The drop list for the data validation.
+            error (list[str]): The error message for the data validation.
+
+        Raises:
+            ValueError: If the range is invalid.
+
+        Returns:
+            None
+        """
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].set_data_validation(
             sq_ref=sq_ref,
@@ -276,6 +315,23 @@ class Workbook(ExcelDriver):
         hidden: bool = False,
         engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
+        """
+        Groups columns between start_col and end_col with specified outline
+        level and visibility.
+
+        Args:
+            sheet (str): The name of the sheet.
+            start_col (str): The starting column to group.
+            end_col (Optional[str]): The ending column to group. If None, only
+            start_col will be grouped.
+            outline_level (int): The outline level of the group.
+            hidden (bool): Whether the grouped columns should be hidden.
+            engine (Literal['pyfastexcel', 'openpyxl']): The engine to use for
+            grouping.
+
+        Returns:
+            None
+        """
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].group_columns(
             start_col,
@@ -294,6 +350,23 @@ class Workbook(ExcelDriver):
         hidden: bool = False,
         engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel',
     ):
+        """
+        Groups rows between start_row and end_row with specified outline level
+        and visibility.
+
+        Args:
+            sheet (str): The name of the sheet.
+            start_row (int): The starting row to group.
+            end_row (Optional[int]): The ending row to group. If None,
+            only start_row will be grouped.
+            outline_level (int): The outline level of the group.
+            hidden (bool): Whether the grouped rows should be hidden.
+            engine (Literal['pyfastexcel', 'openpyxl']): The engine to use for
+            grouping.
+
+        Returns:
+            None
+        """
         self._check_if_sheet_exists(sheet)
         self.workbook[sheet].group_rows(
             start_row,
@@ -315,6 +388,24 @@ class Workbook(ExcelDriver):
         show_column_stripes: bool = True,
         validate_table: bool = True,
     ):
+        """
+        Creates a table within the specified cell range with given style and display options.
+
+        Args:
+            sheet (str): The name of the sheet.
+            cell_range (str): The cell range where the table should be created (e.g., 'A1:D10').
+            name (str): The name of the table.
+            style_name (str): The style to apply to the table. Defaults to an empty string, which
+            applies the default style.
+            show_first_column (bool): Whether to emphasize the first column.
+            show_last_column (bool): Whether to emphasize the last column.
+            show_row_stripes (bool): Whether to show row stripes for alternate row shading.
+            show_column_stripes (bool): Whether to show column stripes for alternate column shading.
+            validate_table (bool): Whether to validate the table through TableFinalValidation.
+
+        Returns:
+            None
+        """
         self._check_if_sheet_exists(sheet)
         self.workbook[self.sheet].create_table(
             cell_range,
