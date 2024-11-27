@@ -18,7 +18,7 @@ from .chart import (
     ChartDimension,
 )
 from .pivot import PivotTable, PivotTableField
-from .style import StyleManager
+from .manager import StyleManager
 from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import (
     CommentText,

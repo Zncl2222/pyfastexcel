@@ -12,7 +12,7 @@ import msgspec
 
 from .style import CustomStyle
 from .logformatter import formatter
-from .style import StyleManager
+from .manager import StyleManager
 from .worksheet import WorkSheet
 from .validators import TableFinalValidation
 from ._typing import Writable
