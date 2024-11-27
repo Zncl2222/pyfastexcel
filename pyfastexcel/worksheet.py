@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Literal, Optional, List, overload
 
-from openpyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 from pydantic import validate_call as pydantic_validate_call
 
 from .chart import (
@@ -468,7 +468,6 @@ class WorkSheet(WorkSheetBase):
         if isinstance(target, str):
             if ':' in target:
                 target = transfer_string_slice_to_slice(target)
-                print(target)
                 self._apply_style_to_slice_target(target, style)
             else:
                 self._apply_style_to_string_target(target, style)

@@ -5,14 +5,12 @@ import ctypes
 import logging
 import sys
 from datetime import datetime, timezone
-from io import BytesIO
 from pathlib import Path
 from typing import overload
 
 import msgspec
-from openpyxl import load_workbook
-from openpyxl_style_writer import CustomStyle
 
+from .style import CustomStyle
 from .logformatter import formatter
 from .style import StyleManager
 from .worksheet import WorkSheet
@@ -154,17 +152,8 @@ class ExcelDriver:
         self._create_style()
 
         # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
-        set_group_columns = False
-        set_row_columns = False
-        use_openpyxl = False
         for sheet in self._sheet_list:
             self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
-            if self.workbook[sheet]._excel_engine == 'openpyxl':
-                use_openpyxl = True
-            if len(self.workbook[sheet]._grouped_columns_list) != 0:
-                set_group_columns = True
-            if len(self.workbook[sheet]._grouped_rows_list) != 0:
-                set_row_columns = True
             if len(self.workbook[sheet]._table_list) != 0:
                 TableFinalValidation(
                     data=self.workbook[sheet]._data,
@@ -189,41 +178,7 @@ class ExcelDriver:
         free_pointer(byte_data, 1 if self.DEBUG else 0)
         StyleManager.reset_style_configs()
 
-        # Due to Streaming API of Excelize can't group column currently
-        # So implement this function by openpyxl
-        if (set_group_columns or set_row_columns) and use_openpyxl is True:
-            logger.info('Using openpyxl to group columns and rows...')
-            self.decoded_bytes = self._set_group_columns_and_group_rows()
-
         return self.decoded_bytes
-
-    def _set_group_columns_and_group_rows(self):
-        wb = load_workbook(BytesIO(self.decoded_bytes))
-        for sheet in self._sheet_list:
-            grouped_columns = self.workbook[sheet]._grouped_columns_list
-            ws = wb[sheet]
-            for col in grouped_columns:
-                ws.column_dimensions.group(
-                    col['start_col'],
-                    col['end_col'],
-                    outline_level=col['outline_level'],
-                    hidden=col['hidden'],
-                )
-            grouped_rows = self.workbook[sheet]._grouped_rows_list
-            for row in grouped_rows:
-                ws.row_dimensions.group(
-                    row['start_row'],
-                    row['end_row'],
-                    outline_level=row['outline_level'],
-                    hidden=row['hidden'],
-                )
-
-        # Save the workbook to a BytesIO stream
-        excel_stream = BytesIO()
-        wb.save(excel_stream)
-        decoded_bytes = excel_stream.getvalue()
-        excel_stream.close()
-        return decoded_bytes
 
     def _read_lib(self, lib_path: str) -> ctypes.CDLL:  # pragma: no cover
         """
@@ -280,7 +235,6 @@ class ExcelDriver:
         """
         style_collections = self._get_style_collections()
         self.style._STYLE_NAME_MAP.update({val: key for key, val in style_collections.items()})
-
         # Set the CustomStyle from the pre-defined class attributes.
         for key, val in style_collections.items():
             self.style._update_style_map(key, val)

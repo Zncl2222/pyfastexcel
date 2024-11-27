@@ -9,7 +9,7 @@ import warnings
 from pydantic.dataclasses import dataclass
 from typing import Any, Literal
 
-from openpyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 
 warnings.simplefilter('always', DeprecationWarning)
 
@@ -77,7 +77,7 @@ def validate_and_register_style(style: CustomStyle) -> None:
         raise TypeError(
             f'Invalid type ({type(style)}). Style should be a CustomStyle object.',
         )
-    set_custom_style(f'Custom Style {StyleManager._STYLE_ID}', style)
+    StyleManager.set_custom_style(f'Custom Style {StyleManager._STYLE_ID}', style)
     StyleManager._STYLE_ID += 1
 
 
