@@ -1,5 +1,5 @@
 import pytest
-from openpyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 
 from pyfastexcel.utils import (
     _separate_alpha_numeric,

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import pytest
-from openpyxl.styles import Side
-from openpyxl_style_writer import CustomStyle
+
+from pyfastexcel import CustomStyle
+from pyfastexcel.style import BorderStyle
 
 from pyfastexcel import StreamWriter
 from pyfastexcel.utils import set_custom_style
@@ -11,30 +12,29 @@ font_params = {
     'size': 11,
     'bold': True,
     'italic': True,
-    'color': 'FF000000',
+    'color': '000000',
     'vertAlign': 'baseline',
     'strike': True,
     'name': 'Calibri',
-    'family': 1,
     'underline': 'doubleAccounting',
 }
 
 fill_params = {
     'fill_type': 'solid',
-    'start_color': 'FFFFFFFF',
-    'end_color': 'FF000000',
+    'start_color': 'FFFFFF',
+    'end_color': '000000',
 }
 
 border_params = {
-    'left': Side(style='thin', color='FF000000'),
-    'right': Side(style='thick', color='FF000000'),
-    'top': Side(style='dotted', color='FF000000'),
-    'bottom': Side(style='dashDot', color='FF000000'),
-    'diagonal': Side(style='hair', color='FF000000'),
+    'left': BorderStyle(style='thin', color='000000'),
+    'right': BorderStyle(style='thick', color='000000'),
+    'top': BorderStyle(style='dotted', color='000000'),
+    'bottom': BorderStyle(style='dashDot', color='000000'),
+    'diagonal': BorderStyle(style='hair', color='000000'),
     'diagonal_direction': 1,
-    'outline': Side(style='medium', color='FF000000'),
-    'vertical': Side(style='mediumDashed', color='FF000000'),
-    'horizontal': Side(style='slantDashDot', color='FF000000'),
+    'outline': BorderStyle(style='medium', color='000000'),
+    'vertical': BorderStyle(style='mediumDashed', color='000000'),
+    'horizontal': BorderStyle(style='slantDashDot', color='000000'),
 }
 
 ali_params = {
@@ -65,13 +65,13 @@ def prepare_example_data(rows: int = 1000, cols: int = 10) -> list[dict[str, str
 class StyleCollections:
     black_fill_style = CustomStyle(
         font_name='Time News Roman',
-        font_size='11',
+        font_size=11,
         font_bold=True,
         font_color='F62B00',
         fill_color='000000',
     )
     green_fill_style = CustomStyle(
-        font_size='29',
+        font_size=29,
         font_bold=False,
         font_color='000000',
         fill_color='375623',
@@ -88,10 +88,10 @@ class StyleCollections:
             'fgColor': '375623',
         },
         border_params={
-            'left': Side(style='thin', color='e12aeb'),
-            'right': Side(style='thick', color='e12aeb'),
-            'top': Side(style=None, color='e12aeb'),
-            'bottom': Side(style='dashDot', color='e12aeb'),
+            'left': BorderStyle(style='thin', color='e12aeb'),
+            'right': BorderStyle(style='thick', color='e12aeb'),
+            'top': BorderStyle(style=None, color='e12aeb'),
+            'bottom': BorderStyle(style='dashDot', color='e12aeb'),
         },
         ali_params={
             'wrapText': True,

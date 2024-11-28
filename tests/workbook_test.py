@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import pytest
-from openpyxl_style_writer import CustomStyle
 
-from pyfastexcel import Workbook
+from pyfastexcel import CustomStyle, Workbook
 from pyfastexcel.utils import CommentText, Selection
 from pyfastexcel._typing import SelectionDict
 
@@ -312,7 +311,7 @@ def test_save_workbook():
 
 
 def test_if_style_is_reset():
-    from pyfastexcel.style import StyleManager
+    from pyfastexcel.manager import StyleManager
 
     wb = Workbook()
     style = CustomStyle(font_size=11, font_color='000000')
@@ -367,7 +366,7 @@ def test_if_style_is_reset():
     ],
 )
 def test_set_style_with_str(target, expected_output1):
-    from pyfastexcel.style import StyleManager
+    from pyfastexcel.manager import StyleManager
     from pyfastexcel.utils import set_custom_style
 
     wb = Workbook()
@@ -397,7 +396,7 @@ def test_set_style_with_str(target, expected_output1):
     ],
 )
 def test_set_style_with_silce(target, expected_output1):
-    from pyfastexcel.style import StyleManager
+    from pyfastexcel.manager import StyleManager
     from pyfastexcel.utils import set_custom_style
 
     wb = Workbook()
@@ -434,7 +433,7 @@ def test_set_style_with_silce(target, expected_output1):
     ],
 )
 def test_set_style_with_list(row, target, expected_output1):
-    from pyfastexcel.style import StyleManager
+    from pyfastexcel.manager import StyleManager
     from pyfastexcel.utils import set_custom_style
 
     wb = Workbook()
@@ -843,14 +842,14 @@ def test_add_comment_failed_text(text):
 @pytest.mark.parametrize(
     'start, end, level, hidden, engine',
     [
-        ('A', 'A', 1, True, 'openpyxl'),
-        ('A', 'C', 12, True, 'openpyxl'),
-        ('A', 'D', 3, True, 'openpyxl'),
-        ('A', 'XD', 1, True, 'openpyxl'),
-        ('A', 'A', 1, False, 'openpyxl'),
-        ('A', 'C', 12, False, 'openpyxl'),
-        ('A', 'D', 3, False, 'openpyxl'),
-        ('A', 'XD', 1, False, 'openpyxl'),
+        # ('A', 'A', 1, True, 'openpyxl'),
+        # ('A', 'C', 12, True, 'openpyxl'),
+        # ('A', 'D', 3, True, 'openpyxl'),
+        # ('A', 'XD', 1, True, 'openpyxl'),
+        # ('A', 'A', 1, False, 'openpyxl'),
+        # ('A', 'C', 12, False, 'openpyxl'),
+        # ('A', 'D', 3, False, 'openpyxl'),
+        # ('A', 'XD', 1, False, 'openpyxl'),
         ('A', 'A', 1, True, 'pyfastexcel'),
         ('A', 'C', 12, True, 'pyfastexcel'),
         ('A', 'D', 3, True, 'pyfastexcel'),
@@ -880,16 +879,16 @@ def test_group_column_openpyxl(start, end, level, hidden, engine):
 @pytest.mark.parametrize(
     'start, end, level, hidden, engine',
     [
-        (1, 1, 1, True, 'openpyxl'),
-        (1, 3, 12, True, 'openpyxl'),
-        (1, 4, 3, True, 'openpyxl'),
-        (1, 2445, 1, True, 'openpyxl'),
-        (1, 1, 1, False, 'openpyxl'),
-        (1, 3, 12, False, 'openpyxl'),
-        (1, 4, 3, False, 'openpyxl'),
-        (1, 2445, 1, False, 'openpyxl'),
-        (1, None, 1, False, 'openpyxl'),
-        (1, None, 1, False, 'openpyxl'),
+        # (1, 1, 1, True, 'openpyxl'),
+        # (1, 3, 12, True, 'openpyxl'),
+        # (1, 4, 3, True, 'openpyxl'),
+        # (1, 2445, 1, True, 'openpyxl'),
+        # (1, 1, 1, False, 'openpyxl'),
+        # (1, 3, 12, False, 'openpyxl'),
+        # (1, 4, 3, False, 'openpyxl'),
+        # (1, 2445, 1, False, 'openpyxl'),
+        # (1, None, 1, False, 'openpyxl'),
+        # (1, None, 1, False, 'openpyxl'),
         (1, 1, 1, True, 'pyfastexcel'),
         (1, 3, 12, True, 'pyfastexcel'),
         (1, 4, 3, True, 'pyfastexcel'),
