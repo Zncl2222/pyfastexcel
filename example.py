@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 
-from openpyxl.styles import Side
+from pyfastexcel.style import BorderStyle
 
 from pyfastexcel import CustomStyle, StreamWriter, Workbook
 from pyfastexcel.utils import set_custom_style
@@ -46,16 +46,17 @@ class StyleCollections:
             'fgColor': '375623',
         },
         border_params={
-            'left': Side(style='thin', color='e12aeb'),
-            'right': Side(style='thick', color='e12aeb'),
-            'top': Side(style=None, color='e12aeb'),
-            'bottom': Side(style='dashDot', color='e12aeb'),
+            'left': BorderStyle(style='thin', color='e12aeb'),
+            'right': BorderStyle(style='thick', color='e12aeb'),
+            'top': BorderStyle(style=None, color='e12aeb'),
+            'bottom': BorderStyle(style='dashDot', color='e12aeb'),
         },
         ali_params={
             'wrapText': True,
             'shrinkToFit': True,
         },
         number_format='0.00%',
+        protect=True,
     )
 
 
