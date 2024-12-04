@@ -230,10 +230,10 @@ class DefaultStyle:
         cls.border_color_left = kwargs.get('border_color_left', cls.border_color_left)
         cls.border_color_bottom = kwargs.get('border_color_bottom', cls.border_color_bottom)
 
-        cls.apply_settings()
+        cls._apply_default_settings()
 
     @classmethod
-    def apply_settings(cls):
+    def _apply_default_settings(cls):
         cls.font = (
             Font(**cls.font_params)
             if cls.font_params
@@ -274,6 +274,11 @@ class DefaultStyle:
             )
         )
 
+    def __repr__(self) -> str:
+        return (
+            f'CustomStyle(font={self.font}, fill={self.fill}, ali={self.ali}, border={self.border}'
+        )
+
 
 class CustomStyle(DefaultStyle):
     def __init__(self, **kwargs):
@@ -310,9 +315,9 @@ class CustomStyle(DefaultStyle):
         self.border_color_left = kwargs.get('border_color_left', self.border_color_left)
         self.border_color_bottom = kwargs.get('border_color_bottom', self.border_color_bottom)
 
-        self.apply_settings()
+        self._apply_settings()
 
-    def apply_settings(self):
+    def _apply_settings(self):
         self.font = (
             Font(**self.font_params)
             if self.font_params
@@ -357,6 +362,3 @@ class CustomStyle(DefaultStyle):
         cloned_style = copy.deepcopy(self)
         cloned_style.set_custom_style(**kwargs)
         return cloned_style
-
-    def __repr__(self) -> str:
-        return f'CustomStyle(font={self.font}, fill={self.fill}, ali={self.ali}, border={self.border}, '
