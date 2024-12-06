@@ -3,21 +3,20 @@ from __future__ import annotations
 import pytest
 
 from pyfastexcel import Workbook
-from pyfastexcel.worksheet import WorkSheet
-
-from pyfastexcel.enums import ChartType, ChartLineType, ChartDataLabelPosition, MarkerSymbol
 from pyfastexcel.chart import (
-    ChartSeries,
-    GraphicOptions,
-    RichTextRun,
-    Font,
-    ChartAxis,
-    ChartLegend,
-    Marker,
     Chart,
+    ChartAxis,
     ChartCustomNumFmt,
+    ChartLegend,
+    ChartSeries,
+    Font,
+    GraphicOptions,
     Line,
+    Marker,
+    RichTextRun,
 )
+from pyfastexcel.enums import ChartDataLabelPosition, ChartLineType, ChartType, MarkerSymbol
+from pyfastexcel.worksheet import WorkSheet
 
 
 def get_wb() -> tuple[Workbook, WorkSheet]:

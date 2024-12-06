@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import pytest
-
-from pyfastexcel import CustomStyle, Workbook
-from pyfastexcel.utils import CommentText, Selection
-from pyfastexcel._typing import SelectionDict
-
 from pydantic import ValidationError
 
+from pyfastexcel import CustomStyle, Workbook
+from pyfastexcel._typing import SelectionDict
+from pyfastexcel.utils import CommentText, Selection
 
 style_for_set_custom_style = CustomStyle(font_color='fcfcfc')
 

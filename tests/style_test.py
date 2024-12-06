@@ -1,5 +1,6 @@
 import pytest
-from pyfastexcel import DefaultStyle, CustomStyle
+
+from pyfastexcel import CustomStyle, DefaultStyle
 from pyfastexcel.style import BorderStyle
 
 

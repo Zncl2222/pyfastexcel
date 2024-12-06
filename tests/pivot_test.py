@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import pytest
 import random
 
-from pyfastexcel import Workbook
+import pytest
 
-from pyfastexcel.pivot import PivotTable, PivotTableField
+from pyfastexcel import Workbook
 from pyfastexcel.enums import PivotSubTotal
+from pyfastexcel.pivot import PivotTable, PivotTableField
 
 
 def get_wb():

@@ -1,6 +1,6 @@
 import pytest
-from pyfastexcel import CustomStyle
 
+from pyfastexcel import CustomStyle
 from pyfastexcel.utils import (
     _separate_alpha_numeric,
     _validate_cell_reference,
@@ -150,6 +150,7 @@ def test_comment_text():
 
 def test_colored_formatter():
     import logging
+
     from pyfastexcel.logformatter import ColoredFormatter
 
     formatter = ColoredFormatter('%(levelname)s: %(message)s')
@@ -177,6 +178,7 @@ def test_colored_formatter():
 
 def test_set_debug_level():
     import logging
+
     from pyfastexcel import set_debug_level
 
     set_debug_level(logging.INFO)

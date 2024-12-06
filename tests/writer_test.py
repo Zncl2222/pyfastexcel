@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from pyfastexcel import CustomStyle
+from pyfastexcel import CustomStyle, StreamWriter
 from pyfastexcel.style import BorderStyle
-
-from pyfastexcel import StreamWriter
 from pyfastexcel.utils import set_custom_style
 
 font_params = {
