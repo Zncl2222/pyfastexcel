@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import copy
+from typing import Any, ClassVar, Literal, Optional
 
 from pydantic import BaseModel, Field
-
-from typing import Optional, Literal, Any, ClassVar
 
 
 class Font(BaseModel):

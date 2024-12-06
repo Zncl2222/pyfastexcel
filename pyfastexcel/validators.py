@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
-from typing import Any, Optional, Literal
 
-from ._typing import CommentTextStructure, SetPanesSelection, Self
+from ._typing import CommentTextStructure, Self, SetPanesSelection
 from .logformatter import formatter
-from .utils import CommentText, Selection, cell_reference_to_index, _validate_cell_reference
+from .utils import CommentText, Selection, _validate_cell_reference, cell_reference_to_index
 
 logger = logging.getLogger(__name__)
 style_formatter = logging.StreamHandler()

@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import time
 
-from pyfastexcel.style import BorderStyle
-
 from pyfastexcel import CustomStyle, StreamWriter, Workbook
+from pyfastexcel.style import BorderStyle
 from pyfastexcel.utils import set_custom_style
 
 

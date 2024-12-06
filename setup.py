@@ -1,6 +1,6 @@
-from setuptools import setup
 import platform
 
+from setuptools import setup
 
 if platform.system() == 'Windows':
     ext_files = ['*.dll']

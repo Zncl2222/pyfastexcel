@@ -1,19 +1,19 @@
 import random
 
 from pyfastexcel import CustomStyle, Workbook
-from pyfastexcel.worksheet import WorkSheet
-from pyfastexcel.utils import CommentText, Selection, set_custom_style
 from pyfastexcel.chart import (
     Chart,
-    ChartSeries,
-    RichTextRun,
-    Font,
     ChartAxis,
     ChartLegend,
+    ChartSeries,
     Fill,
+    Font,
     Marker,
+    RichTextRun,
 )
 from pyfastexcel.pivot import PivotTable, PivotTableField
+from pyfastexcel.utils import CommentText, Selection, set_custom_style
+from pyfastexcel.worksheet import WorkSheet
 
 
 def setup(wb: Workbook, sheet_name: str) -> WorkSheet:

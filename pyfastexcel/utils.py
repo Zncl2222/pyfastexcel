@@ -4,10 +4,10 @@ import logging
 import re
 import string
 import warnings
+from typing import Any, Literal
 
 # from dataclasses import dataclass
 from pydantic.dataclasses import dataclass
-from typing import Any, Literal
 
 from pyfastexcel import CustomStyle
 

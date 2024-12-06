@@ -10,12 +10,12 @@ from typing import overload
 
 import msgspec
 
-from .style import CustomStyle
+from ._typing import Writable
 from .logformatter import formatter
 from .manager import StyleManager
-from .worksheet import WorkSheet
+from .style import CustomStyle
 from .validators import TableFinalValidation
-from ._typing import Writable
+from .worksheet import WorkSheet
 
 BASE_DIR = Path(__file__).resolve().parent
 
