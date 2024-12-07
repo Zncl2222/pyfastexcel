@@ -8,7 +8,6 @@ contourpy
 coverage[toml]
 cycler
 distlib
-et-xmlfile
 eval-type-backport
 execnet
 filelock
@@ -20,8 +19,6 @@ matplotlib
 msgspec
 nodeenv
 numpy
-openpyxl
-openpyxl-style-writer
 packaging
 pandas
 pillow

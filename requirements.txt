@@ -1,10 +1,6 @@
 -i https://pypi.org/simple
 annotated-types
-et-xmlfile
-eval-type-backport
 msgspec
-openpyxl
-openpyxl-style-writer
 pydantic
 pydantic-core
 typing-extensions

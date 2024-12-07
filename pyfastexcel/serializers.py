@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, field_serializer, model_serializer
 from typing import Any, Optional
+
+from pydantic import BaseModel, field_serializer, model_serializer
 
 from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import CommentText, Selection, _validate_cell_reference

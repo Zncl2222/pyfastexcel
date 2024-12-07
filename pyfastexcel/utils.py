@@ -4,12 +4,12 @@ import logging
 import re
 import string
 import warnings
+from typing import Any, Literal
 
 # from dataclasses import dataclass
 from pydantic.dataclasses import dataclass
-from typing import Any, Literal
 
-from openpyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 
 warnings.simplefilter('always', DeprecationWarning)
 
@@ -65,19 +65,19 @@ def deprecated_warning(msg: str):
 
 
 def set_custom_style(style_name: str, style: CustomStyle) -> None:
-    from .style import StyleManager
+    from .manager import StyleManager
 
     StyleManager.set_custom_style(style_name, style)
 
 
 def validate_and_register_style(style: CustomStyle) -> None:
-    from .style import StyleManager
+    from .manager import StyleManager
 
     if not isinstance(style, CustomStyle):
         raise TypeError(
             f'Invalid type ({type(style)}). Style should be a CustomStyle object.',
         )
-    set_custom_style(f'Custom Style {StyleManager._STYLE_ID}', style)
+    StyleManager.set_custom_style(f'Custom Style {StyleManager._STYLE_ID}', style)
     StyleManager._STYLE_ID += 1
 
 

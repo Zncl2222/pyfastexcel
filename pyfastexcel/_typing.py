@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal, Protocol, Optional, List, Union, TypeVar
+from typing import List, Literal, Optional, Protocol, TypeVar, Union
+
 from typing_extensions import TypedDict
 
 

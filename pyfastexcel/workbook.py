@@ -1,26 +1,26 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, overload, List
+from typing import List, Literal, Optional, overload
+
+from pydantic import validate_call as pydantic_validate_call
 
 from pyfastexcel.driver import ExcelDriver, WorkSheet
 from pyfastexcel.utils import deprecated_warning
 
-from pydantic import validate_call as pydantic_validate_call
-
+from ._typing import CommentTextStructure, SetPanesSelection
 from .chart import (
     Chart,
-    ChartSeries,
-    GraphicOptions,
-    RichTextRun,
-    ChartLegend,
     ChartAxis,
-    ChartPlotArea,
-    Fill,
-    Line,
     ChartDimension,
+    ChartLegend,
+    ChartPlotArea,
+    ChartSeries,
+    Fill,
+    GraphicOptions,
+    Line,
+    RichTextRun,
 )
 from .pivot import PivotTable, PivotTableField
-from ._typing import CommentTextStructure, SetPanesSelection
 from .utils import CommentText, Selection
 
 

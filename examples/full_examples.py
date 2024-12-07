@@ -1,20 +1,19 @@
 import random
 
 from pyfastexcel import CustomStyle, Workbook
-from pyfastexcel.worksheet import WorkSheet
-
-from pyfastexcel.utils import CommentText, Selection, set_custom_style
 from pyfastexcel.chart import (
     Chart,
-    ChartSeries,
-    RichTextRun,
-    Font,
     ChartAxis,
     ChartLegend,
+    ChartSeries,
     Fill,
+    Font,
     Marker,
+    RichTextRun,
 )
 from pyfastexcel.pivot import PivotTable, PivotTableField
+from pyfastexcel.utils import CommentText, Selection, set_custom_style
+from pyfastexcel.worksheet import WorkSheet
 
 
 def setup(wb: Workbook, sheet_name: str) -> WorkSheet:
@@ -53,12 +52,39 @@ def setup(wb: Workbook, sheet_name: str) -> WorkSheet:
 
 def set_style(wb: Workbook):
     ws = setup(wb, 'SetStyle')
-    red_font = CustomStyle(font_color='FF0000')
+    red_font = CustomStyle(
+        font_color='FF0000',
+        bold=True,
+        italic=True,
+    )
     green_font = CustomStyle(font_color='00FF00')
+    bold_font = CustomStyle(font_bold=True, font_size=30)
     black_fill = CustomStyle(fill_color='000000')
-
+    ali_horizontal_top = CustomStyle(ali_horizontal='top')
+    ali_horizontal_right = CustomStyle(ali_horizontal='right')
+    border_style = CustomStyle(
+        border_style_left='thin',
+        border_style_right='dotted',
+        border_style_top='dashed',
+        border_style_bottom='mediumDashDotDot',
+        border_color_left='FF0000',
+        border_color_right='00FF00',
+        border_color_top='0000FF',
+        border_color_bottom='e12aeb',
+    )
+    font_params = {
+        'italic': True,
+        'strike': True,
+        'underline': 'single',
+    }
+    italic_font = CustomStyle(font_params=font_params)
     ws.set_style('A1', red_font)
     ws.set_style('B1', green_font)
+    ws.set_style('A2', bold_font)
+    ws.set_style('B2', ali_horizontal_top)
+    ws.set_style('C2', ali_horizontal_right)
+    ws.set_style('D2', italic_font)
+    ws.set_style('A3', border_style)
 
     set_custom_style('black_fill', black_fill)
     ws.set_style('C1', 'black_fill')

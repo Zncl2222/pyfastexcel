@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator, field_serializer
 from typing import Optional
 
-from .enums import PivotSubTotal
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
+from .enums import PivotSubTotal
 
 _pivot_table_style_config = ('PivotStyleLight', 'PivotStyleMedium', 'PivotStyleDark')
 

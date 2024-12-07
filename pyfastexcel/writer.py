@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from openpyxl_style_writer import CustomStyle
+from pyfastexcel import CustomStyle
 
 from .utils import validate_and_format_value, validate_and_register_style
 from .workbook import Workbook

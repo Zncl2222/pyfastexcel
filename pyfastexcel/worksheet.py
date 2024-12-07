@@ -1,38 +1,39 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Optional, List, overload
+from typing import Any, List, Literal, Optional, overload
 
-from openpyxl_style_writer import CustomStyle
 from pydantic import validate_call as pydantic_validate_call
 
+from pyfastexcel import CustomStyle
+
+from ._typing import CommentTextStructure, SetPanesSelection
 from .chart import (
     Chart,
-    ChartSeries,
-    GraphicOptions,
-    RichTextRun,
-    ChartLegend,
     ChartAxis,
-    ChartPlotArea,
-    Fill,
-    Line,
     ChartDimension,
+    ChartLegend,
+    ChartPlotArea,
+    ChartSeries,
+    Fill,
+    GraphicOptions,
+    Line,
+    RichTextRun,
 )
+from .manager import StyleManager
 from .pivot import PivotTable, PivotTableField
-from .style import StyleManager
-from ._typing import CommentTextStructure, SetPanesSelection
+from .serializers import CommentSerializer, DataValidationSerializer, PanesSerializer
 from .utils import (
     CommentText,
     Selection,
     _separate_alpha_numeric,
+    cell_reference_to_index,
     column_to_index,
     deprecated_warning,
-    cell_reference_to_index,
+    transfer_string_slice_to_slice,
     validate_and_format_value,
     validate_and_register_style,
-    transfer_string_slice_to_slice,
 )
 from .validators import validate_call
-from .serializers import CommentSerializer, PanesSerializer, DataValidationSerializer
 
 
 class WorkSheetBase:
@@ -468,7 +469,6 @@ class WorkSheet(WorkSheetBase):
         if isinstance(target, str):
             if ':' in target:
                 target = transfer_string_slice_to_slice(target)
-                print(target)
                 self._apply_style_to_slice_target(target, style)
             else:
                 self._apply_style_to_string_target(target, style)

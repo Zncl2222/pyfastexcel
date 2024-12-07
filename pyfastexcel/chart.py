@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_serializer
 from typing import List, Literal, Optional
+
+from pydantic import BaseModel, Field, field_serializer
 
 from .enums import ChartDataLabelPosition, ChartLineType, ChartType, MarkerSymbol
 
