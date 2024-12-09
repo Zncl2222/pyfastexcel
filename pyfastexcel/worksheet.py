@@ -938,6 +938,7 @@ class WorkSheet(WorkSheetBase):
         merge_item: Optional[bool] = None,
         compact_data: Optional[bool] = None,
         show_error: Optional[bool] = None,
+        classic_layout: Optional[bool] = None,
         pivot_table_style_name: Optional[str] = None,
     ) -> None:
         """
@@ -963,7 +964,8 @@ class WorkSheet(WorkSheetBase):
                 then left to right.
             merge_item (Optional[bool]): Indicates whether to merge items.
             compact_data (Optional[bool]): Indicates whether to show in a compact form.
-            show_errorOptional[bool]): Indicates whether to show errors.
+            show_error (Optional[bool]): Indicates whether to show errors.
+            classic_layout (Optional[bool]): Indicates to use classic_layout.
             pivot_table_style_name (Optional[str]): Specifies the style the pivot table.
         """
         ...
@@ -990,6 +992,7 @@ class WorkSheet(WorkSheetBase):
         merge_item: Optional[bool] = None,
         compact_data: Optional[bool] = None,
         show_error: Optional[bool] = None,
+        classic_layout: Optional[bool] = None,
         pivot_table_style_name: Optional[str] = None,
     ) -> None:
         if pivot_table is not None:
@@ -1020,6 +1023,7 @@ class WorkSheet(WorkSheetBase):
                 merge_item=merge_item,
                 compact_data=compact_data,
                 show_error=show_error,
+                classic_layout=classic_layout,
                 pivot_table_style_name=pivot_table_style_name,
             )
             self._pivot_table_list.append(pivot_table.model_dump(by_alias=True))

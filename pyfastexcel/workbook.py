@@ -517,6 +517,7 @@ class Workbook(ExcelDriver):
         merge_item: Optional[bool],
         compact_data: Optional[bool],
         show_error: Optional[bool],
+        class_layout: Optional[bool],
         pivot_table_style_name: Optional[str],
     ) -> None: ...
 
@@ -543,6 +544,7 @@ class Workbook(ExcelDriver):
         merge_item: Optional[bool] = None,
         compact_data: Optional[bool] = None,
         show_error: Optional[bool] = None,
+        classic_layout: Optional[bool] = None,
         pivot_table_style_name: Optional[str] = None,
     ) -> None:
         self._check_if_sheet_exists(sheet)
@@ -569,5 +571,6 @@ class Workbook(ExcelDriver):
                 merge_item=merge_item,
                 compact_data=compact_data,
                 show_error=show_error,
+                classic_layout=classic_layout,
                 pivot_table_style_name=pivot_table_style_name,
             )
