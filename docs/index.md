@@ -22,18 +22,6 @@ libraries from Python.
 - No Golang Code Required: Users can solely rely on Python for Excel file
 generation, eliminating the need for Golang expertise.
 
-!!! note "Current Limitations"
-
-    This project currently depends on the `CustomStyle` object of
-    the [openpyxl_style_writer](https://github.com/Zncl2222/openpyxl_style_writer)
-    package, which is built for openpyxl to write styles in write-only
-    mode more efficiently without duplicating code.
-
-!!! info "Future Plans"
-
-    This project plans to create its own `Style` object, making it no longer
-    dependent on the mentioned package.
-
 ## How it Works
 
 The core functionality revolves around encoding Excel cell data and styles,
@@ -49,7 +37,6 @@ The dependency for python and golang
 
 python:
 
-    openpyxl_style_writer (Depends on openpyxl)
     msgspec (for faster json encoding)
     pydantic v2
 
