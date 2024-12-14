@@ -37,16 +37,14 @@ class Fill(BaseModel):
     color: Optional[str] = Field(None, serialization_alias='Color')
     fgColor: Optional[str] = Field(None, serialization_alias='FgColor')
 
-    # pattern is the backward compatibility for openpyxl_style_writer, the real implementation of
-    # excelize should use 'ftype(str)' and 'pattern(int)' both to represent the fill pattern
-    # this conflict should be resolved in the future
-    pattern: Optional[Literal['solid']] = Field('solid', serialization_alias='Pattern')
+    # pattern (str) is the backward compatibility for openpyxl_style_writer
+    # pattern (int) + ftype(Literal['pattern', 'gradient']) is the implementation of excelize
+    pattern: Optional[str | int] = Field('solid', serialization_alias='Pattern')
+    ftype: Optional[Optional[Literal['pattern', 'gradient']]] = Field(
+        'pattern', serialization_alias='Type'
+    )
 
-    # shading is not yet supported
     shading: Optional[int] = Field(None, serialization_alias='Shading', gt=-1, lt=6)
-    # TODO: ftype is not yet supported, ftype has conflict to the 'pattern' in openpyxl_style_writer
-    # we need to find a way to resolve this conflict
-    # ftype: Optional[Literal['pattern', 'gradient', 'solid']] = Field('solid', serialization_alias='Type')
 
 
 class Alignment(BaseModel):
@@ -120,8 +118,10 @@ class DefaultStyle:
     font_color: ClassVar[str] = '000000'
 
     # fill
-    fill_pattern: ClassVar[str] = 'solid'
+    fill_pattern: ClassVar[str | int] = 'solid'
+    fill_type: ClassVar[Optional[str]] = None
     fill_color: ClassVar[Optional[str]] = None
+    fill_shading: ClassVar[Optional[int]] = None
 
     # alignment
     ali_horizontal: ClassVar[Optional[str]] = None
@@ -229,7 +229,12 @@ class DefaultStyle:
         cls.fill = (
             Fill(**cls.fill_params)
             if cls.fill_params
-            else Fill(ftype=cls.fill_pattern, color=cls.fill_color)
+            else Fill(
+                ftype=cls.fill_type,
+                color=cls.fill_color,
+                pattern=cls.fill_pattern,
+                shading=cls.fill_shading,
+            )
         )
         cls.ali = (
             Alignment(**cls.ali_params)
@@ -308,6 +313,9 @@ class CustomStyle(DefaultStyle):
         self.font_bold = kwargs.get('font_bold', self.font_bold)
 
         self.fill_color = kwargs.get('fill_color', self.fill_color)
+        self.fill_pattern = kwargs.get('fill_pattern', self.fill_pattern)
+        self.fill_shading = kwargs.get('fill_shading', self.fill_shading)
+        self.fill_type = kwargs.get('fill_type', self.fill_type)
 
         self.ali_horizontal = kwargs.get('ali_horizontal', self.ali_horizontal)
         self.ali_vertical = kwargs.get('ali_vertical', self.ali_vertical)
@@ -335,7 +343,12 @@ class CustomStyle(DefaultStyle):
         self.fill = (
             Fill(**self.fill_params)
             if self.fill_params
-            else Fill(pattern=self.fill_pattern, color=self.fill_color)
+            else Fill(
+                ftype=self.fill_type,
+                color=self.fill_color,
+                pattern=self.fill_pattern,
+                shading=self.fill_shading,
+            )
         )
         self.ali = (
             Alignment(**self.ali_params)
