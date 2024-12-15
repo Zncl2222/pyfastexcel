@@ -8,18 +8,7 @@ from pydantic import BaseModel, Field
 
 class Font(BaseModel):
     """
-    Defines font settings for text elements in a chart.
-
-    Attributes:
-        bold (Optional[bool]): Specifies if the text is bold.
-        color (Optional[str]): The color of the text.
-        family (Optional[str]): The font family for the text.
-        italic (Optional[bool]): Specifies if the text is italic.
-        size (Optional[float]): The font size for the text.
-        strike (Optional[bool]): Specifies if the text has a strikethrough.
-        underline (Optional[str]): The style of underline for the text.
-        vert_align (Optional[str]): Vertical alignment for the text, such as
-            "baseline", "superscript" or "subscript".
+    Model representing a Font style in Excel.
     """
 
     bold: Optional[bool] = Field(False, serialization_alias='Bold')
@@ -41,14 +30,7 @@ class Font(BaseModel):
 
 class Fill(BaseModel):
     """
-    Describes the fill settings.
-
-    Attributes:
-        ftype (Optional[Literal['pattern', 'gradient']]): The type of fill, either
-            'pattern' or 'gradient'.
-        pattern (Optional[int]): The pattern index for fill (between 0 and 18).
-        color (Optional[str]): The fill color (Only support hex color value).
-        shading (Optional[int]): The shading index for the fill (between 0 and 5).
+    Model representing a Fill style in Excel.
     """
 
     # fgColor is the backward compatibility for openpyxl_style_writer, it is the same as 'color'
@@ -116,6 +98,10 @@ class Protection(BaseModel):
 
 
 class DefaultStyle:
+    """
+    Module for defining and customizing default and custom styles for formatting purposes.
+    """
+
     # params
     font_params: ClassVar[Optional[dict[str, Any]]] = None
     fill_params: ClassVar[Optional[dict[str, Any]]] = None
@@ -281,6 +267,28 @@ class DefaultStyle:
 
 class CustomStyle(DefaultStyle):
     def __init__(self, **kwargs):
+        """
+        Initialize a CustomStyle instance with optional custom styling attributes.
+
+        Args:
+            - font_params (dict): Advanced customization for font settings.
+            - fill_params (dict): Advanced customization for fill settings.
+            - ali_params (dict): Advanced customization for alignment settings.
+            - border_params (dict): Advanced customization for border settings.
+            - number_format (str): Custom number format.
+            - protect (bool): Whether the cells are locked.
+            - hidden (bool): Whether the cells are hidden.
+            - font_name (str): Font name.
+            - font_color (str): Font color in hex format (e.g., 'FF0000').
+            - font_size (int): Font size.
+            - font_bold (bool): Whether the font is bold.
+            - fill_color (str): Fill color in hex format.
+            - ali_horizontal (str): Horizontal alignment (e.g., 'center').
+            - ali_vertical (str): Vertical alignment (e.g., 'top').
+            - ali_wrap_text (bool): Whether text wrapping is enabled.
+            - border_style_* (str): Border styles for top, right, left, and bottom.
+            - border_color_* (str): Border colors for top, right, left, and bottom.
+        """
         super().__init__()
         self.set_custom_style(**kwargs)
 
@@ -358,6 +366,17 @@ class CustomStyle(DefaultStyle):
         )
 
     def clone_and_modify(self, **kwargs):
+        """
+        Create a deep copy of the current CustomStyle instance and modify it with
+        the provided attributes.
+
+        Args:
+            **kwargs: Keyword arguments for the style customization.
+                (Refer to `__init__` for supported parameters.)
+
+        Returns:
+            CustomStyle: A new CustomStyle instance with the modified attributes.
+        """
         cloned_style = copy.deepcopy(self)
         cloned_style.set_custom_style(**kwargs)
         return cloned_style

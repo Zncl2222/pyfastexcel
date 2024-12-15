@@ -12,17 +12,6 @@ from .worksheet import WorkSheet
 class StreamWriter(Workbook):
     """
     A class for writing data to Excel files with or without custom styles.
-
-    Attributes:
-        _row_list (list[Tuple[str, str | CustomStyle]]): A list of tuples
-            representing rows with values and styles.
-        data (list[dict[str, str]]): The data to be written to the Excel file.
-
-    Methods:
-        __init__(data: list[dict[str, str]]): Initializes the StreamWriter.
-        row_append(value: str, style: str | CustomStyle): Appends a value to
-            the row list.
-        create_row(is_header: bool = False): Creates a row in the Excel data.
     """
 
     def __init__(self, data: Optional[list[dict[str, str]]] = None):

@@ -35,12 +35,6 @@ class ExcelDriver:
         _FILE_PROPS (dict[str, str]): Default file properties for the Excel
         file.
         _PROTECT_ALGORITHM (tuple[str]): Algorithm for the workbook protection
-
-    ### Methods:
-        __init__(): Initializes the ExcelDriver.
-        _read_lib(lib_path: str): Reads a library for Excel manipulation.
-        read_lib_and_create_excel(lib_path: str = None): Reads the library and
-                creates the Excel file.
     """
 
     _FILE_PROPS = {
@@ -143,6 +137,7 @@ class ExcelDriver:
 
         Args:
             lib_path (str, optional): The path to the library. Defaults to None.
+            ignore_go_panic (bool): The flag to determine should trigger panic in go.
 
         Returns:
             bytes: The byte data of the created Excel file.
