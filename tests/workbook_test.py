@@ -1020,3 +1020,28 @@ def test_sheet_visible():
 
     with pytest.raises(ValueError):
         wb['Sheet1'].sheet_visible = 'qwe'
+
+
+# This test validates the "fill" model, which supports configurations compatible
+# with both Excelize and openpyxl-style-writer.
+@pytest.mark.parametrize(
+    'custom_style',
+    [
+        (CustomStyle(font_params={'fgColor': '000000'}, fill_params={'fgColor': '000000'})),
+        (CustomStyle(fill_pattern='solid', fill_shading=1)),
+        (CustomStyle(fill_pattern='solid', fill_color='000000')),
+        (CustomStyle(fill_pattern='solid', fill_shading=1)),
+        (CustomStyle(fill_pattern='solid', fill_type='pattern', fill_shading=1)),
+        (CustomStyle(fill_pattern=1, fill_type=None, fill_shading=1)),
+        (CustomStyle(fill_pattern=2, fill_type=None, fill_shading=2)),
+        (CustomStyle(fill_pattern=3, fill_type='pattern', fill_shading=3)),
+    ],
+)
+def test_fill_style(custom_style):
+    wb = Workbook()
+    wb.create_sheet('Sheet2')
+    ws = wb['Sheet2']
+
+    ws[0] = [(1, custom_style)]
+
+    wb.read_lib_and_create_excel()
