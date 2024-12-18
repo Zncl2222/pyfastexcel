@@ -36,6 +36,8 @@ def get_wb():
         (4),
         (5),
         (6),
+        (7),
+        (8),
     ],
 )
 def test_pivot_table(case):
@@ -100,6 +102,43 @@ def test_pivot_table(case):
             show_drill=True,
             show_row_headers=True,
             show_last_column=True,
+        )
+    elif case == 7:
+        wb.add_pivot_table(
+            'Sheet1',
+            data_range='Sheet1!A1:E31',
+            pivot_table_range='Sheet1!G2:M34',
+            rows=[
+                PivotTableField(data='Month', default_subtotal=True),
+                PivotTableField(data='Year'),
+            ],
+            pivot_filter=[PivotTableField(data='mart')],
+            columns=[PivotTableField(data='Type', default_subtotal=True)],
+            data=[PivotTableField(data='Sales', name='Summarize', subtotal='sum')],
+            row_grand_totals=True,
+            column_grand_totals=True,
+            show_drill=True,
+            show_row_headers=True,
+            show_last_column=True,
+            classic_layout=True,
+        )
+    elif case == 8:
+        ws.add_pivot_table(
+            data_range='Sheet1!A1:E31',
+            pivot_table_range='Sheet1!G2:M34',
+            rows=[
+                PivotTableField(data='Month', default_subtotal=True),
+                PivotTableField(data='Year'),
+            ],
+            pivot_filter=[PivotTableField(data='mart')],
+            columns=[PivotTableField(data='Type', default_subtotal=True)],
+            data=[PivotTableField(data='Sales', name='Summarize', subtotal='sum')],
+            row_grand_totals=True,
+            column_grand_totals=True,
+            show_drill=True,
+            show_row_headers=True,
+            show_last_column=True,
+            classic_layout=True,
         )
 
     wb.read_lib_and_create_excel()
