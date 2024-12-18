@@ -517,7 +517,7 @@ class Workbook(ExcelDriver):
         merge_item: Optional[bool],
         compact_data: Optional[bool],
         show_error: Optional[bool],
-        class_layout: Optional[bool],
+        classic_layout: Optional[bool],
         pivot_table_style_name: Optional[str],
     ) -> None: ...
 
