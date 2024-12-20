@@ -88,10 +88,12 @@ The `CustomStyle` and `DefaultStyle` have the same arguments. The `DefaultStyle`
 | `font_italic`         | `bool`    | Whether the font is italic.                                                                     |
 | `font_underline`      | `str`     | Underline style of the font. Options include 'none', 'single', 'double', etc.                   |
 | `font_strike`         | `bool`    | Whether the font is struck through.                                                             |
-| `font_vertAlign`      | `str or None` | Vertical alignment of the font. Options include 'subscript', 'superscript', or `None`.       |
+| `font_vertAlign`      | `str or None` | Vertical alignment of the font. Options include 'subscript', 'superscript', or `None`.      |
 | `font_color`          | `str`     | Color of the font in hex format (e.g., '000000' for black).                                     |
-| `fill_pattern`        | `str`     | Fill pattern style. Options include 'solid', 'gray75', 'gray50', etc.                           |
+| `fill_pattern`        | `str or int` | Specifies the fill pattern style. String options include 'solid', 'gray75', 'gray50', etc. Integer options range from 0 to 18.                           |
+| `fill_type`           | `str`     | Defines the fill type, such as 'pattern' or 'gradient'.                                                      |
 | `fill_color`          | `str`     | Fill color in hex format (e.g., 'ffffff' for white).                                            |
+| `fill_shading`        | `int`     | Determines the shading intensity for the fill pattern.                                            |
 | `ali_horizontal`      | `str or None` | Horizontal alignment. Options include 'left', 'center', 'right', 'justify', or `None`.      |
 | `ali_vertical`        | `str`     | Vertical alignment. Options include 'top', 'middle', 'bottom'.                                  |
 | `ali_text_rotation`   | `int`     | Degree of text rotation, from 0 to 180.                                                         |
@@ -126,6 +128,8 @@ DefaultStyle.set_default(
     font_color='000000',
     fill_pattern='solid',
     fill_color='ffffff',
+    fill_type=None,
+    fill_shading=None,
 
     # alignment
     ali_horizontal=None,
@@ -163,8 +167,10 @@ custom_style = CustomStyle(
     font_strike=False,
     font_vertAlign=None,
     font_color='000000',
-    fill_pattern='solid',
+    fill_pattern=1,
     fill_color='ffffff',
+    fill_type='pattern,
+    fill_shading=None,
 
     # alignment
     ali_horizontal=None,
@@ -231,7 +237,8 @@ Set the fill style for the cell.
 |-----------|-----------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
 | `color`   | `Optional[str]`                         | The fill color (only supports hex color value).                                                                            |
 | `fgColor` | `Optional[str]`                         | Backward compatibility for openpyxl_style_writer; same as 'color'.                                                          |
-| `pattern` | `Optional[Literal['solid']]`            | Backward compatibility for openpyxl_style_writer; the real implementation should use 'ftype(str)' and 'pattern(int)' both. |
+| `pattern` | `Optional[str | int]`                   | Specifies the fill pattern style. String options include 'solid', 'gray75', 'gray50', etc. Integer options range from 0 to 18. |
+| `type` | `Optional[Literal['pattern', 'gradient']]`  | The type of the fill, it can be pattern or gradient |
 | `shading` | `Optional[int]`                         | The shading index for the fill (between 0 and 5). (Not yet supported)                                                      |
 
 ```python title="Fill Style"
