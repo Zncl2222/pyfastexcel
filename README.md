@@ -98,8 +98,6 @@ Here is the example usage:
 from pyfastexcel import Workbook
 from pyfastexcel.utils import set_custom_style
 
-# CustomStyle will be re-implement in future to make it no-longer
-# depend on openpyxl_style writer and openpyxl
 from pyfastexcel import CustomStyle
 
 
@@ -169,19 +167,3 @@ payload is then passed through ctypes to a Golang shared library. In Golang,
 the JSON is parsed, and using the streaming writer of
 [excelize](https://github.com/qax-os/excelize) to wrtie excel in
 high performance.
-
-## Current Limitations & Future Plans
-
-### Problem 1: Dependence on Other Excel Package
-
-Limitations:
-
-This project currently depends on the `CustomStyle` object of
-the [openpyxl_style_writer](https://github.com/Zncl2222/openpyxl_style_writer)
-package, which is built for openpyxl to write styles in write-only
-mode more efficiently without duplicating code.
-
-Future Plans:
-
-This project plans to create its own `Style` object, making it no longer
-dependent on the mentioned package.
