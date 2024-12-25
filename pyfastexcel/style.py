@@ -57,6 +57,9 @@ class Fill(BaseModel):
 
     @model_serializer(mode='wrap')
     def wrap_serializer(self, handler: Callable) -> dict[str, Any]:
+        # Prevenet None type input in ChartModel (The default value of Fill)
+        if not self:
+            return
         fill = handler(self)
         if self.fgColor:
             fill['Color'] = self.fgColor
