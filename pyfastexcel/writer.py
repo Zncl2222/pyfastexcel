@@ -30,7 +30,7 @@ class StreamWriter(Workbook):
     def ws(self) -> WorkSheet:
         return self.workbook[self.sheet]
 
-    def _handle_custom_style(self, style_instance: CustomStyle, kwargs) -> None:
+    def _handle_custom_style(self, style_instance: CustomStyle, kwargs: dict[str, Any]) -> None:
         """
         Handle the case when style is a CustomStyle instance.
         """
@@ -50,7 +50,7 @@ class StreamWriter(Workbook):
         self._cache[self.style_key] = style_name
         return style_name
 
-    def _handle_string_style(self, style: str, kwargs) -> None:
+    def _handle_string_style(self, style: str, kwargs: dict[str, Any]) -> None:
         """
         Handle the case when style is a string.
         """

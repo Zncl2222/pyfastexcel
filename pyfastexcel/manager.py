@@ -22,10 +22,6 @@ class StyleManager:
     """
     A class to set custom styles for Excel files.
 
-    ### Attributes:
-        BORDER_TO_INDEX (dict[str, int]): Mapping of border styles to excelize's
-        corresponding index.
-
     ### Methods:
         set_custom_style(cls, name: str, custom_style: CustomStyle): Set custom style
         by register method.

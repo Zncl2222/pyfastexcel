@@ -41,6 +41,11 @@ class WorkSheetBase:
     The base worksheet class for private functions and utilities.
     """
 
+    MAX_ROW = 1048576
+    MIN_ROW = 1
+    MAX_COL = 16384
+    MIN_COL = 1
+
     def __init__(
         self,
         pre_allocate: Optional[dict[str, int]] = None,
@@ -155,9 +160,9 @@ class WorkSheetBase:
         col = target[1]
         if not isinstance(row, int) or not isinstance(col, int):
             raise TypeError('Target should be a list of integers.')
-        if row < 0 or row > 1048576:
+        if row < 0 or row > self.MAX_ROW:
             raise ValueError(f'Invalid row index: {row}')
-        if col < 0 or col > 16384:
+        if col < 0 or col > self.MAX_COL:
             raise ValueError(f'Invalid column index: {col}')
         self._data[row][col] = (self._data[row][col][0], style)
 
@@ -346,7 +351,7 @@ class WorkSheetBase:
                 self._data[row][start_col : stop_col + 1] = val
 
     def _set_row_by_index(self, row: int, value: Any) -> None:
-        if row < 0 or row > 1048575:
+        if row < 0 or row > self.MAX_ROW - 1:
             raise ValueError(f'Invalid row index: {row}')
         if not isinstance(value, list):
             raise ValueError('Value should be a list.')
@@ -365,48 +370,6 @@ class WorkSheetBase:
 
 
 class WorkSheet(WorkSheetBase):
-    """
-    A class representing a worksheet in a spreadsheet. Remember to call
-    _transfer_to_dict before turning the worksheet to JSON.
-
-    Attributes:
-        sheet (dict): A dictionary representing the default sheet structure.
-        data (list): A list of rows containing cell data.
-        header (list): A list containing the header row.
-        self._merged_cells_list (list): A list of merged cell ranges.
-        width (dict): A dictionary mapping column indices to column widths.
-        height (dict): A dictionary mapping row indices to row heights.
-
-    Methods:
-        _transfer_to_dict():
-            Transfers the worksheet data to a dictionary representation.
-
-        _get_default_sheet():
-            Returns a dictionary representing the default sheet structure.
-
-        cell(row: int, column: int, value: any, style: str | CustomStyle = 'DEFAULT_STYLE') -> None:
-            Sets the value and style of a cell in the worksheet.
-
-        _expand_row_and_cols(target_row: int, target_col: int):
-            Expands the rows and columns of the worksheet to accommodate
-            the given row and column indices.
-
-        _validate_value_and_set_default(value: Any) -> Tuple[str, Union[str, CustomStyle]]:
-            Validates the input value and ensures it is a tuple with the correct
-            format.
-
-        set_style(target: str | slice | list[int, int], style: CustomStyle | str) -> None:
-            Applies a style to specified cells.
-
-        __getitem__(key: str | slice | int) -> tuple | list[tuple]:
-            If index_supported is True, retrieves the cell value at the
-            specified index. Raises TypeError if index_supported is False.
-
-        __setitem__(key: str | slice | int, value: Any) -> None:
-            If index_supported is True, sets the cell value at the specified
-            index. Raises TypeError if index_supported is False.
-    """
-
     def cell(
         self,
         row: int,
@@ -428,9 +391,9 @@ class WorkSheet(WorkSheetBase):
             value = (f'{value}', style)
         elif not isinstance(value[1], (str, CustomStyle)):
             raise TypeError('Style should be a string or CustomStyle object.')
-        if row < 1 or row > 1048576:
+        if row < 1 or row > self.MAX_ROW:
             raise ValueError(f'Invalid row index: {row}')
-        if column < 1 or column > 16384:
+        if column < 1 or column > self.MAX_COL:
             raise ValueError(f'Invalid column index: {column}')
         try:
             self._data[row][column] = value
@@ -483,13 +446,13 @@ class WorkSheet(WorkSheetBase):
     def set_cell_width(self, col: str | int, value: int) -> None:
         if isinstance(col, str):
             col = column_to_index(col)
-        if col < 1 or col > 16384:
+        if col < 1 or col > self.MAX_COL:
             raise ValueError(f'Invalid column index: {col}')
         self._width_dict[col] = value
 
     @pydantic_validate_call
     def set_cell_height(self, row: int, value: int) -> None:
-        if row < 1 or row > 1048576:
+        if row < 1 or row > self.MAX_ROW:
             raise ValueError(f'Invalid row index: {row}')
         self._height_dict[row] = value
 
@@ -572,12 +535,14 @@ class WorkSheet(WorkSheetBase):
         bottom_idx = column_to_index(bottom_alpha)
 
         if (
-            int(top_number) > 1048576
-            or int(bottom_number) > 1048576
+            int(top_number) > self.MAX_ROW
+            or int(bottom_number) > self.MAX_ROW
             or int(top_number) < 1
             or int(bottom_number) < 1
         ):
-            raise ValueError('Invalid row number. Row number should be between 1 and 1048576.')
+            raise ValueError(
+                f'Invalid row number. Row number should be between 1 and {self.MAX_ROW}.'
+            )
 
         if int(top_number) > int(bottom_number):
             raise ValueError(
