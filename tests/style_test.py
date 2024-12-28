@@ -25,6 +25,8 @@ class TestStyles:
             # fill attr
             ('fill_pattern', 'solid'),
             ('fill_color', None),
+            ('fill_type', None),
+            ('fill_shading', None),
             # alignment attr
             ('ali_horizontal', None),
             ('ali_vertical', 'bottom'),

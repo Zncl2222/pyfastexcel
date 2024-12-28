@@ -840,14 +840,6 @@ def test_add_comment_failed_text(text):
 @pytest.mark.parametrize(
     'start, end, level, hidden, engine',
     [
-        # ('A', 'A', 1, True, 'openpyxl'),
-        # ('A', 'C', 12, True, 'openpyxl'),
-        # ('A', 'D', 3, True, 'openpyxl'),
-        # ('A', 'XD', 1, True, 'openpyxl'),
-        # ('A', 'A', 1, False, 'openpyxl'),
-        # ('A', 'C', 12, False, 'openpyxl'),
-        # ('A', 'D', 3, False, 'openpyxl'),
-        # ('A', 'XD', 1, False, 'openpyxl'),
         ('A', 'A', 1, True, 'pyfastexcel'),
         ('A', 'C', 12, True, 'pyfastexcel'),
         ('A', 'D', 3, True, 'pyfastexcel'),
@@ -877,16 +869,6 @@ def test_group_column_openpyxl(start, end, level, hidden, engine):
 @pytest.mark.parametrize(
     'start, end, level, hidden, engine',
     [
-        # (1, 1, 1, True, 'openpyxl'),
-        # (1, 3, 12, True, 'openpyxl'),
-        # (1, 4, 3, True, 'openpyxl'),
-        # (1, 2445, 1, True, 'openpyxl'),
-        # (1, 1, 1, False, 'openpyxl'),
-        # (1, 3, 12, False, 'openpyxl'),
-        # (1, 4, 3, False, 'openpyxl'),
-        # (1, 2445, 1, False, 'openpyxl'),
-        # (1, None, 1, False, 'openpyxl'),
-        # (1, None, 1, False, 'openpyxl'),
         (1, 1, 1, True, 'pyfastexcel'),
         (1, 3, 12, True, 'pyfastexcel'),
         (1, 4, 3, True, 'pyfastexcel'),
@@ -1020,3 +1002,28 @@ def test_sheet_visible():
 
     with pytest.raises(ValueError):
         wb['Sheet1'].sheet_visible = 'qwe'
+
+
+# This test validates the "fill" model, which supports configurations compatible
+# with both Excelize and openpyxl-style-writer.
+@pytest.mark.parametrize(
+    'custom_style',
+    [
+        (CustomStyle(font_params={'fgColor': '000000'}, fill_params={'fgColor': '000000'})),
+        (CustomStyle(fill_pattern='solid', fill_shading=1)),
+        (CustomStyle(fill_pattern='solid', fill_color='000000')),
+        (CustomStyle(fill_pattern='solid', fill_shading=1)),
+        (CustomStyle(fill_pattern='solid', fill_type='pattern', fill_shading=1)),
+        (CustomStyle(fill_pattern=1, fill_type=None, fill_shading=1)),
+        (CustomStyle(fill_pattern=2, fill_type=None, fill_shading=2)),
+        (CustomStyle(fill_pattern=3, fill_type='pattern', fill_shading=3)),
+    ],
+)
+def test_fill_style(custom_style):
+    wb = Workbook()
+    wb.create_sheet('Sheet2')
+    ws = wb['Sheet2']
+
+    ws[0] = [(1, custom_style)]
+
+    wb.read_lib_and_create_excel()

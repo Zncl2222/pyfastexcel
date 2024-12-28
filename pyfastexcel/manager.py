@@ -125,11 +125,21 @@ class StyleManager:
 
     def _get_fill_style(self, style: CustomStyle) -> dict[str, str]:
         fill = style.fill.model_dump(by_alias=True)
+        # If using FgColor than override the Color
         if fill.get('FgColor'):
             fill['Color'] = fill.pop('FgColor')
-        # TODO: Implement the pattern, type and color that corresponds to the excelize's
-        fill['Type'] = 'pattern'
-        fill['Pattern'] = 1
+
+        # Using Pattern as a string ensures backward compatibility with openpyxl_style_ writer.
+        # If Pattern is set as a string, set Type to 'pattern' and Pattern to 1.
+        if isinstance(fill.get('Pattern'), str):
+            fill['Type'] = 'pattern'
+            fill['Pattern'] = 1
+
+        # Setting Pattern as an integer is the official configuration for Excelize.
+        # If Pattern is an integer and Type is not set, set Type to 'pattern' by default.
+        elif isinstance(fill.get('Pattern'), int) and fill.get('Type') is None:
+            fill['Type'] = 'pattern'
+
         return fill
 
     def _get_border_style(self, style: CustomStyle) -> dict[str, str]:
