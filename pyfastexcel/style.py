@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import copy
-from typing import Any, ClassVar, Literal, Optional
+from typing import Any, Callable, ClassVar, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_serializer
 
 
 class Font(BaseModel):
@@ -27,6 +27,15 @@ class Font(BaseModel):
     underline: Optional[str] = Field('none', serialization_alias='Underline')
     vert_align: Optional[str] = Field(None, serialization_alias='VertAlign')
 
+    @model_serializer(mode='wrap')
+    def wrap_serializer(self, handler: Callable) -> dict[str, Any]:
+        font = handler(self)
+        if self.fgColor:
+            font['Color'] = self.fgColor
+        if self.name:
+            font['Family'] = self.name
+        return font
+
 
 class Fill(BaseModel):
     """
@@ -45,6 +54,28 @@ class Fill(BaseModel):
     )
 
     shading: Optional[int] = Field(None, serialization_alias='Shading', gt=-1, lt=6)
+
+    @model_serializer(mode='wrap')
+    def wrap_serializer(self, handler: Callable) -> dict[str, Any]:
+        # Prevenet None type input in ChartModel (The default value of Fill)
+        if not self:
+            return
+        fill = handler(self)
+        if self.fgColor:
+            fill['Color'] = self.fgColor
+
+        # Using Pattern as a string ensures backward compatibility with openpyxl_style_ writer.
+        # If Pattern is set as a string, set Type to 'pattern' and Pattern to 1.
+        if isinstance(self.pattern, str):
+            fill['Type'] = 'pattern'
+            fill['Pattern'] = 1
+
+        # Setting Pattern as an integer is the official configuration for Excelize.
+        # If Pattern is an integer and Type is not set, set Type to 'pattern' by default.
+        elif isinstance(self.pattern, int) and self.ftype is None:
+            fill['Type'] = 'pattern'
+
+        return fill
 
 
 class Alignment(BaseModel):
@@ -80,10 +111,37 @@ class Border(BaseModel):
     Model representing a border style in Excel.
     """
 
+    BORDER_NUMBER: ClassVar[dict[Optional[str], int]] = {
+        None: 0,
+        'thick': 5,
+        'slantDashDot': 13,
+        'dotted': 4,
+        'hair': 7,
+        'dashed': 3,
+        'double': 6,
+        'mediumDashDotDot': 12,
+        'medium': 2,
+        'dashDotDot': 11,
+        'thin': 1,
+        'dashDot': 9,
+        'mediumDashed': 8,
+        'mediumDashDot': 10,
+    }
     left: Optional[BorderStyle] = Field(default_border_style, serialization_alias='left')
     right: Optional[BorderStyle] = Field(default_border_style, serialization_alias='right')
     top: Optional[BorderStyle] = Field(default_border_style, serialization_alias='top')
     bottom: Optional[BorderStyle] = Field(default_border_style, serialization_alias='bottom')
+
+    @model_serializer(mode='wrap')
+    def wrap_serializer(self, handler: Callable) -> dict[str, Any]:
+        border = handler(self)
+
+        border['left']['Style'] = self.BORDER_NUMBER[self.left.style]
+        border['right']['Style'] = self.BORDER_NUMBER[self.right.style]
+        border['top']['Style'] = self.BORDER_NUMBER[self.top.style]
+        border['bottom']['Style'] = self.BORDER_NUMBER[self.bottom.style]
+
+        return border
 
 
 class Protection(BaseModel):

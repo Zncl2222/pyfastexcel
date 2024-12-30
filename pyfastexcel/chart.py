@@ -4,51 +4,9 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
+from pyfastexcel.style import Fill, Font
+
 from .enums import ChartDataLabelPosition, ChartLineType, ChartType, MarkerSymbol
-
-
-class Font(BaseModel):
-    """
-    Defines font settings for text elements in a chart.
-
-    Attributes:
-        bold (Optional[bool]): Specifies if the text is bold.
-        color (Optional[str]): The color of the text.
-        family (Optional[str]): The font family for the text.
-        italic (Optional[bool]): Specifies if the text is italic.
-        size (Optional[float]): The font size for the text.
-        strike (Optional[bool]): Specifies if the text has a strikethrough.
-        underline (Optional[str]): The style of underline for the text.
-        vert_align (Optional[str]): Vertical alignment for the text, such as
-            "baseline", "superscript" or "subscript".
-    """
-
-    bold: Optional[bool] = Field(None, serialization_alias='Bold')
-    color: Optional[str] = Field(None, serialization_alias='Color')
-    family: Optional[str] = Field(None, serialization_alias='Family')
-    italic: Optional[bool] = Field(None, serialization_alias='Italic')
-    size: Optional[float] = Field(None, serialization_alias='Size')
-    strike: Optional[bool] = Field(None, serialization_alias='Strike')
-    underline: Optional[str] = Field(None, serialization_alias='Underline')
-    vert_align: Optional[str] = Field(None, serialization_alias='VertAlign')
-
-
-class Fill(BaseModel):
-    """
-    Describes the fill settings.
-
-    Attributes:
-        ftype (Optional[Literal['pattern', 'gradient']]): The type of fill, either
-            'pattern' or 'gradient'.
-        pattern (Optional[int]): The pattern index for fill (between 0 and 18).
-        color (Optional[str]): The fill color (Only support hex color value).
-        shading (Optional[int]): The shading index for the fill (between 0 and 5).
-    """
-
-    ftype: Optional[Literal['pattern', 'gradient']] = Field('pattern', serialization_alias='Type')
-    pattern: Optional[int] = Field(None, serialization_alias='Pattern', gt=-1, lt=19)
-    color: Optional[str] = Field(None, serialization_alias='Color')
-    shading: Optional[int] = Field(None, serialization_alias='Shading', gt=-1, lt=6)
 
 
 class Marker(BaseModel):
@@ -205,7 +163,7 @@ class ChartPlotArea(BaseModel):
     show_percent: Optional[bool] = Field(None, serialization_alias='ShowPercent')
     show_ser_name: Optional[bool] = Field(None, serialization_alias='ShowSerName')
     show_val: Optional[bool] = Field(None, serialization_alias='ShowVal')
-    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
+    fill: Fill = Field(None, serialization_alias='Fill')
     num_fmt: Optional[ChartCustomNumFmt] = Field(ChartCustomNumFmt(), serialization_alias='NumFmt')
 
 
@@ -275,7 +233,7 @@ class ChartSeries(BaseModel):
     categories: str = Field(..., serialization_alias='Categories')
     values: str = Field(..., serialization_alias='Values')
     sizes: Optional[str] = Field(None, serialization_alias='Sizes')
-    fill: Optional[Fill] = Field(Fill(), serialization_alias='Fill')
+    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
     line: Optional[Line] = Field(Line(), serialization_alias='Line')
     marker: Optional[Marker] = Field(Marker(), serialization_alias='Marker')
     data_label_position: Optional[str | ChartDataLabelPosition] = Field(
@@ -326,7 +284,7 @@ class Chart(BaseModel):
     x_axis: Optional[ChartAxis] = Field(ChartAxis(), serialization_alias='XAxis')
     y_axis: Optional[ChartAxis] = Field(ChartAxis(), serialization_alias='YAxis')
     plot_area: Optional[ChartPlotArea] = Field(ChartPlotArea(), serialization_alias='PlotArea')
-    fill: Optional[Fill] = Field(Fill(), serialization_alias='Fill')
+    fill: Optional[Fill] = Field(None, serialization_alias='Fill')
     border: Optional[Line] = Field(Line(), serialization_alias='Border')
     show_blanks_as: Optional[str] = Field(None, serialization_alias='ShowBlanksAs')
     bubble_size: Optional[int] = Field(None, serialization_alias='BubbleSize')

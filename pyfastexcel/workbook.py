@@ -72,6 +72,8 @@ class Workbook(ExcelDriver):
         Args:
             old_sheet_name (str): The name of the sheet to rename.
             new_sheet_name (str): The new name for the sheet.
+        Return:
+            WorkSheet instance
         """
         if self.workbook.get(old_sheet_name) is None:
             raise IndexError(f'Sheet {old_sheet_name} does not exist.')
@@ -82,13 +84,14 @@ class Workbook(ExcelDriver):
             [new_sheet_name if x == old_sheet_name else x for x in self._sheet_list]
         )
         self.sheet = new_sheet_name
+        return self.workbook[self.sheet]
 
     def create_sheet(
         self,
         sheet_name: str,
         pre_allocate: dict[str, int] = None,
         plain_data: list[list] = None,
-    ) -> None:
+    ) -> WorkSheet:
         """
         Creates a new sheet, and set it as current self.sheet.
 
@@ -99,12 +102,15 @@ class Workbook(ExcelDriver):
                 for pre-allocating data in new sheet.
             plain_data (list[list[str]], optional): A 2D list of strings
                 representing initial data to populate new sheet.
+        Return:
+            WorkSheet instance.
         """
         if self.workbook.get(sheet_name) is not None:
             raise ValueError(f'Sheet {sheet_name} already exists.')
         self.workbook[sheet_name] = WorkSheet(pre_allocate=pre_allocate, plain_data=plain_data)
         self.sheet = sheet_name
         self._sheet_list = tuple([x for x in self._sheet_list] + [sheet_name])
+        return self.workbook[sheet_name]
 
     def switch_sheet(self, sheet_name: str) -> None:
         """

@@ -22,10 +22,6 @@ class StyleManager:
     """
     A class to set custom styles for Excel files.
 
-    ### Attributes:
-        BORDER_TO_INDEX (dict[str, int]): Mapping of border styles to excelize's
-        corresponding index.
-
     ### Methods:
         set_custom_style(cls, name: str, custom_style: CustomStyle): Set custom style
         by register method.
@@ -40,22 +36,6 @@ class StyleManager:
         _get_protection_style(style: CustomStyle): Gets the protection style.
     """
 
-    BORDER_NUMBER = {
-        None: 0,
-        'thick': 5,
-        'slantDashDot': 13,
-        'dotted': 4,
-        'hair': 7,
-        'dashed': 3,
-        'double': 6,
-        'mediumDashDotDot': 12,
-        'medium': 2,
-        'dashDotDot': 11,
-        'thin': 1,
-        'dashDot': 9,
-        'mediumDashed': 8,
-        'mediumDashDot': 10,
-    }
     # The style retrieved from set_custom_style will be stored in
     # REGISTERED_STYLES temporarily. It will be created after any
     # Writer is initialized and calls the self._create_style() method.
@@ -116,40 +96,13 @@ class StyleManager:
         self._style_map[style_name]['CustomNumFmt'] = custom_style.number_format
 
     def _get_font_style(self, style: CustomStyle) -> dict[str, str | int | bool | None]:
-        font = style.font.model_dump(by_alias=True)
-        if font.get('FgColor'):
-            font['Color'] = font.pop('FgColor')
-        if font.get('Name'):
-            font['Family'] = font.pop('Name')
         return style.font.model_dump(by_alias=True)
 
     def _get_fill_style(self, style: CustomStyle) -> dict[str, str]:
-        fill = style.fill.model_dump(by_alias=True)
-        # If using FgColor than override the Color
-        if fill.get('FgColor'):
-            fill['Color'] = fill.pop('FgColor')
-
-        # Using Pattern as a string ensures backward compatibility with openpyxl_style_ writer.
-        # If Pattern is set as a string, set Type to 'pattern' and Pattern to 1.
-        if isinstance(fill.get('Pattern'), str):
-            fill['Type'] = 'pattern'
-            fill['Pattern'] = 1
-
-        # Setting Pattern as an integer is the official configuration for Excelize.
-        # If Pattern is an integer and Type is not set, set Type to 'pattern' by default.
-        elif isinstance(fill.get('Pattern'), int) and fill.get('Type') is None:
-            fill['Type'] = 'pattern'
-
-        return fill
+        return style.fill.model_dump(by_alias=True)
 
     def _get_border_style(self, style: CustomStyle) -> dict[str, str]:
-        border = style.border.model_dump(by_alias=True)
-        border['left']['Style'] = self.BORDER_NUMBER[style.border.left.style]
-        border['right']['Style'] = self.BORDER_NUMBER[style.border.right.style]
-        border['top']['Style'] = self.BORDER_NUMBER[style.border.top.style]
-        border['bottom']['Style'] = self.BORDER_NUMBER[style.border.bottom.style]
-
-        return border
+        return style.border.model_dump(by_alias=True)
 
     def _get_alignment_style(self, style: CustomStyle) -> dict[str, str]:
         return style.ali.model_dump(by_alias=True)
