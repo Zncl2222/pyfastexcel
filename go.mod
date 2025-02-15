@@ -1,6 +1,6 @@
 module github.com/Zncl2222/pyfastexcel
 
-go 1.19
+go 1.24
 
 require (
 	github.com/perimeterx/marshmallow v1.1.5
