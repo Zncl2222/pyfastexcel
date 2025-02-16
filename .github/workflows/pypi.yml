@@ -28,7 +28,7 @@ jobs:
       - name: Set up Golang
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22.x'
+          go-version: 1.24
           check-latest: true
       - name: Build windows shared library
         run: |
