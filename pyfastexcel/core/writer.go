@@ -114,10 +114,14 @@ func (ew *ExcelWriter) writeExcel() string {
 			fmt.Println(err)
 		}
 
-		// Create Pivot Table. It should Create after the data is written
-		for _, pivot := range pivotTableList {
-			ew.createPivotTable(pivot)
-		}
+	}
+
+	// Create pivot tables after every sheet has been written and flushed. Large
+	// streamed worksheets can spill to temp files; seed the source header row in
+	// memory so excelize can validate PivotTableOptions.DataRange.
+	for _, pivot := range pivotTableList {
+		ew.seedPivotSourceHeaders(pivot)
+		ew.createPivotTable(pivot)
 	}
 
 	// Save data in buffer and encode binary data to base64
@@ -126,6 +130,73 @@ func (ew *ExcelWriter) writeExcel() string {
 	encodedString := base64.StdEncoding.EncodeToString(byteResults)
 
 	return encodedString
+}
+
+func getCellScalarValue(item interface{}) interface{} {
+	if cell, ok := item.([]interface{}); ok && len(cell) > 0 {
+		return cell[0]
+	}
+	return item
+}
+
+func (ew *ExcelWriter) seedPivotSourceHeaders(pivotData []interface{}) {
+	for _, pivot := range pivotData {
+		pivotMap := pivot.(map[string]interface{})
+		dataRange, ok := pivotMap["DataRange"].(string)
+		if !ok || !strings.Contains(dataRange, "!") {
+			continue
+		}
+
+		rangeParts := strings.SplitN(dataRange, "!", 2)
+		sheetName := strings.Trim(rangeParts[0], "'")
+		sourceRange := strings.ReplaceAll(rangeParts[1], "$", "")
+		cellRefs := strings.SplitN(sourceRange, ":", 2)
+		if len(cellRefs) != 2 {
+			continue
+		}
+
+		startCol, startRow, err := excelize.CellNameToCoordinates(cellRefs[0])
+		if err != nil {
+			continue
+		}
+		endCol, endRow, err := excelize.CellNameToCoordinates(cellRefs[1])
+		if err != nil {
+			continue
+		}
+		if endCol < startCol {
+			startCol, endCol = endCol, startCol
+		}
+		if endRow < startRow {
+			startRow = endRow
+		}
+
+		sheetData, ok := ew.Content[sheetName].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		dataRows, ok := sheetData["Data"].([]interface{})
+		if !ok || len(dataRows) < startRow {
+			continue
+		}
+		headerRow, ok := dataRows[startRow-1].([]interface{})
+		if !ok {
+			continue
+		}
+
+		for col := startCol; col <= endCol; col++ {
+			headerIndex := col - startCol
+			if headerIndex >= len(headerRow) {
+				continue
+			}
+			cell, err := excelize.CoordinatesToCellName(col, startRow)
+			if err != nil {
+				continue
+			}
+			if err := ew.File.SetCellValue(sheetName, cell, getCellScalarValue(headerRow[headerIndex])); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
 }
 
 // streamWriter writes content to different sheets in the Excel file based on provided data.
