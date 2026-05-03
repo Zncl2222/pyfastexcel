@@ -1,10 +1,15 @@
 package core
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
+
+	"github.com/xuri/excelize/v2"
 )
 
 var data map[string]interface{}
@@ -406,6 +411,146 @@ func TestWriteExcel2(t *testing.T) {
 		t.Error("Encoded Excel data is empty")
 	}
 
+}
+
+func TestWriteExcelCreatesPivotTableForLargeStreamedDataRange(t *testing.T) {
+	const rowCount = 2600
+	payload := strings.Repeat("x", 7000)
+	sheetRows := make([]interface{}, 0, rowCount+1)
+	sheetRows = append(sheetRows, []interface{}{"DEPT_NO", "AMOUNT", "PAYLOAD"})
+	for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
+		sheetRows = append(
+			sheetRows,
+			[]interface{}{fmt.Sprintf("D%04d", rowIndex%10), rowIndex, payload},
+		)
+	}
+
+	pivotTable := map[string]interface{}{
+		"DataRange":       fmt.Sprintf("Sheet1!A1:C%d", rowCount+1),
+		"PivotTableRange": "Pivot!A3:C20",
+		"Rows": []interface{}{
+			map[string]interface{}{"Data": "DEPT_NO", "Name": "Dept No"},
+		},
+		"Filter":  []interface{}{},
+		"Columns": []interface{}{},
+		"Data": []interface{}{
+			map[string]interface{}{"Data": "AMOUNT", "Name": "Amount", "Subtotal": "Sum"},
+		},
+		"RowGrandTotals": true,
+		"ColGrandTotals": true,
+		"ShowDrill":      true,
+		"ShowRowHeaders": true,
+		"ShowColHeaders": true,
+		"ShowLastColumn": false,
+		"ClassicLayout":  true,
+	}
+
+	file := excelize.NewFile()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+	writer := ExcelWriter{
+		File:       file,
+		StyleMap:   map[string]interface{}{},
+		FileProps:  newFileProps(),
+		Protection: map[string]interface{}{},
+		SheetOrder: []interface{}{"Sheet1", "Pivot"},
+		Content: map[string]interface{}{
+			"Sheet1": newStreamWriterSheet(sheetRows, []interface{}{pivotTable}),
+			"Pivot":  newStreamWriterSheet([]interface{}{}, []interface{}{}),
+		},
+	}
+
+	decodedExcel, err := base64.StdEncoding.DecodeString(writer.writeExcel())
+	if err != nil {
+		t.Fatalf("Failed to decode encoded Excel data: %v", err)
+	}
+
+	archive, err := zip.NewReader(bytes.NewReader(decodedExcel), int64(len(decodedExcel)))
+	if err != nil {
+		t.Fatalf("Failed to read generated Excel archive: %v", err)
+	}
+
+	var pivotTableCount int
+	var pivotCacheCount int
+	var cacheDefinition string
+	for _, file := range archive.File {
+		switch {
+		case strings.HasPrefix(file.Name, "xl/pivotTables/pivotTable"):
+			pivotTableCount++
+		case strings.HasPrefix(file.Name, "xl/pivotCache/pivotCacheDefinition"):
+			pivotCacheCount++
+			cacheDefinition = readZipFile(t, file)
+		}
+	}
+
+	if pivotTableCount != 1 {
+		t.Fatalf("Expected 1 pivot table, got %d", pivotTableCount)
+	}
+	if pivotCacheCount != 1 {
+		t.Fatalf("Expected 1 pivot cache definition, got %d", pivotCacheCount)
+	}
+	if !strings.Contains(cacheDefinition, `sheet="Sheet1"`) {
+		t.Fatalf("Expected pivot cache source sheet to be Sheet1: %s", cacheDefinition)
+	}
+	expectedRef := fmt.Sprintf(`ref="A1:C%d"`, rowCount+1)
+	if !strings.Contains(cacheDefinition, expectedRef) {
+		t.Fatalf("Expected pivot cache source ref %s: %s", expectedRef, cacheDefinition)
+	}
+}
+
+func newStreamWriterSheet(dataRows []interface{}, pivotTables []interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"Data":           dataRows,
+		"Width":          map[string]interface{}{},
+		"Height":         map[string]interface{}{},
+		"MergeCells":     []interface{}{},
+		"AutoFilter":     []interface{}{},
+		"Panes":          map[string]interface{}{},
+		"DataValidation": []interface{}{},
+		"Comment":        []interface{}{},
+		"NoStyle":        true,
+		"Table":          []interface{}{},
+		"Chart":          []interface{}{},
+		"PivotTable":     pivotTables,
+		"SheetVisible":   true,
+		"WriterEngine":   "StreamWriter",
+	}
+}
+
+func newFileProps() map[string]interface{} {
+	return map[string]interface{}{
+		"Title":          "Test Excel File",
+		"Creator":        "Test User",
+		"Category":       "Test Category",
+		"ContentStatus":  "Draft",
+		"Description":    "Test Description",
+		"Keywords":       "Test Keywords",
+		"Language":       "en-US",
+		"LastModifiedBy": "Test User",
+		"Revision":       "1",
+		"Subject":        "Test Subject",
+		"Version":        "1.0",
+		"Identifier":     "",
+		"Created":        "",
+		"Modified":       "",
+	}
+}
+
+func readZipFile(t *testing.T, file *zip.File) string {
+	t.Helper()
+	reader, err := file.Open()
+	if err != nil {
+		t.Fatalf("Failed to open %s: %v", file.Name, err)
+	}
+	defer reader.Close()
+	buffer := new(bytes.Buffer)
+	if _, err := buffer.ReadFrom(reader); err != nil {
+		t.Fatalf("Failed to read %s: %v", file.Name, err)
+	}
+	return buffer.String()
 }
 
 func TestWriteExcelNormalWriter(t *testing.T) {
