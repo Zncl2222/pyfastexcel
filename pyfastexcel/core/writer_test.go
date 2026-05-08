@@ -413,15 +413,25 @@ func TestWriteExcel2(t *testing.T) {
 
 }
 
+func TestGetCellScalarValueFromExcelizeCell(t *testing.T) {
+	cell := excelize.Cell{StyleID: 111, Value: "Category"}
+
+	result := getCellScalarValue(cell)
+
+	if result != "Category" {
+		t.Errorf("Expected Category, but got %#v", result)
+	}
+}
+
 func TestWriteExcelCreatesPivotTableForLargeStreamedDataRange(t *testing.T) {
 	const rowCount = 2600
 	payload := strings.Repeat("x", 7000)
 	sheetRows := make([]interface{}, 0, rowCount+1)
-	sheetRows = append(sheetRows, []interface{}{"DEPT_NO", "AMOUNT", "PAYLOAD"})
+	sheetRows = append(sheetRows, []interface{}{"Category", "Amount", "Payload"})
 	for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
 		sheetRows = append(
 			sheetRows,
-			[]interface{}{fmt.Sprintf("D%04d", rowIndex%10), rowIndex, payload},
+			[]interface{}{fmt.Sprintf("Category %04d", rowIndex%10), rowIndex, payload},
 		)
 	}
 
@@ -429,12 +439,12 @@ func TestWriteExcelCreatesPivotTableForLargeStreamedDataRange(t *testing.T) {
 		"DataRange":       fmt.Sprintf("Sheet1!A1:C%d", rowCount+1),
 		"PivotTableRange": "Pivot!A3:C20",
 		"Rows": []interface{}{
-			map[string]interface{}{"Data": "DEPT_NO", "Name": "Dept No"},
+			map[string]interface{}{"Data": "Category", "Name": "Category"},
 		},
 		"Filter":  []interface{}{},
 		"Columns": []interface{}{},
 		"Data": []interface{}{
-			map[string]interface{}{"Data": "AMOUNT", "Name": "Amount", "Subtotal": "Sum"},
+			map[string]interface{}{"Data": "Amount", "Name": "Amount", "Subtotal": "Sum"},
 		},
 		"RowGrandTotals": true,
 		"ColGrandTotals": true,
@@ -501,6 +511,177 @@ func TestWriteExcelCreatesPivotTableForLargeStreamedDataRange(t *testing.T) {
 	}
 }
 
+func TestWriteExcelCreatesPivotTableForStyledStreamedData(t *testing.T) {
+	const rowCount = 20
+	styledCell := func(value interface{}) interface{} {
+		return []interface{}{value, "style1"}
+	}
+
+	sheetRows := make([]interface{}, 0, rowCount+1)
+	sheetRows = append(sheetRows, []interface{}{
+		styledCell("Category"),
+		styledCell("Amount"),
+		styledCell("Region"),
+	})
+	for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
+		sheetRows = append(
+			sheetRows,
+			[]interface{}{
+				styledCell(fmt.Sprintf("Category %02d", rowIndex%5)),
+				styledCell(rowIndex + 1),
+				styledCell(fmt.Sprintf("Region %d", rowIndex%3)),
+			},
+		)
+	}
+
+	pivotTable := map[string]interface{}{
+		"DataRange":       fmt.Sprintf("Sheet1!A1:C%d", rowCount+1),
+		"PivotTableRange": "Pivot!A3:C20",
+		"Rows": []interface{}{
+			map[string]interface{}{"Data": "Category", "Name": "Category"},
+		},
+		"Filter": []interface{}{
+			map[string]interface{}{"Data": "Region", "Name": "Region"},
+		},
+		"Columns": []interface{}{},
+		"Data": []interface{}{
+			map[string]interface{}{"Data": "Amount", "Name": "Amount", "Subtotal": "Sum"},
+		},
+		"RowGrandTotals": true,
+		"ColGrandTotals": true,
+		"ShowDrill":      true,
+		"ShowRowHeaders": true,
+		"ShowColHeaders": true,
+		"ShowLastColumn": false,
+		"ClassicLayout":  true,
+	}
+
+	file := excelize.NewFile()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+	writer := ExcelWriter{
+		File:       file,
+		StyleMap:   newTestStyleMap(),
+		FileProps:  newFileProps(),
+		Protection: map[string]interface{}{},
+		SheetOrder: []interface{}{"Sheet1", "Pivot"},
+		Content: map[string]interface{}{
+			"Sheet1": newStyledStreamWriterSheet(sheetRows, []interface{}{pivotTable}),
+			"Pivot":  newStreamWriterSheet([]interface{}{}, []interface{}{}),
+		},
+	}
+
+	decodedExcel, err := base64.StdEncoding.DecodeString(writer.writeExcel())
+	if err != nil {
+		t.Fatalf("Failed to decode encoded Excel data: %v", err)
+	}
+
+	archive, err := zip.NewReader(bytes.NewReader(decodedExcel), int64(len(decodedExcel)))
+	if err != nil {
+		t.Fatalf("Failed to read generated Excel archive: %v", err)
+	}
+
+	var cacheDefinition string
+	var pivotTableDefinition string
+	for _, file := range archive.File {
+		switch {
+		case strings.HasPrefix(file.Name, "xl/pivotCache/pivotCacheDefinition"):
+			cacheDefinition = readZipFile(t, file)
+		case strings.HasPrefix(file.Name, "xl/pivotTables/pivotTable"):
+			pivotTableDefinition = readZipFile(t, file)
+		}
+	}
+
+	if cacheDefinition == "" {
+		t.Fatal("Expected pivot cache definition")
+	}
+	if pivotTableDefinition == "" {
+		t.Fatal("Expected pivot table definition")
+	}
+	for _, fieldName := range []string{"Category", "Amount", "Region"} {
+		if !strings.Contains(cacheDefinition, fmt.Sprintf(`name="%s"`, fieldName)) {
+			t.Fatalf("Expected cache field %s: %s", fieldName, cacheDefinition)
+		}
+	}
+	if strings.Contains(cacheDefinition, "{") {
+		t.Fatalf("Expected cache fields without styled cell struct values: %s", cacheDefinition)
+	}
+	for _, expected := range []string{
+		`<rowFields count="1"><field x="0"`,
+		`<pageFields count="1"><pageField fld="2" name="Region"`,
+		`<dataFields count="1"><dataField name="Amount" fld="1" subtotal="sum"`,
+	} {
+		if !strings.Contains(pivotTableDefinition, expected) {
+			t.Fatalf("Expected pivot table definition to contain %s: %s", expected, pivotTableDefinition)
+		}
+	}
+}
+
+func TestWriteExcelWritesFormulaXMLWithoutLeadingEquals(t *testing.T) {
+	styledCell := func(value interface{}) interface{} {
+		return []interface{}{value, "style1"}
+	}
+
+	for _, engine := range []string{"StreamWriter", "NormalWriter"} {
+		t.Run(engine, func(t *testing.T) {
+			sheetRows := []interface{}{
+				[]interface{}{styledCell("Value"), styledCell("Formula")},
+				[]interface{}{styledCell(1), styledCell("=SUM(A2:A3)")},
+				[]interface{}{styledCell(2), styledCell("")},
+			}
+
+			file := excelize.NewFile()
+			defer func() {
+				if err := file.Close(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+			sheet := newStyledStreamWriterSheet(sheetRows, []interface{}{})
+			sheet["WriterEngine"] = engine
+			writer := ExcelWriter{
+				File:       file,
+				StyleMap:   newTestStyleMap(),
+				FileProps:  newFileProps(),
+				Protection: map[string]interface{}{},
+				SheetOrder: []interface{}{"Sheet1"},
+				Content: map[string]interface{}{
+					"Sheet1": sheet,
+				},
+			}
+
+			decodedExcel, err := base64.StdEncoding.DecodeString(writer.writeExcel())
+			if err != nil {
+				t.Fatalf("Failed to decode encoded Excel data: %v", err)
+			}
+
+			archive, err := zip.NewReader(bytes.NewReader(decodedExcel), int64(len(decodedExcel)))
+			if err != nil {
+				t.Fatalf("Failed to read generated Excel archive: %v", err)
+			}
+
+			var worksheetXML string
+			for _, file := range archive.File {
+				if file.Name == "xl/worksheets/sheet1.xml" {
+					worksheetXML = readZipFile(t, file)
+					break
+				}
+			}
+			if worksheetXML == "" {
+				t.Fatal("Expected sheet1 worksheet XML")
+			}
+			if strings.Contains(worksheetXML, "<f>=") {
+				t.Fatalf("Expected formula XML without leading equals: %s", worksheetXML)
+			}
+			if !strings.Contains(worksheetXML, "<f>SUM(A2:A3)</f>") {
+				t.Fatalf("Expected formula XML to contain SUM(A2:A3): %s", worksheetXML)
+			}
+		})
+	}
+}
+
 func newStreamWriterSheet(dataRows []interface{}, pivotTables []interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		"Data":           dataRows,
@@ -517,6 +698,38 @@ func newStreamWriterSheet(dataRows []interface{}, pivotTables []interface{}) map
 		"PivotTable":     pivotTables,
 		"SheetVisible":   true,
 		"WriterEngine":   "StreamWriter",
+	}
+}
+
+func newStyledStreamWriterSheet(dataRows []interface{}, pivotTables []interface{}) map[string]interface{} {
+	sheet := newStreamWriterSheet(dataRows, pivotTables)
+	sheet["NoStyle"] = false
+	return sheet
+}
+
+func newTestStyleMap() map[string]interface{} {
+	return map[string]interface{}{
+		"style1": map[string]interface{}{
+			"Font": map[string]interface{}{
+				"Bold": true,
+			},
+			"Fill": map[string]interface{}{
+				"Type":    "pattern",
+				"Color":   "#FFFFFF",
+				"Pattern": 1.0,
+				"Shading": 100.0,
+			},
+			"Border": map[string]interface{}{},
+			"Alignment": map[string]interface{}{
+				"Horizontal": "center",
+				"Vertical":   "middle",
+			},
+			"Protection": map[string]interface{}{
+				"Hidden": false,
+				"Locked": false,
+			},
+			"CustomNumFmt": "0.00",
+		},
 	}
 }
 

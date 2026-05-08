@@ -21,7 +21,7 @@ func TestCreateCell(t *testing.T) {
 		{
 			name:   "StringWithFormula",
 			input:  []interface{}{"=SUM(A1:A10)", "styleID"},
-			expect: excelize.Cell{StyleID: styleMap["styleID"], Formula: "=SUM(A1:A10)"},
+			expect: excelize.Cell{StyleID: styleMap["styleID"], Formula: "SUM(A1:A10)"},
 		},
 		{
 			name:   "NonString",
