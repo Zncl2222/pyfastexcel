@@ -9,36 +9,42 @@ on:
 jobs:
   build-shared-library:
     strategy:
-        matrix:
-        # Currently use ubuntu 20.04 to aviod GLIBC verion issue
-          runs-on: [ubuntu-20.04, windows-latest, macos-13]
+      matrix:
+        include:
+          # ubuntu-22.04 runner + golang:1.24-bullseye Docker (Debian 11, GLIBC 2.31)
+          # to maintain the same GLIBC compatibility as the old ubuntu-20.04 build
+          - runs-on: ubuntu-22.04
+            filename: pyfastexcel.so
+          - runs-on: windows-latest
+            filename: pyfastexcel.dll
+          - runs-on: macos-14
+            filename: pyfastexcel.dylib
     runs-on: ${{ matrix.runs-on }}
     steps:
         - uses: actions/checkout@v4
         - name: Set up Golang
+          if: runner.os != 'Linux'
           uses: actions/setup-go@v5
           with:
-            go-version: '1.22.x'
+            go-version: '1.24'
             check-latest: true
+        - name: Build shared library (Linux)
+          if: runner.os == 'Linux'
+          run: |
+            docker run --rm \
+              -v ${{ github.workspace }}:/workspace \
+              -w /workspace \
+              golang:1.24-bullseye \
+              bash -c "git config --global --add safe.directory /workspace && apt-get update -q && apt-get install -y gcc make -q && CGO_ENABLED=1 make"
         - name: Build shared library
+          if: runner.os != 'Linux'
           run: |
             go env -w CGO_ENABLED="1"
             make
-        - name: Set file name windows
-          if: matrix.runs-on == 'windows-latest'
-          shell: pwsh
-          run: |
-            echo "filename=pyfastexcel.dll" >> $env:GITHUB_ENV
-        - name: Set file name ubuntu
-          if: matrix.runs-on == 'ubuntu-latest'
-          run: echo "filename=pyfastexcel.so" >> "$GITHUB_ENV"
-        - name: Set file name macos
-          if: matrix.runs-on == 'macos-13'
-          run: echo "filename=pyfastexcel.dylib" >> "$GITHUB_ENV"
         - uses: actions/upload-artifact@v4
           with:
             name: ${{ matrix.runs-on }}-shared-library
-            path: ./pyfastexcel/${{ env.filename }}
+            path: ./pyfastexcel/${{ matrix.filename }}
 
   python-test-ubuntu:
     name: py-unittest-ubuntu
@@ -71,14 +77,17 @@ jobs:
           then pip install -r requirements-dev.txt;
           fi
       - name: Run tests to generate coverage statistics
+        run: pytest --cov --cov-report=term --cov-report xml:py_coverage.xml
+
+      - name: Upload coverage to Codacy
+        if: github.event_name == 'push'
         env:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        run: |
-          pytest --cov --cov-report=term --cov-report xml:py_coverage.xml
-          bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r py_coverage.xml
+        run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r py_coverage.xml
+
       - name: Upload coverage reports to Codecov
-        if: ${{matrix.python-version}} == '3.11' && ${{matrix.runs-on}} == 'ubuntu-latest'
-        uses: codecov/codecov-action@v4.0.1
+        if: github.event_name == 'push' && matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v5
         with:
             token: ${{ secrets.CODECOV_TOKEN }}
             slug: Zncl2222/pyfastexcel
@@ -122,7 +131,7 @@ jobs:
       max-parallel: 5
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
         with:
