@@ -136,6 +136,9 @@ func getCellScalarValue(item interface{}) interface{} {
 	if cell, ok := item.([]interface{}); ok && len(cell) > 0 {
 		return cell[0]
 	}
+	if cell, ok := item.(excelize.Cell); ok {
+		return cell.Value
+	}
 	return item
 }
 
@@ -324,7 +327,7 @@ func (ew *ExcelWriter) performNormalWrite(sheet string, sheetData map[string]int
 				switch value := v[0].(type) {
 				case string:
 					if strings.HasPrefix(value, "=") {
-						if err := ew.File.SetCellFormula(sheet, colCell, value); err != nil {
+						if err := ew.File.SetCellFormula(sheet, colCell, normalizeFormula(value)); err != nil {
 							fmt.Println(err)
 						}
 					} else {

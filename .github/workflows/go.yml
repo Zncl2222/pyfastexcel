@@ -25,15 +25,18 @@ jobs:
       run: make
 
     - name: Test
+      run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+    - name: Upload coverage to Codacy
+      if: github.event_name == 'push'
       env:
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
       run: |
-         go test -race -coverprofile=coverage.out -covermode=atomic ./...
-         bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
-              --force-coverage-parser go -r coverage.out
+        bash <(curl -Ls https://coverage.codacy.com/get.sh) report \
+             --force-coverage-parser go -r coverage.out
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: Zncl2222/pyfastexcel

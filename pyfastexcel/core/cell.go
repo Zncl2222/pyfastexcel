@@ -31,10 +31,14 @@ func createCell(v []interface{}) excelize.Cell {
 	switch value := v[0].(type) {
 	case string:
 		if strings.HasPrefix(value, "=") {
-			return excelize.Cell{StyleID: styleMap[v[1].(string)], Formula: value}
+			return excelize.Cell{StyleID: styleMap[v[1].(string)], Formula: normalizeFormula(value)}
 		}
 		return excelize.Cell{StyleID: styleMap[v[1].(string)], Value: value}
 	default:
 		return excelize.Cell{StyleID: styleMap[v[1].(string)], Value: value}
 	}
+}
+
+func normalizeFormula(formula string) string {
+	return strings.TrimPrefix(formula, "=")
 }
