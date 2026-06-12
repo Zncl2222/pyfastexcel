@@ -17,6 +17,9 @@ import (
 var styleMap map[string]int
 
 type (
+	// StyleWrapper is used by marshmallow for partial JSON unmarshalling:
+	// the style section is decoded into a typed map while all other fields
+	// are returned as map[string]interface{} by marshmallow.Unmarshal.
 	StyleWrapper struct {
 		Style map[string]map[string]interface{} `json:"Style" binding:"required"`
 	}
@@ -32,8 +35,9 @@ type ExcelWriter struct {
 	Engine     interface{}
 }
 
-// WriteExcel takes a JSON string containing file properties, styles,
-// and content and returns a base64 encoded string of the generated Excel file.
+// WriteExcelRaw parses the JSON payload using marshmallow (backed by easyjson,
+// the fastest option for large nested payloads) and returns raw Excel bytes
+// without any base64 encoding.
 //
 // Args:
 //
@@ -41,15 +45,10 @@ type ExcelWriter struct {
 //
 // Returns:
 //
-//	string: Base64 encoded string of the generated Excel file.
-//
-// Panics:
-//   - panics on errors during JSON unmarshalling or cell conversion.
-func WriteExcel(data string) string {
-	var StyleStruct StyleWrapper
-	byteJson := []byte(data)
-
-	strJson, err := marshmallow.Unmarshal(byteJson, &StyleStruct)
+//	[]byte: Raw bytes of the generated Excel file.
+func WriteExcelRaw(data string) []byte {
+	var styleStruct StyleWrapper
+	strJson, err := marshmallow.Unmarshal([]byte(data), &styleStruct)
 	if err != nil {
 		panic(err)
 	}
@@ -60,12 +59,18 @@ func WriteExcel(data string) string {
 		FileProps:  strJson["file_props"].(map[string]interface{}),
 		Protection: strJson["protection"].(map[string]interface{}),
 		SheetOrder: strJson["sheet_order"].([]interface{}),
-		// Engine:     strJson["engine"],
 	}
-	return writer.writeExcel()
+	return writer.writeExcelRaw()
 }
 
-func (ew *ExcelWriter) writeExcel() string {
+// WriteExcel takes a JSON string and returns a base64 encoded Excel file.
+// Kept for backward compatibility with Go tests.
+func WriteExcel(data string) string {
+	return base64.StdEncoding.EncodeToString(WriteExcelRaw(data))
+}
+
+// writeExcelRaw writes all sheets and returns the raw Excel bytes.
+func (ew *ExcelWriter) writeExcelRaw() []byte {
 	styleMap = CreateStyle(ew.File, ew.StyleMap)
 	ew.setFileProps(ew.FileProps)
 	if len(ew.Protection) != 0 {
@@ -93,43 +98,32 @@ func (ew *ExcelWriter) writeExcel() string {
 		}
 		if sheetData["WriterEngine"] == "NormalWriter" {
 			ew.performNormalWrite(sheet, sheetData)
-			// Excelize should create table with the existed row.
 			ew.createTable(sheet, sheetData["Table"].([]interface{}))
 		} else {
 			streamWriter := ew.performStreamWrite(sheet, sheetData)
-			// Create Stream Table
-			// Excelize should create table with the existed row.
 			streamCreateTable(streamWriter, sheetData["Table"].([]interface{}))
-
 			if err := streamWriter.Flush(); err != nil {
 				fmt.Println(err)
 			}
 		}
-		// To prevent the pivot table from being created before the data is written
-		// we store the pivot table data in a list and create it after the data is written
 		pivotTableList = append(pivotTableList, sheetData["PivotTable"].([]interface{}))
-
-		// Set Sheet Visible
 		if err := ew.File.SetSheetVisible(sheet, sheetData["SheetVisible"].(bool)); err != nil {
 			fmt.Println(err)
 		}
-
 	}
 
-	// Create pivot tables after every sheet has been written and flushed. Large
-	// streamed worksheets can spill to temp files; seed the source header row in
-	// memory so excelize can validate PivotTableOptions.DataRange.
 	for _, pivot := range pivotTableList {
 		ew.seedPivotSourceHeaders(pivot)
 		ew.createPivotTable(pivot)
 	}
 
-	// Save data in buffer and encode binary data to base64
 	buffer, _ := ew.File.WriteToBuffer()
-	byteResults := []byte(buffer.Bytes())
-	encodedString := base64.StdEncoding.EncodeToString(byteResults)
+	return buffer.Bytes()
+}
 
-	return encodedString
+// writeExcel is kept for backward compatibility with Go tests.
+func (ew *ExcelWriter) writeExcel() string {
+	return base64.StdEncoding.EncodeToString(ew.writeExcelRaw())
 }
 
 func getCellScalarValue(item interface{}) interface{} {

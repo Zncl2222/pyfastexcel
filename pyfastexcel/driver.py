@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import ctypes
 import logging
 import sys
@@ -25,6 +24,9 @@ style_formatter.setFormatter(formatter)
 
 logger.addHandler(style_formatter)
 logger.propagate = False
+
+# Module-level CDLL cache: avoids repeated glob + ctypes.CDLL() on every save().
+_LIB_CACHE: dict[str, ctypes.CDLL] = {}
 
 
 class ExcelDriver:
@@ -163,27 +165,29 @@ class ExcelDriver:
             'sheet_order': self._sheet_list,
         }
         json_data = msgspec.json.encode(results)
-        create_excel = pyfastexcel.Export
-        free_pointer = pyfastexcel.FreeCPointer
-        free_pointer.argtypes = [ctypes.c_void_p, ctypes.c_int64]
-        create_excel.argtypes = [ctypes.c_char_p, ctypes.c_int64]
-        create_excel.restype = ctypes.c_void_p
-        byte_data = create_excel(json_data, ignore_go_panic)
-        self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
-        free_pointer(byte_data, 1 if self.DEBUG else 0)
+
+        # Export returns a raw .xlsx buffer (no base64); outLen receives the
+        # byte count so ctypes.string_at can read the exact slice.
+        out_len = ctypes.c_int64(0)
+        byte_data = pyfastexcel.Export(json_data, ctypes.byref(out_len), ignore_go_panic)
+        self.decoded_bytes = ctypes.string_at(byte_data, out_len.value)
+        pyfastexcel.FreeCPointer(byte_data, 1 if self.DEBUG else 0)
         StyleManager.reset_style_configs()
 
         return self.decoded_bytes
 
     def _read_lib(self, lib_path: str) -> ctypes.CDLL:  # pragma: no cover
         """
-        Reads a shared-library for writing Excel.
+        Returns a cached CDLL handle for the pyfastexcel shared library.
+        The first call performs glob discovery and CDLL loading; subsequent
+        calls for the same resolved path return the cached object instantly.
 
         Args:
-            lib_path (str): The path to the library.
+            lib_path (str): Explicit path to the .so/.dll/.dylib, or None to
+                auto-detect from the package directory.
 
         Returns:
-            ctypes.CDLL: The library object.
+            ctypes.CDLL: The library object with argtypes/restype pre-configured.
         """
         if lib_path is None:
             if sys.platform.startswith('linux'):
@@ -193,11 +197,25 @@ class ExcelDriver:
             elif sys.platform.startswith('darwin'):
                 lib_path = str(list(BASE_DIR.glob('**/*.dylib'))[0])
 
+        if lib_path in _LIB_CACHE:
+            return _LIB_CACHE[lib_path]
+
         # On macOS, there is no winmode parameter, so we should not pass it
         if sys.platform.startswith('win32') or sys.platform.startswith('linux'):
             lib = ctypes.CDLL(lib_path, winmode=0)
         else:
             lib = ctypes.CDLL(lib_path)
+
+        # Configure function signatures once and cache them with the handle.
+        lib.Export.argtypes = [
+            ctypes.c_char_p,
+            ctypes.POINTER(ctypes.c_int64),
+            ctypes.c_int64,
+        ]
+        lib.Export.restype = ctypes.c_void_p
+        lib.FreeCPointer.argtypes = [ctypes.c_void_p, ctypes.c_int64]
+
+        _LIB_CACHE[lib_path] = lib
         return lib
 
     def _get_default_file_props(self) -> dict[str, str]:

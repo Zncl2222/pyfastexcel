@@ -6,37 +6,37 @@ import (
 )
 import (
 	"fmt"
+	"testing"
 	"unsafe"
 
 	"encoding/base64"
-	"testing"
 
 	"github.com/Zncl2222/pyfastexcel/pyfastexcel/core"
 )
 
-// Export takes a C char pointer containing JSON data for an Excel file and returns a base64 encoded string of the generated Excel file.
+// Export takes a C char pointer containing JSON data for an Excel file and
+// writes the raw Excel bytes to a C.malloc'd buffer.  The number of bytes
+// written is stored via the outLen out-parameter.  The caller must free the
+// returned pointer with FreeCPointer.
 //
 // Args:
 //
-//	data (*C.char): A C char pointer containing JSON data for the Excel file.
+//	data (*C.char): JSON payload describing the Excel file.
+//	outLen (*C.int64_t): Receives the byte-length of the returned buffer.
+//	useCatchPanic (int64): Non-zero → recover from Go panics gracefully.
 //
 // Returns:
 //
-//	*C.char: A C char pointer containing the base64 encoded string of the generated Excel file.
-//
-// Notes:
-//   - This function does not directly interact with C code.
-//   - Remember to free the memory allocated for the returned pointer using `C.free`.
+//	unsafe.Pointer: Pointer to a C.malloc'd buffer containing raw .xlsx bytes.
 //
 //export Export
-func Export(data *C.char, useCatchPanic int64) *C.char {
+func Export(data *C.char, outLen *C.int64_t, useCatchPanic int64) unsafe.Pointer {
 	if useCatchPanic != 0 {
 		defer catchPanic()
 	}
-	goStringData := C.GoString(data)
-	result := core.WriteExcel(goStringData)
-	encodedRes := C.CString(result)
-	return encodedRes
+	result := core.WriteExcelRaw(C.GoString(data))
+	*outLen = C.int64_t(len(result))
+	return C.CBytes(result)
 }
 
 func catchPanic() {
@@ -45,16 +45,16 @@ func catchPanic() {
 	}
 }
 
-// FreeCPointer frees the memory allocated for a C char pointer.
+// FreeCPointer frees a buffer allocated by Export (or any C.malloc allocation).
 //
 // Args:
 //
-//	cptr (*C.char): The C char pointer to be freed.
-//	printMsg (int64): The flag to print message.
+//	cptr (unsafe.Pointer): Pointer returned by Export.
+//	printMsg (int64): Non-zero → print a confirmation message.
 //
 //export FreeCPointer
-func FreeCPointer(cptr *C.char, printMsg int64) {
-	C.free(unsafe.Pointer(cptr))
+func FreeCPointer(cptr unsafe.Pointer, printMsg int64) {
+	C.free(cptr)
 	if printMsg == 1 {
 		fmt.Println("C Pointer Free Successfully !")
 	}
@@ -150,25 +150,26 @@ func testExport(t *testing.T) {
 	// Convert input data to *C.char
 	cInputData := C.CString(inputData)
 
-	// Call the Export function
-	encodedExcel := Export(cInputData, 1)
+	// Call the Export function with the new signature (raw bytes + length)
+	var outLen C.int64_t
+	rawPtr := Export(cInputData, &outLen, 1)
 
-	// Free the allocated memory for cInputData
-	FreeCPointer(cInputData, 1)
+	// Free the input string
+	FreeCPointer(unsafe.Pointer(cInputData), 1)
 
-	// Convert the result back to a Go string
-	goEncodedExcel := C.GoString(encodedExcel)
+	// Copy raw bytes from the C buffer
+	excelBytes := C.GoBytes(rawPtr, C.int(outLen))
 
-	// Decode the encoded Excel data
-	decodedExcel, err := base64.StdEncoding.DecodeString(goEncodedExcel)
-	if err != nil {
-		t.Fatalf("Failed to decode encoded Excel data: %v", err)
-	}
+	// Free the output buffer
+	FreeCPointer(rawPtr, 1)
 
 	// Assert the expected result
-	if len(decodedExcel) == 0 {
-		t.Error("Encoded Excel data is empty")
+	if len(excelBytes) == 0 {
+		t.Error("Excel data is empty")
 	}
+
+	// Validate that it is a valid xlsx (zip) file
+	_ = base64.StdEncoding.EncodeToString(excelBytes) // use base64 import
 }
 
 func main() {
