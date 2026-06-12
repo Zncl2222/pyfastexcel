@@ -52,12 +52,15 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        include:
+          - python-version: "3.14"
+            experimental: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
       - uses: actions/checkout@v4
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
@@ -69,15 +72,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: ${{ matrix.experimental == true }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
       - name: Install dependencies
-        run: |
-          sed -i '/^[^#]/s/==.*//' requirements-dev.txt
-          python -m pip install --upgrade pip
-          if [ -f requirements-dev.txt ];
-          then pip install -r requirements-dev.txt;
-          fi
+        run: uv sync --dev
       - name: Run tests to generate coverage statistics
-        run: pytest --cov --cov-report=term --cov-report xml:py_coverage.xml
+        run: uv run pytest --cov --cov-report=term --cov-report xml:py_coverage.xml
 
       - name: Upload coverage to Codacy
         if: github.event_name == 'push'
@@ -99,12 +102,15 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        include:
+          - python-version: "3.14"
+            experimental: true
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
       - uses: actions/checkout@v4
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
@@ -116,13 +122,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: ${{ matrix.experimental == true }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements-dev.txt;
+        run: uv sync --dev
       - name: Run tests
-        run: |
-          pytest --cov --cov-report=term --cov-report xml:py_coverage.xml
+        run: uv run pytest --cov --cov-report=term --cov-report xml:py_coverage.xml
 
   python-test-macos:
     name: py-unittest-macos
@@ -130,7 +138,10 @@ jobs:
     strategy:
       max-parallel: 5
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        include:
+          - python-version: "3.14"
+            experimental: true
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -146,10 +157,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: ${{ matrix.experimental == true }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        run: uv sync --dev
       - name: Run tests
-        run: |
-          pytest --cov --cov-report=term --cov-report xml:py_coverage.xml
+        run: uv run pytest --cov --cov-report=term --cov-report xml:py_coverage.xml

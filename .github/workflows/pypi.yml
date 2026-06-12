@@ -95,7 +95,11 @@ jobs:
     strategy:
       matrix:
         runs-on: [ubuntu-latest, ubuntu-22.04, windows-latest, macos-14]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        include:
+          - python-version: '3.14'
+            runs-on: ubuntu-latest
+            experimental: true
 
     steps:
       - name: Checkout code (optional, for tests, but package will be pip-installed)
@@ -105,6 +109,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: ${{ matrix.experimental == true }}
 
       - name: Remove local package from PYTHONPATH on Linux/macOS
         if: runner.os != 'Windows'
