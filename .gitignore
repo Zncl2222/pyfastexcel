@@ -183,3 +183,13 @@ cython_debug/
 
 # Go workspace file
 go.work
+
+# Go installation archives
+*.tar.gz
+
+# Benchmark results
+benchmark/*.png
+benchmark/*.json
+
+# Duplicate files
+/full_examples.py
