@@ -98,7 +98,7 @@ class WorkSheetBase:
         self._sheet_visible = True
         # Using pyfastexcel to write as default
         self._excel_engine: Literal['pyfastexcel', 'openpyxl'] = 'pyfastexcel'
-        self._writer_engine: Literal['NotmalWriter', 'StreamWriter'] = 'StreamWriter'
+        self._writer_engine: Literal['NormalWriter', 'StreamWriter'] = 'StreamWriter'
 
         if plain_data is not None and pre_allocate is not None:
             raise ValueError(
@@ -337,7 +337,7 @@ class WorkSheetBase:
                     )
                 for idx, col in enumerate(range(start_col, stop_col + 1)):
                     val = self._validate_value_and_set_default(value[idx])
-                    self._data[start_row][col] = val
+                    self._data[row][col] = val
             else:
                 if len(value[i]) != (stop_col - start_col + 1):
                     raise ValueError(

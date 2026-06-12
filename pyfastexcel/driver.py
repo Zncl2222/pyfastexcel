@@ -146,32 +146,34 @@ class ExcelDriver:
         pyfastexcel = self._read_lib(lib_path)
         self._create_style()
 
-        # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
-        for sheet in self._sheet_list:
-            self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
-            if len(self.workbook[sheet]._table_list) != 0:
-                TableFinalValidation(
-                    data=self.workbook[sheet]._data,
-                    table_list=self.workbook[sheet]._table_list,
-                )
+        try:
+            # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
+            for sheet in self._sheet_list:
+                self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()
+                if len(self.workbook[sheet]._table_list) != 0:
+                    TableFinalValidation(
+                        data=self.workbook[sheet]._data,
+                        table_list=self.workbook[sheet]._table_list,
+                    )
 
-        results = {
-            'content': self._dict_wb,
-            'file_props': self.file_props,
-            'style': self.style._style_map,
-            'protection': self.protection,
-            'sheet_order': self._sheet_list,
-        }
-        json_data = msgspec.json.encode(results)
-        create_excel = pyfastexcel.Export
-        free_pointer = pyfastexcel.FreeCPointer
-        free_pointer.argtypes = [ctypes.c_void_p, ctypes.c_int64]
-        create_excel.argtypes = [ctypes.c_char_p, ctypes.c_int64]
-        create_excel.restype = ctypes.c_void_p
-        byte_data = create_excel(json_data, ignore_go_panic)
-        self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
-        free_pointer(byte_data, 1 if self.DEBUG else 0)
-        StyleManager.reset_style_configs()
+            results = {
+                'content': self._dict_wb,
+                'file_props': self.file_props,
+                'style': self.style._style_map,
+                'protection': self.protection,
+                'sheet_order': self._sheet_list,
+            }
+            json_data = msgspec.json.encode(results)
+            create_excel = pyfastexcel.Export
+            free_pointer = pyfastexcel.FreeCPointer
+            free_pointer.argtypes = [ctypes.c_void_p, ctypes.c_int64]
+            create_excel.argtypes = [ctypes.c_char_p, ctypes.c_int64]
+            create_excel.restype = ctypes.c_void_p
+            byte_data = create_excel(json_data, ignore_go_panic)
+            self.decoded_bytes = base64.b64decode(ctypes.cast(byte_data, ctypes.c_char_p).value)
+            free_pointer(byte_data, 1 if self.DEBUG else 0)
+        finally:
+            StyleManager.reset_style_configs()
 
         return self.decoded_bytes
 

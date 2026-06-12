@@ -413,7 +413,7 @@ class Workbook(ExcelDriver):
             None
         """
         self._check_if_sheet_exists(sheet)
-        self.workbook[self.sheet].create_table(
+        self.workbook[sheet].create_table(
             cell_range,
             name,
             style_name,
