@@ -192,7 +192,10 @@ def _ms(s: float) -> str:
 
 
 def print_row(label: str, r: dict, baseline: dict | None = None) -> None:
-    line = f'  {label:<18}  mean={_ms(r["mean"])}  min={_ms(r["min"])}  max={_ms(r["max"])}'
+    mean = _ms(r['mean'])
+    min_ = _ms(r['min'])
+    max_ = _ms(r['max'])
+    line = f'  {label:<18}  mean={mean}  min={min_}  max={max_}'
     if baseline:
         pct = (r['mean'] - baseline['mean']) / baseline['mean'] * 100
         arrow = '↓' if pct < 0 else '↑'
@@ -229,10 +232,11 @@ def main() -> None:
 
     current_results: dict = {}
 
-    print(f'\n{"=" * 72}')
+    separator = '=' * 72
+    print(f'\n{separator}')
     print('pyfastexcel performance benchmark')
     print(f'repeat={args.repeat} per case')
-    print(f'{"=" * 72}')
+    print(separator)
 
     for rows, cols in CASES:
         data = prepare_example_data(rows=rows, cols=cols)
@@ -248,9 +252,10 @@ def main() -> None:
         current_results[key] = {'workbook': wb_r, 'stream': sw_r}
 
     # ── component breakdown for medium-sized dataset ──────────────────────
-    print(f'\n{"─" * 72}')
+    separator = '─' * 72
+    print(f'\n{separator}')
     print('Component breakdown  (10 000 rows × 30 cols, 3 repeats)')
-    print(f'{"─" * 72}')
+    print(separator)
     data_med = prepare_example_data(rows=10_000, cols=30)
     comp, api_ver, json_bytes = measure_components(data_med, repeat=3)
     total = sum(v['mean'] for v in comp.values())
@@ -262,7 +267,8 @@ def main() -> None:
     )
     for label, v in comp.items():
         print_component_row(label, v['mean'], total)
-    print(f'    {"total":<14} {_ms(total)}')
+    total_label = 'total'
+    print(f'    {total_label:<14} {_ms(total)}')
 
     # ── save baseline if none exists ──────────────────────────────────────
     if not baseline:
