@@ -143,10 +143,10 @@ class ExcelDriver:
             bytes: The byte data of the created Excel file.
         """
         ignore_go_panic = 0 if ignore_go_panic is False else 1
-        pyfastexcel = self._read_lib(lib_path)
-        self._create_style()
-
         try:
+            pyfastexcel = self._read_lib(lib_path)
+            self._create_style()
+
             # Transfer all WorkSheet Object to the sheet dictionary in the workbook.
             for sheet in self._sheet_list:
                 self._dict_wb[sheet] = self.workbook[sheet]._transfer_to_dict()

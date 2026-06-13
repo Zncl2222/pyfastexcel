@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic_core import PydanticSerializationError
 
 from pyfastexcel import CustomStyle, Workbook
 from pyfastexcel.manager import StyleManager
@@ -204,6 +205,19 @@ class TestBug6StyleManagerExceptionSafety:
         ws._transfer_to_dict = failing_transfer
 
         with pytest.raises(RuntimeError):
+            wb.read_lib_and_create_excel()
+
+        assert len(StyleManager.REGISTERED_STYLES) == 1
+        assert StyleManager._STYLE_ID == 0
+        assert len(StyleManager._style_map) == 0
+
+    def test_style_manager_reset_after_style_creation_exception(self):
+        """StyleManager state should be reset even if style serialization fails."""
+        wb = Workbook()
+        style = CustomStyle(border_style_top='bad')
+        wb['Sheet1']['A1'] = ('test', style)
+
+        with pytest.raises(PydanticSerializationError):
             wb.read_lib_and_create_excel()
 
         assert len(StyleManager.REGISTERED_STYLES) == 1
