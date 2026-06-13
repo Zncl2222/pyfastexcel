@@ -13,6 +13,63 @@ type fieldMapping struct {
 	Value interface{}
 }
 
+func setMappedValue(field reflect.Value, value interface{}, mappingType string) error {
+	switch mappingType {
+	case "string":
+		field.SetString(value.(string))
+	case "int":
+		value = int(value.(float64))
+		field.SetInt(int64(value.(int)))
+	case "uint64":
+		value = uint64(value.(float64))
+		field.SetUint(uint64(value.(uint64)))
+	case "bool":
+		field.SetBool(value.(bool))
+	case "*bool":
+		v := value.(bool)
+		field.Set(reflect.ValueOf(&v))
+	case "float64":
+		field.SetFloat(value.(float64))
+	case "*float64":
+		v := value.(float64)
+		field.Set(reflect.ValueOf(&v))
+	case "[]string":
+		value = []string{value.(string)}
+		field.Set(reflect.ValueOf(value))
+	case "Fill":
+		fillStyle := getFillStyle(value.(map[string]interface{}))
+		field.Set(reflect.ValueOf(fillStyle))
+	case "*Font":
+		fillStyle := getFontStyle(value.(map[string]interface{}))
+		field.Set(reflect.ValueOf(fillStyle))
+	case "Font":
+		fillStyle := getFontStyle(value.(map[string]interface{}))
+		field.Set(reflect.ValueOf(*fillStyle))
+	case "ChartDataLabelPositionType":
+		positionType := excelize.ChartDataLabelPositionType(value.(float64))
+		field.Set(reflect.ValueOf(positionType))
+	case "ChartLine":
+		lineStyle := getLineStyle(value.(map[string]interface{}))
+		field.Set(reflect.ValueOf(lineStyle))
+	case "ChartLineType":
+		chartLineType := excelize.ChartLineType(value.(float64))
+		field.Set(reflect.ValueOf(chartLineType))
+	case "ChartMarker":
+		markerStyle := getMarkerStyle(value.(map[string]interface{}))
+		field.Set(reflect.ValueOf(markerStyle))
+	case "[]RichTextRun":
+		richTextRun := getTitleStruct(value)
+		field.Set(reflect.ValueOf(richTextRun))
+	case "ChartNumFmt":
+		numFmt := getChartNumFmtStruct(value)
+		field.Set(reflect.ValueOf(numFmt))
+	default:
+		return errors.New("unsupported field type")
+	}
+
+	return nil
+}
+
 // setField sets a field in a struct based on a map and field mappings.
 //
 // Args:
@@ -28,58 +85,11 @@ func setField(obj interface{}, fieldMap map[string]interface{}, mappings []field
 			if value == nil {
 				continue
 			}
-			field := reflect.ValueOf(obj).Elem().FieldByName(mapping.Name)
-			switch mapping.Type {
-			case "string":
-				field.SetString(value.(string))
-			case "int":
-				value = int(value.(float64))
-				field.SetInt(int64(value.(int)))
-			case "uint64":
-				value = uint64(value.(float64))
-				field.SetUint(uint64(value.(uint64)))
-			case "bool":
-				field.SetBool(value.(bool))
-			case "*bool":
-				v := value.(bool)
-				field.Set(reflect.ValueOf(&v))
-			case "float64":
-				field.SetFloat(value.(float64))
-			case "*float64":
-				v := value.(float64)
-				field.Set(reflect.ValueOf(&v))
-			case "[]string":
-				value = []string{value.(string)}
-				field.Set(reflect.ValueOf(value))
-			case "Fill":
-				fillStyle := getFillStyle(value.(map[string]interface{}))
-				field.Set(reflect.ValueOf(fillStyle))
-			case "*Font":
-				fillStyle := getFontStyle(value.(map[string]interface{}))
-				field.Set(reflect.ValueOf(fillStyle))
-			case "Font":
-				fillStyle := getFontStyle(value.(map[string]interface{}))
-				field.Set(reflect.ValueOf(*fillStyle))
-			case "ChartDataLabelPositionType":
-				positionType := excelize.ChartDataLabelPositionType(value.(float64))
-				field.Set(reflect.ValueOf(positionType))
-			case "ChartLine":
-				lineStyle := getLineStyle(value.(map[string]interface{}))
-				field.Set(reflect.ValueOf(lineStyle))
-			case "ChartLineType":
-				chartLineType := excelize.ChartLineType(value.(float64))
-				field.Set(reflect.ValueOf(chartLineType))
-			case "ChartMarker":
-				markerStyle := getMarkerStyle(value.(map[string]interface{}))
-				field.Set(reflect.ValueOf(markerStyle))
-			case "[]RichTextRun":
-				richTextRun := getTitleStruct(value)
-				field.Set(reflect.ValueOf(richTextRun))
-			case "ChartNumFmt":
-				numFmt := getChartNumFmtStruct(value)
-				field.Set(reflect.ValueOf(numFmt))
-			default:
-				return errors.New("unsupported field type")
+			field := reflect.ValueOf(obj).Elem().FieldByNameFunc(func(fieldName string) bool {
+				return fieldName == mapping.Name
+			})
+			if err := setMappedValue(field, value, mapping.Type); err != nil {
+				return err
 			}
 		}
 	}

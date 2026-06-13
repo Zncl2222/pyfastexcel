@@ -1,4 +1,4 @@
-import random
+import secrets
 
 from pyfastexcel import CustomStyle, Workbook
 from pyfastexcel.chart import (
@@ -41,11 +41,11 @@ def setup(wb: Workbook, sheet_name: str) -> WorkSheet:
 
     ws[0] = columns
     for i in range(1, 60):
-        ws[f'A{i + 1}'] = random.choice(year)
-        ws[f'B{i + 1}'] = random.choice(month)
-        ws[f'C{i + 1}'] = random.choice(market)
-        ws[f'D{i + 1}'] = random.choice(location)
-        ws[f'E{i + 1}'] = random.randint(-1000, 10000)
+        ws[f'A{i + 1}'] = secrets.choice(year)
+        ws[f'B{i + 1}'] = secrets.choice(month)
+        ws[f'C{i + 1}'] = secrets.choice(market)
+        ws[f'D{i + 1}'] = secrets.choice(location)
+        ws[f'E{i + 1}'] = secrets.randbelow(11001) - 1000
 
     return ws
 
