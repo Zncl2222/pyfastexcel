@@ -11,8 +11,10 @@ jobs:
     strategy:
       matrix:
         include:
-          # ubuntu-22.04 runner + golang:1.24-bullseye Docker (Debian 11, GLIBC 2.31)
-          # to maintain the same GLIBC compatibility as the old ubuntu-20.04 build
+          # ubuntu-22.04 runner + debian:bullseye Docker (Debian 11, GLIBC 2.31)
+          # to maintain the same GLIBC compatibility as the old ubuntu-20.04 build.
+          # Go 1.25.x has no official bullseye image, so we install the Go
+          # toolchain from the official tarball on top of debian:bullseye.
           - runs-on: ubuntu-22.04
             filename: pyfastexcel.so
           - runs-on: windows-latest
@@ -26,7 +28,7 @@ jobs:
           if: runner.os != 'Linux'
           uses: actions/setup-go@v5
           with:
-            go-version: '1.24'
+            go-version: '1.25'
             check-latest: true
         - name: Build shared library (Linux)
           if: runner.os == 'Linux'
@@ -34,8 +36,15 @@ jobs:
             docker run --rm \
               -v ${{ github.workspace }}:/workspace \
               -w /workspace \
-              golang:1.24-bullseye \
-              bash -c "git config --global --add safe.directory /workspace && apt-get update -q && apt-get install -y gcc make -q && CGO_ENABLED=1 make"
+              debian:bullseye \
+              bash -c "set -e && \
+                apt-get update -q && apt-get install -y gcc make curl git -q && \
+                curl -sSL -o /tmp/go.tar.gz https://go.dev/dl/go1.25.12.linux-amd64.tar.gz && \
+                echo '234828b7a89e0e303d2556310ee549fbcf253d28de937bac3da13d6294262ac1  /tmp/go.tar.gz' | sha256sum -c - && \
+                tar -C /usr/local -xzf /tmp/go.tar.gz && \
+                export PATH=\$PATH:/usr/local/go/bin && \
+                git config --global --add safe.directory /workspace && \
+                CGO_ENABLED=1 make"
         - name: Build shared library
           if: runner.os != 'Linux'
           run: |
