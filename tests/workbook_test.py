@@ -594,7 +594,7 @@ def test_freeze_set_panes():
 
 
 @pytest.mark.parametrize(
-    'selection,',
+    'selection',
     [
         ([{'sq_ref': 'G36', 'active_cell': 'G36', 'pane': 'topRight'}]),
         ([SelectionDict(sq_ref='G36', active_cell='G36', pane='topRight')]),

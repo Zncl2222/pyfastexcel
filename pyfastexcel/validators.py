@@ -77,14 +77,11 @@ class TableFinalValidation(BaseModel):
             # Check if table range is valid, end_col should +1 because of length comparison
             if end_col + 1 > len(self.data[start_row]):
                 raise ValueError(
-                    f"Invalid table range for {t['name']}. "
-                    'Please write a row for table first row.'
+                    f"Invalid table range for {t['name']}. Please write a row for table first row."
                 )
 
             if len(set(self.data[start_row])) != len(self.data[start_row]):
-                raise ValueError(
-                    'Invalid table header. ' 'The first row contains duplicate values.'
-                )
+                raise ValueError('Invalid table header. The first row contains duplicate values.')
 
             end_row = len(self.data) - 1 if end_row >= len(self.data) else end_row
             for col in range(start_col, end_col + 1):

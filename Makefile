@@ -33,4 +33,23 @@ clean:
 
 test:
 	@echo "Running tests with pytest..."
-	pytest -s -v --cov --cov-report=term --cov-report=html
+	uv run pytest -s -v --cov --cov-report=term --cov-report=html
+
+install-dev:
+	uv sync --dev
+
+install-docs:
+	uv sync --group docs
+
+build-package:
+	uv build
+
+lint:
+	uv run ruff check .
+	uv run ruff format --check .
+
+format:
+	uv run ruff check --fix .
+	uv run ruff format .
+
+.PHONY: all build clean test install-dev install-docs build-package lint format

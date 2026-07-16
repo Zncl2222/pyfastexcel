@@ -314,7 +314,7 @@ class DefaultStyle:
             )
         )
         cls.protection = (
-            Protection(**cls.protection)
+            Protection(**cls.protection_params)
             if cls.protection_params
             else Protection(
                 locked=cls.protect,
@@ -388,6 +388,8 @@ class CustomStyle(DefaultStyle):
         self.border_color_left = kwargs.get('border_color_left', self.border_color_left)
         self.border_color_bottom = kwargs.get('border_color_bottom', self.border_color_bottom)
 
+        self.protection_params = kwargs.get('protection_params', self.protection_params)
+
         self._apply_settings()
 
     def _apply_settings(self):
@@ -428,7 +430,7 @@ class CustomStyle(DefaultStyle):
             )
         )
         self.protection = (
-            Protection(**self.protection)
+            Protection(**self.protection_params)
             if self.protection_params
             else Protection(
                 locked=self.protect,
