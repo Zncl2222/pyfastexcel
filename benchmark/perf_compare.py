@@ -1,4 +1,5 @@
-"""Measure pyfastexcel performance before and after optimization.
+"""
+Measure pyfastexcel performance before and after optimization.
 
 benchmark/perf_compare.py
 
@@ -68,7 +69,8 @@ def bench_stream(data: list[dict]) -> None:
 
 
 def measure_components(data: list[dict], repeat: int = 3) -> dict[str, float]:
-    """Break down the time inside read_lib_and_create_excel into components.
+    """
+    Break down the time inside read_lib_and_create_excel into components.
 
     Components:
       prepare   – Python-side data assembly (_create_style, _transfer_to_dict)
@@ -134,7 +136,7 @@ def measure_components(data: list[dict], repeat: int = 3) -> dict[str, float]:
             ptr = lib.Export(json_data, ctypes.byref(out_len), ignore_go_panic)
             t4 = time.perf_counter()
 
-            _raw = bytes(ctypes.string_at(ptr, out_len.value))
+            bytes(ctypes.string_at(ptr, out_len.value))
             lib.FreeCPointer(ptr, ctypes.c_int64(0))
             t5 = time.perf_counter()
             api_label = 'new (raw bytes)'
