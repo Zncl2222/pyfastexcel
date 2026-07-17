@@ -1,14 +1,16 @@
-"""Reproducible wall-time and peak-RSS benchmark for pyfastexcel.
+"""
+Reproducible wall-time and peak-RSS benchmark for pyfastexcel.
 
 Each sample runs in a fresh subprocess.  This keeps peak RSS independent
 between samples and deliberately avoids ``tracemalloc``, whose allocation
 hooks distort the hot Python loop.
 
-Examples:
-
+Examples
+--------
     uv run python benchmark/perf_memory.py --rows 50000 --cols 30
     uv run python benchmark/perf_memory.py --wire json --output before.json
     uv run python benchmark/perf_memory.py --compare before.json
+
 """
 
 from __future__ import annotations
@@ -19,8 +21,9 @@ import importlib.metadata
 import json
 import os
 import platform
+import shutil
 import statistics
-import subprocess
+import subprocess  # nosec B404
 import sys
 import tempfile
 import time
@@ -38,6 +41,7 @@ WORKLOAD_DESCRIPTION = {
     'formula_cells': 0,
     'style_pattern': 'column modulo four fixed styles',
 }
+METADATA_TOOLS = frozenset({'git', 'go'})
 
 
 def _package_version(distribution: str) -> str | None:
@@ -183,9 +187,12 @@ def _worker(
 
 
 def _run_sample(rows: int, cols: int, wire: str, destination: str) -> dict[str, Any]:
+    # Preserve virtual-environment launcher symlinks while making PATH lookup
+    # impossible for the worker executable.
+    python_executable = str(Path(sys.executable).absolute())
     command = [
-        sys.executable,
-        str(Path(__file__).resolve()),
+        python_executable,
+        str(HARNESS),
         '--worker',
         '--rows',
         str(rows),
@@ -196,7 +203,9 @@ def _run_sample(rows: int, cols: int, wire: str, destination: str) -> dict[str, 
         '--destination',
         destination,
     ]
-    completed = subprocess.run(
+    # The executable and harness are absolute, validated values are separate
+    # arguments, and no shell interprets the command.
+    completed = subprocess.run(  # nosec B603
         command,
         cwd=ROOT,
         check=True,
@@ -208,9 +217,15 @@ def _run_sample(rows: int, cols: int, wire: str, destination: str) -> dict[str, 
 
 def _require_current_native_build() -> None:
     """Refuse release evidence when the checked-in sources are newer than the library."""
+    make_executable = shutil.which('make')
+    if make_executable is None:
+        raise RuntimeError('make is required to verify the native benchmark build')
     try:
-        completed = subprocess.run(
-            ['make', '-q', 'build'],
+        resolved_make = str(Path(make_executable).resolve(strict=True))
+        # ``make`` is resolved to an absolute executable and receives only
+        # module-owned arguments without shell parsing.
+        completed = subprocess.run(  # nosec B603
+            [resolved_make, '-q', 'build'],
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -224,9 +239,21 @@ def _require_current_native_build() -> None:
         raise RuntimeError(f'could not verify native build freshness: {detail}')
 
 
-def _command_output(*command: str) -> str | None:
+def _command_output(tool: str, *arguments: str) -> str | None:
+    if tool not in METADATA_TOOLS:
+        raise ValueError(f'unsupported metadata tool: {tool}')
+    executable = shutil.which(tool)
+    if executable is None:
+        return None
     try:
-        return subprocess.check_output(command, cwd=ROOT, text=True).strip()
+        resolved_executable = str(Path(executable).resolve(strict=True))
+        # The executable is allowlisted and absolute. All arguments come from
+        # fixed call sites in this benchmark and are never parsed by a shell.
+        return subprocess.check_output(  # nosec B603
+            [resolved_executable, *arguments],
+            cwd=ROOT,
+            text=True,
+        ).strip()
     except (OSError, subprocess.CalledProcessError):
         return None
 

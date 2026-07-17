@@ -15,11 +15,12 @@ _MSGPACK_MIN_INT = -(1 << 63)
 _MSGPACK_MAX_INT = (1 << 64) - 1
 
 
-class _UseLegacyJSON(Exception):
+# D203 conflicts with Ruff's formatter, which removes this blank line.
+class _UseLegacyJSON(Exception):  # noqa: D203
     """Signal that a cell needs the legacy JSON value semantics."""
 
 
-class _RowNeedsCare(Exception):
+class _RowNeedsCare(Exception):  # noqa: D203
     """Signal that a row cannot take the fast encode path."""
 
 
@@ -65,7 +66,8 @@ def _encode_no_style_row(row: Any) -> Any:
 
 
 def _fast_no_style_row(row: Any) -> Any:
-    """Pass through a row of plain scalars without per-value function calls.
+    """
+    Pass through a row of plain scalars without per-value function calls.
 
     Raises _RowNeedsCare for anything the tight type dispatch does not cover,
     so ``_encode_no_style_row`` keeps the exact legacy semantics for rare rows.
@@ -88,7 +90,8 @@ def _fast_no_style_row(row: Any) -> Any:
 
 
 def _fast_styled_row(row: Any, style_ids: dict[str, int]) -> list[Any]:
-    """Encode the common case of a row of well-formed ``(value, style)`` cells.
+    """
+    Encode the common case of a row of well-formed ``(value, style)`` cells.
 
     Exact-type dispatch keeps this loop cheap; any irregular cell shape,
     subclassed value, unknown style, or out-of-range integer raises so the
@@ -99,7 +102,8 @@ def _fast_styled_row(row: Any, style_ids: dict[str, int]) -> list[Any]:
     append = encoded_row.append
     isfinite = math.isfinite
     for cell in row:
-        if type(cell) is not tuple and type(cell) is not list:  # noqa: E721
+        cell_type = type(cell)
+        if cell_type is not tuple and cell_type is not list:
             raise _RowNeedsCare
         value, style_name = cell
         value_type = type(value)
@@ -139,7 +143,8 @@ def _encode_styled_row(row: Any, style_ids: dict[str, int]) -> list[Any]:
 
 
 def encode_v2_payload(export_data: dict[str, Any]) -> bytes:
-    """Encode the version-2 metadata + row-stream framing.
+    """
+    Encode the version-2 metadata + row-stream framing.
 
     Layout::
 

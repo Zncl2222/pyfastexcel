@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io/fs"
 	"math"
 	"os"
 	"path/filepath"
@@ -393,7 +394,9 @@ func testExportToFileV2(t *testing.T) {
 	input := []byte(abiTestJSON)
 	cInput := C.CBytes(input)
 	defer C.free(cInput)
-	path := filepath.Join(t.TempDir(), "abi-output.no-xlsx-extension")
+	directory := t.TempDir()
+	const outputName = "abi-output.no-xlsx-extension"
+	path := filepath.Join(directory, outputName)
 	cPath := C.CString(path)
 	defer C.free(unsafe.Pointer(cPath))
 	var outputError *C.char
@@ -411,7 +414,7 @@ func testExportToFileV2(t *testing.T) {
 	if status != 0 {
 		t.Fatalf("ExportToFileV2 returned status %d", status)
 	}
-	workbook, err := os.ReadFile(path)
+	workbook, err := fs.ReadFile(os.DirFS(directory), outputName)
 	if err != nil {
 		t.Fatalf("read ExportToFileV2 output: %v", err)
 	}

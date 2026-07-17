@@ -48,6 +48,7 @@ class StyleManager:
     _REGISTRY_VERSION = 0
 
     def __init__(self) -> None:
+        """Initialize a workbook-local view of the process style defaults."""
         self._process_styles: dict[str, CustomStyle] = {}
         self._local_styles: dict[str, CustomStyle] = {}
         self._process_version = -1
@@ -85,7 +86,8 @@ class StyleManager:
 
     @classmethod
     def reset_style_configs(cls):
-        """Explicitly reset process defaults.
+        """
+        Explicitly reset process defaults.
 
         This entry point is retained for compatibility and test isolation.  A
         workbook save intentionally never calls it.

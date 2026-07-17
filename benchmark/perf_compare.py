@@ -1,4 +1,5 @@
-"""Legacy broad-case throughput benchmark.
+"""
+Legacy broad-case throughput benchmark.
 
 This script is retained for its Workbook/StreamWriter size matrix, but its
 ``perf_baseline.json`` files are not release evidence because they lack native

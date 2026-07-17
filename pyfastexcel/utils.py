@@ -57,7 +57,8 @@ def set_debug_level(level: int):
 
 
 def set_zip_compression_level(level: int | None) -> None:
-    """Choose the DEFLATE speed/size trade-off for native workbook exports.
+    """
+    Choose the DEFLATE speed/size trade-off for native workbook exports.
 
     Levels 1-9 switch the native library to klauspost/compress: 1 is fastest,
     9 is smallest. Level 6 writes the reference 1.5M-cell workload about 3x
@@ -68,14 +69,20 @@ def set_zip_compression_level(level: int | None) -> None:
     The native library reads this setting once, at the first export of the
     process, so call this before the first ``save()``.
 
-    Args:
-        level (int | None): Compression level from 1 to 9, or None for the
-            backward-compatible default.
+    Parameters
+    ----------
+    level : int | None
+        Compression level from 1 to 9, or None for the backward-compatible
+        default.
 
-    Raises:
-        ValueError: If level is not None and not an integer from 1 to 9.
-        RuntimeError: If a workbook was already exported in this process,
-            because the setting can no longer take effect.
+    Raises
+    ------
+    ValueError
+        If level is not None and not an integer from 1 to 9.
+    RuntimeError
+        If a workbook was already exported in this process, because the
+        setting can no longer take effect.
+
     """
     import os
 

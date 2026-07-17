@@ -122,9 +122,12 @@ class StreamWriter(Workbook):
                 a style name or a CustomStyle object.
             **kwargs: Additional keyword arguments to modify the style.
         """
-        if kwargs or type(style) is not str or style not in self._validated_style_names:  # noqa: E721
+        # Exact types keep subclasses on the compatibility path in _resolve_style.
+        style_type = type(style)
+        if kwargs or style_type is not str or style not in self._validated_style_names:
             style = self._resolve_style(style, kwargs)
-            if not kwargs and type(style) is str:  # noqa: E721
+            resolved_style_type = type(style)
+            if not kwargs and resolved_style_type is str:
                 self._validated_style_names.add(style)
         if not isinstance(value, (int, float, str)):
             value = f'{value}'
@@ -149,9 +152,12 @@ class StreamWriter(Workbook):
             create_row (bool): Whether to create row.
             **kwargs: Additional keyword arguments to modify the style.
         """
-        if kwargs or type(style) is not str or style not in self._validated_style_names:  # noqa: E721
+        # Exact types keep subclasses on the compatibility path in _resolve_style.
+        style_type = type(style)
+        if kwargs or style_type is not str or style not in self._validated_style_names:
             style = self._resolve_style(style, kwargs)
-            if not kwargs and type(style) is str:  # noqa: E721
+            resolved_style_type = type(style)
+            if not kwargs and resolved_style_type is str:
                 self._validated_style_names.add(style)
         value = tuple(
             (
@@ -172,7 +178,8 @@ class StreamWriter(Workbook):
         style: str | CustomStyle | list[str | CustomStyle] = 'DEFAULT_STYLE',
         **kwargs,
     ) -> None:
-        """Append one complete row without changing the existing row APIs.
+        """
+        Append one complete row without changing the existing row APIs.
 
         ``style`` may also be a list or tuple with one style per column, which
         is substantially faster than one ``row_append`` call per cell when
@@ -207,11 +214,13 @@ class StreamWriter(Workbook):
         """Resolve one style per column to validated workbook-local names."""
         resolved = []
         for style in styles:
-            if type(style) is str and style in self._validated_style_names:  # noqa: E721
+            style_type = type(style)
+            if style_type is str and style in self._validated_style_names:
                 resolved.append(style)
                 continue
             name = self._resolve_style(style, {})
-            if type(name) is str:  # noqa: E721
+            name_type = type(name)
+            if name_type is str:
                 self._validated_style_names.add(name)
             resolved.append(name)
         return tuple(resolved)

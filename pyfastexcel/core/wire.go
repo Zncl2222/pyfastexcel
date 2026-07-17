@@ -140,7 +140,7 @@ func copyTemporaryWorkbook(temporaryPath, path string) (err error) {
 		err = errors.Join(err, input.Close())
 	}()
 
-	output, err := os.OpenFile(filepath.Clean(path), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o666)
+	output, err := os.OpenFile(filepath.Clean(path), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return fmt.Errorf("open output file %q: %w", path, err)
 	}

@@ -42,10 +42,12 @@ logger.addHandler(style_formatter)
 logger.propagate = False
 
 
-class NativeExcelClient:
+# D203 conflicts with Ruff's formatter, which removes this blank line.
+class NativeExcelClient:  # noqa: D203
     """Versioned ctypes boundary with explicit ownership for C allocations."""
 
     def __init__(self, library: ctypes.CDLL, *, debug: bool = False) -> None:
+        """Bind the supported native export functions from ``library``."""
         self.library = library
         self.debug = debug
         self.free_pointer = library.FreeCPointer

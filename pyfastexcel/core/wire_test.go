@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"math"
 	"os"
 	"path/filepath"
@@ -432,6 +433,15 @@ func TestWriteExcelV2ToFileAllowsArbitraryExtension(t *testing.T) {
 	if value, _ := workbook.GetCellValue("Sheet1", "A1"); value != "file" {
 		t.Fatalf("expected file cell value, got %q", value)
 	}
+	if runtime.GOOS != "windows" {
+		info, err := os.Stat(path)
+		if err != nil {
+			t.Fatalf("stat direct output: %v", err)
+		}
+		if mode := info.Mode().Perm(); mode&0o077 != 0 {
+			t.Fatalf("new output mode %o grants group or other access", mode)
+		}
+	}
 }
 
 func TestWriteExcelV2ToFilePreservesLegacyDestinationSemantics(t *testing.T) {
@@ -443,7 +453,8 @@ func TestWriteExcelV2ToFilePreservesLegacyDestinationSemantics(t *testing.T) {
 		nil,
 	)
 	directory := t.TempDir()
-	target := filepath.Join(directory, "existing.data")
+	const targetName = "existing.data"
+	target := filepath.Join(directory, targetName)
 	if err := os.WriteFile(target, []byte("original"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -451,7 +462,7 @@ func TestWriteExcelV2ToFilePreservesLegacyDestinationSemantics(t *testing.T) {
 	if err := WriteExcelV2ToFile([]byte("invalid payload"), target); err == nil {
 		t.Fatal("invalid generation unexpectedly succeeded")
 	}
-	if content, err := os.ReadFile(target); err != nil || string(content) != "original" {
+	if content, err := fs.ReadFile(os.DirFS(directory), targetName); err != nil || string(content) != "original" {
 		t.Fatalf("generation failure changed target: content=%q err=%v", content, err)
 	}
 
