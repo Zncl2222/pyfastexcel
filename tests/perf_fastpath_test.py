@@ -220,6 +220,8 @@ class W(StreamWriter):
     bold = CustomStyle(font_bold=True)
 
 writer = W()
+writer.set_file_props('Created', '2000-01-01T00:00:00Z')
+writer.set_file_props('Modified', '2000-01-01T00:00:00Z')
 for row in range(200):
     for col in range(10):
         writer.row_append(row * 10 + col, style='bold')
