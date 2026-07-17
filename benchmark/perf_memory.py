@@ -1,5 +1,6 @@
-"""
-Reproducible wall-time and peak-RSS benchmark for pyfastexcel.
+# D212 and D213 are mutually exclusive; Codacy enables both.
+# noqa: D213
+"""Reproducible wall-time and peak-RSS benchmark for pyfastexcel.
 
 Each sample runs in a fresh subprocess.  This keeps peak RSS independent
 between samples and deliberately avoids ``tracemalloc``, whose allocation

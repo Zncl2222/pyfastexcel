@@ -56,9 +56,8 @@ def set_debug_level(level: int):
     logging.basicConfig(level=level)
 
 
-def set_zip_compression_level(level: int | None) -> None:
-    """
-    Choose the DEFLATE speed/size trade-off for native workbook exports.
+def set_zip_compression_level(level: int | None) -> None:  # noqa: D213
+    """Choose the DEFLATE speed/size trade-off for native workbook exports.
 
     Levels 1-9 switch the native library to klauspost/compress: 1 is fastest,
     9 is smallest. Level 6 writes the reference 1.5M-cell workload about 3x

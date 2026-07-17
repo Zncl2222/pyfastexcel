@@ -65,9 +65,8 @@ def _encode_no_style_row(row: Any) -> Any:
     return row
 
 
-def _fast_no_style_row(row: Any) -> Any:
-    """
-    Pass through a row of plain scalars without per-value function calls.
+def _fast_no_style_row(row: Any) -> Any:  # noqa: D213
+    """Pass through a row of plain scalars without per-value function calls.
 
     Raises _RowNeedsCare for anything the tight type dispatch does not cover,
     so ``_encode_no_style_row`` keeps the exact legacy semantics for rare rows.
@@ -89,9 +88,8 @@ def _fast_no_style_row(row: Any) -> Any:
     return row
 
 
-def _fast_styled_row(row: Any, style_ids: dict[str, int]) -> list[Any]:
-    """
-    Encode the common case of a row of well-formed ``(value, style)`` cells.
+def _fast_styled_row(row: Any, style_ids: dict[str, int]) -> list[Any]:  # noqa: D213
+    """Encode the common case of a row of well-formed ``(value, style)`` cells.
 
     Exact-type dispatch keeps this loop cheap; any irregular cell shape,
     subclassed value, unknown style, or out-of-range integer raises so the
@@ -142,9 +140,8 @@ def _encode_styled_row(row: Any, style_ids: dict[str, int]) -> list[Any]:
     return encoded_row
 
 
-def encode_v2_payload(export_data: dict[str, Any]) -> bytes:
-    """
-    Encode the version-2 metadata + row-stream framing.
+def encode_v2_payload(export_data: dict[str, Any]) -> bytes:  # noqa: D213
+    """Encode the version-2 metadata + row-stream framing.
 
     Layout::
 

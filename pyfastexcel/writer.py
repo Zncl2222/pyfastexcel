@@ -177,9 +177,8 @@ class StreamWriter(Workbook):
         values: Iterable[Any],
         style: str | CustomStyle | list[str | CustomStyle] = 'DEFAULT_STYLE',
         **kwargs,
-    ) -> None:
-        """
-        Append one complete row without changing the existing row APIs.
+    ) -> None:  # noqa: D213
+        """Append one complete row without changing the existing row APIs.
 
         ``style`` may also be a list or tuple with one style per column, which
         is substantially faster than one ``row_append`` call per cell when

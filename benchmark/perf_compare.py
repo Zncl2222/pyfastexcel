@@ -1,5 +1,6 @@
-"""
-Legacy broad-case throughput benchmark.
+# D212 and D213 are mutually exclusive; Codacy enables both.
+# noqa: D213
+"""Legacy broad-case throughput benchmark.
 
 This script is retained for its Workbook/StreamWriter size matrix, but its
 ``perf_baseline.json`` files are not release evidence because they lack native

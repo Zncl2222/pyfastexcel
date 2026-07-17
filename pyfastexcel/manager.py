@@ -85,9 +85,8 @@ class StyleManager:
             return style_name
 
     @classmethod
-    def reset_style_configs(cls):
-        """
-        Explicitly reset process defaults.
+    def reset_style_configs(cls):  # noqa: D213
+        """Explicitly reset process defaults.
 
         This entry point is retained for compatibility and test isolation.  A
         workbook save intentionally never calls it.
