@@ -39,8 +39,8 @@ The fast-path reports (`2026-07-17-fastpath.json` and
 `2026-07-17-fastpath-zip6.json`) measure the tightened Python hot loops, the
 Go decode/SetRow pipeline, and the optional `PYFASTEXCEL_ZIP_LEVEL=6`
 compressor on the same 1.5M-cell workload. On the reference WSL2 machine they
-bring the total from 1.67s to 1.29s (default output, byte-identical archives)
-and 1.09s (fast zip, ~20% larger files). Multi-sheet workbooks additionally
+bring the total from 1.67s to 1.54s (default output, byte-identical archives)
+and 1.20s (fast zip, ~20% larger files). Multi-sheet workbooks additionally
 write sheets concurrently (sheet_offsets in the wire metadata give each worker
 its own row-stream slice): a 4-sheet 1.5M-cell export drops from 0.65s to
 0.47s (default) and 0.43s to 0.25s (fast zip). Rerun with:
