@@ -134,6 +134,27 @@ your own row-by-row writing method.
             self.workbook['Sheet1']['AB9'] = 'qwer'
     ```
 
+### Batch row APIs
+
+One Python call per cell is the slowest way to fill a large sheet. When a
+whole row shares one style, or styles only vary per column, the batch APIs
+write the same data 2-3x faster:
+
+```python title="Batch rows"
+# One style for the whole row.
+self.append_row([1, 2, 3, 4], style='black_fill_style')
+
+# One style per column (list length must match the row length).
+column_styles = ['black_fill_style', 'green_fill_style'] * 2
+self.append_rows(
+    ([n, n + 1, n + 2, n + 3] for n in range(0, 40, 4)),
+    style=column_styles,
+)
+```
+
+Both accept style names or `CustomStyle` objects and produce exactly the same
+cells as the equivalent `row_append` loop.
+
 4. Pass the data to initialize the Writer class and create the Excel:
 
     ```python title="Write Excel"

@@ -35,6 +35,21 @@ The Stage A acceptance reports are committed in [`benchmark/results`](results/):
 the historical ABI-v1 baseline, ABI-v2 PFX2 result, and ABI-v2 compatibility-JSON
 attribution run each contain three fresh-process samples.
 
+The fast-path reports (`2026-07-17-fastpath.json` and
+`2026-07-17-fastpath-zip6.json`) measure the tightened Python hot loops, the
+Go decode/SetRow pipeline, and the optional `PYFASTEXCEL_ZIP_LEVEL=6`
+compressor on the same 1.5M-cell workload. On the reference WSL2 machine they
+bring the total from 1.67s to 1.29s (default output, byte-identical archives)
+and 1.09s (fast zip, ~20% larger files). Multi-sheet workbooks additionally
+write sheets concurrently (sheet_offsets in the wire metadata give each worker
+its own row-stream slice): a 4-sheet 1.5M-cell export drops from 0.65s to
+0.47s (default) and 0.43s to 0.25s (fast zip). Rerun with:
+
+```bash
+uv run python benchmark/perf_memory.py --rows 50000 --cols 30 --repeat 3
+PYFASTEXCEL_ZIP_LEVEL=6 uv run python benchmark/perf_memory.py --rows 50000 --cols 30 --repeat 3
+```
+
 - [Windows11](#benchmark-result-windows-11)
 - [Windows11 WSL2 Ubuntu22.04](#benchmark-results-windows-11-wsl2-ubuntu-2204)
 

@@ -50,6 +50,44 @@ wb.save(file_name)
 !!! note="Note"
     `wb.save()` now will call `read_lib_and_create_excel()` automatically.
 
+### Faster compression for large workbooks
+
+By default the generated `.xlsx` archives are byte-for-byte identical to
+previous releases. For large workbooks most of the native export time is spent
+in DEFLATE, so an optional faster compressor is available:
+
+```python
+from pyfastexcel import set_zip_compression_level
+
+set_zip_compression_level(6)  # call once, before the first save()
+```
+
+Levels run from 1 (fastest, largest file) to 9 (slowest, smallest file);
+level 6 writes a 1.5M-cell workbook about 3x faster than the default for
+roughly 20% larger files. The produced files remain standard ZIP/DEFLATE
+archives that any reader can open. The setting is read once per process at the
+first export; the `PYFASTEXCEL_ZIP_LEVEL` environment variable is an
+equivalent alternative.
+
+### Parallel writing
+
+Workbooks whose sheets all use the default `StreamWriter` engine are written
+with one native worker per sheet, so multi-sheet workbooks use multiple CPU
+cores automatically — no code change and no output difference. Setting
+`PYFASTEXCEL_SEQUENTIAL=1` disables this for debugging.
+
+Saving several *independent* workbooks also parallelizes well from Python:
+the native export releases the GIL, so a thread pool speeds it up nearly
+linearly (workbook isolation is covered by the concurrency test suite):
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+with ThreadPoolExecutor() as pool:
+    for workbook, path in zip(workbooks, paths):
+        pool.submit(workbook.save, path)
+```
+
 If you know the dimension of the data you want to write. You can use `pre_allocate`
 to pre_allocate the memory space of the pyfastexcel to improve the performance.
 

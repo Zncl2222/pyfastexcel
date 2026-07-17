@@ -168,3 +168,14 @@ a length-aware ctypes boundary; Go decodes one row at a time and writes it with
 detected automatically and continue to use the complete JSON/base64 protocol.
 The generated XLSX is returned as raw bytes, or written through the compatible
 direct-file path when `save(path)` is used.
+
+Row decoding runs concurrently with excelize's row serialization, workbooks
+with multiple stream sheets are written with one worker per sheet, and the hot
+Python paths (`row_append`, the wire encoder) use cached style resolution with
+tight per-row loops. Two opt-in speedups are available on top of that:
+`append_row`/`append_rows` write whole rows per call (2-3x faster than a
+per-cell loop, styles may vary per column), and
+`set_zip_compression_level(6)` swaps the final DEFLATE stage for
+[klauspost/compress](https://github.com/klauspost/compress) (about 3x faster
+compression for roughly 20% larger, fully standard files). Without opt-ins the
+output archives stay byte-for-byte identical to previous releases.

@@ -44,6 +44,7 @@ golang:
     excelize (Core functionality)
     marshmallow (for faster json decoding)
     vmihailenco/msgpack (for row-stream decoding)
+    klauspost/compress (optional faster DEFLATE, see set_zip_compression_level)
 
 ## Installation
 
