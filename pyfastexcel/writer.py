@@ -3,8 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any, Optional
 
-from pyfastexcel import CustomStyle
-
+from .style import CustomStyle
 from .utils import validate_and_register_style
 from .workbook import Workbook
 from .worksheet import WorkSheet
@@ -21,6 +20,10 @@ class StreamWriter(Workbook):
         self.data = data
         self._collections = self._get_style_collections()
         self._cache: dict[tuple[Any, ...], str] = {}
+        # Style names that _resolve_style has already validated. Styles are
+        # only ever registered or overridden, never removed, so a validated
+        # name stays resolvable for the lifetime of this writer.
+        self._validated_style_names: set[str] = {'DEFAULT_STYLE'}
 
     @property
     def wb(self) -> StreamWriter:
@@ -119,9 +122,14 @@ class StreamWriter(Workbook):
                 a style name or a CustomStyle object.
             **kwargs: Additional keyword arguments to modify the style.
         """
-        style = self._resolve_style(style, kwargs)
-        value = f'{value}' if not isinstance(value, (int, float, str)) else value
-        value = float(value) if isinstance(value, float) else value
+        if kwargs or type(style) is not str or style not in self._validated_style_names:  # noqa: E721
+            style = self._resolve_style(style, kwargs)
+            if not kwargs and type(style) is str:  # noqa: E721
+                self._validated_style_names.add(style)
+        if not isinstance(value, (int, float, str)):
+            value = f'{value}'
+        elif isinstance(value, float):
+            value = float(value)
         self._row_list.append((value, style))
 
     def row_append_list(
@@ -141,7 +149,10 @@ class StreamWriter(Workbook):
             create_row (bool): Whether to create row.
             **kwargs: Additional keyword arguments to modify the style.
         """
-        style = self._resolve_style(style, kwargs)
+        if kwargs or type(style) is not str or style not in self._validated_style_names:  # noqa: E721
+            style = self._resolve_style(style, kwargs)
+            if not kwargs and type(style) is str:  # noqa: E721
+                self._validated_style_names.add(style)
         value = tuple(
             (
                 float(x) if isinstance(x, float) else x if isinstance(x, (int, str)) else f'{x}',
@@ -158,21 +169,74 @@ class StreamWriter(Workbook):
     def append_row(
         self,
         values: Iterable[Any],
-        style: str | CustomStyle = 'DEFAULT_STYLE',
+        style: str | CustomStyle | list[str | CustomStyle] = 'DEFAULT_STYLE',
         **kwargs,
     ) -> None:
-        """Append one complete row without changing the existing row APIs."""
+        """Append one complete row without changing the existing row APIs.
+
+        ``style`` may also be a list or tuple with one style per column, which
+        is substantially faster than one ``row_append`` call per cell when
+        styles vary across columns.
+        """
+        if isinstance(style, (list, tuple)):
+            if kwargs:
+                raise ValueError('Per-column styles cannot be combined with style kwargs.')
+            self.workbook[self.sheet].data.append(self._pair_row_with_styles(values, style))
+            return
         self.row_append_list(values, style=style, create_row=True, **kwargs)
 
     def append_rows(
         self,
         rows: Iterable[Iterable[Any]],
-        style: str | CustomStyle = 'DEFAULT_STYLE',
+        style: str | CustomStyle | list[str | CustomStyle] = 'DEFAULT_STYLE',
         **kwargs,
     ) -> None:
-        """Append multiple complete rows using a shared style."""
+        """Append multiple complete rows using a shared style or per-column styles."""
+        if isinstance(style, (list, tuple)):
+            if kwargs:
+                raise ValueError('Per-column styles cannot be combined with style kwargs.')
+            resolved = self._resolve_style_row(style)
+            data = self.workbook[self.sheet].data
+            for row in rows:
+                data.append(self._pair_row_with_resolved(row, resolved))
+            return
         for row in rows:
             self.append_row(row, style=style, **kwargs)
+
+    def _resolve_style_row(self, styles: list[str | CustomStyle]) -> tuple[str, ...]:
+        """Resolve one style per column to validated workbook-local names."""
+        resolved = []
+        for style in styles:
+            if type(style) is str and style in self._validated_style_names:  # noqa: E721
+                resolved.append(style)
+                continue
+            name = self._resolve_style(style, {})
+            if type(name) is str:  # noqa: E721
+                self._validated_style_names.add(name)
+            resolved.append(name)
+        return tuple(resolved)
+
+    def _pair_row_with_styles(
+        self,
+        values: Iterable[Any],
+        styles: list[str | CustomStyle],
+    ) -> tuple[tuple[Any, str], ...]:
+        return self._pair_row_with_resolved(values, self._resolve_style_row(styles))
+
+    def _pair_row_with_resolved(
+        self,
+        values: Iterable[Any],
+        resolved: tuple[str, ...],
+    ) -> tuple[tuple[Any, str], ...]:
+        normalized = [
+            x if isinstance(x, (int, str)) else float(x) if isinstance(x, float) else f'{x}'
+            for x in values
+        ]
+        if len(normalized) != len(resolved):
+            raise ValueError(
+                f'Row has {len(normalized)} values but {len(resolved)} styles were given.',
+            )
+        return tuple(zip(normalized, resolved))
 
     def create_row(self):
         """

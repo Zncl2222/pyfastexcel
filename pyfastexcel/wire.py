@@ -19,6 +19,10 @@ class _UseLegacyJSON(Exception):
     """Signal that a cell needs the legacy JSON value semantics."""
 
 
+class _RowNeedsCare(Exception):
+    """Signal that a row cannot take the fast encode path."""
+
+
 def use_json_wire() -> bool:
     """Return whether the human-readable legacy wire was explicitly requested."""
     return os.getenv(WIRE_ENV_VAR, '').strip().lower() in {'json', 'v1-json'}
@@ -58,6 +62,57 @@ def _encode_no_style_row(row: Any) -> Any:
             encoded_row[tail_index] = _normalize_scalar(encoded_row[tail_index])
         return encoded_row
     return row
+
+
+def _fast_no_style_row(row: Any) -> Any:
+    """Pass through a row of plain scalars without per-value function calls.
+
+    Raises _RowNeedsCare for anything the tight type dispatch does not cover,
+    so ``_encode_no_style_row`` keeps the exact legacy semantics for rare rows.
+    """
+    isfinite = math.isfinite
+    for value in row:
+        value_type = type(value)
+        if value_type is int:
+            if _MSGPACK_MIN_INT <= value <= _MSGPACK_MAX_INT:
+                continue
+            raise _UseLegacyJSON
+        if value_type is str or value is None or value_type is bool:
+            continue
+        if value_type is float:
+            if isfinite(value):
+                continue
+            raise _RowNeedsCare
+        raise _RowNeedsCare
+    return row
+
+
+def _fast_styled_row(row: Any, style_ids: dict[str, int]) -> list[Any]:
+    """Encode the common case of a row of well-formed ``(value, style)`` cells.
+
+    Exact-type dispatch keeps this loop cheap; any irregular cell shape,
+    subclassed value, unknown style, or out-of-range integer raises so the
+    caller can retry with ``_encode_styled_row`` and preserve its exact error
+    and fallback behavior.
+    """
+    encoded_row = []
+    append = encoded_row.append
+    isfinite = math.isfinite
+    for cell in row:
+        if type(cell) is not tuple and type(cell) is not list:  # noqa: E721
+            raise _RowNeedsCare
+        value, style_name = cell
+        value_type = type(value)
+        if value_type is int:
+            if not (_MSGPACK_MIN_INT <= value <= _MSGPACK_MAX_INT):
+                raise _UseLegacyJSON
+        elif value_type is float:
+            if not isfinite(value):
+                value = None
+        elif value_type is not str and value is not None and value_type is not bool:
+            raise _RowNeedsCare
+        append((value, style_ids[style_name]))
+    return encoded_row
 
 
 def _encode_styled_row(row: Any, style_ids: dict[str, int]) -> list[Any]:
@@ -109,11 +164,39 @@ def encode_v2_payload(export_data: dict[str, Any]) -> bytes:
         metadata_content[sheet_name] = sheet_metadata
         row_counts.append(len(rows))
 
+    # Rows are encoded before the metadata so each sheet's byte offset into
+    # the row stream can ride along; Go uses the offsets to decode and write
+    # multiple sheets concurrently.
+    row_stream = bytearray()
+    sheet_offsets: list[int] = []
+    encoder = msgspec.msgpack.Encoder()
+    encode_into = encoder.encode_into
+    for sheet_name in sheet_order:
+        sheet_offsets.append(len(row_stream))
+        sheet = export_data['content'][sheet_name]
+        no_style = bool(sheet.get('NoStyle', False))
+        for row in sheet.get('Data', []):
+            # The tight loops cover well-formed scalar rows; anything unusual
+            # retries through the careful encoders, which own the exact error
+            # messages and the legacy-JSON fallback semantics.
+            if no_style:
+                try:
+                    encoded_row = _fast_no_style_row(row)
+                except _RowNeedsCare:
+                    encoded_row = _encode_no_style_row(row)
+            else:
+                try:
+                    encoded_row = _fast_styled_row(row, style_ids)
+                except (_RowNeedsCare, TypeError, ValueError, KeyError):
+                    encoded_row = _encode_styled_row(row, style_ids)
+            encode_into(encoded_row, row_stream, -1)
+
     metadata['content'] = metadata_content
     metadata['_pyfastexcel_wire'] = {
         'version': WIRE_VERSION,
         'style_names': style_names,
         'row_counts': row_counts,
+        'sheet_offsets': sheet_offsets,
     }
     metadata_bytes = msgspec.json.encode(metadata)
     if len(metadata_bytes) > MAX_WIRE_METADATA_BYTES:
@@ -122,16 +205,7 @@ def encode_v2_payload(export_data: dict[str, Any]) -> bytes:
     payload = bytearray(WIRE_MAGIC)
     payload.extend(struct.pack('>Q', len(metadata_bytes)))
     payload.extend(metadata_bytes)
-    encoder = msgspec.msgpack.Encoder()
-    for sheet_name in sheet_order:
-        sheet = export_data['content'][sheet_name]
-        no_style = bool(sheet.get('NoStyle', False))
-        for row in sheet.get('Data', []):
-            encoder.encode_into(
-                _encode_no_style_row(row) if no_style else _encode_styled_row(row, style_ids),
-                payload,
-                -1,
-            )
+    payload.extend(row_stream)
     return bytes(payload)
 
 

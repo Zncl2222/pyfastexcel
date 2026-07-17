@@ -30,6 +30,9 @@ type ExcelWriter struct {
 	SheetOrder         []interface{}
 	Engine             interface{}
 	PivotSourceHeaders map[string]map[int][]interface{}
+	// WireRowStream references the MessagePack row bytes of a PFX2 payload;
+	// sheet_offsets index into it for concurrent per-sheet decoding.
+	WireRowStream []byte
 }
 
 // WriteExcel takes a JSON string containing file properties, styles,
@@ -73,6 +76,7 @@ func WriteExcelBytes(data string) (result []byte, err error) {
 }
 
 func newExcelWriter(data []byte) (*ExcelWriter, error) {
+	configureZipCompression()
 	var StyleStruct StyleWrapper
 	strJson, err := marshmallow.Unmarshal(data, &StyleStruct)
 	if err != nil {
@@ -381,34 +385,48 @@ func (ew *ExcelWriter) performStreamWrite(
 	return streamWriter, nil
 }
 
-func (ew *ExcelWriter) prepareStreamWrite(
+// prepareSheetFeatures applies worksheet features shared by both writer
+// engines. Keep this order stable because some features must exist before row
+// data is written.
+func (ew *ExcelWriter) prepareSheetFeatures(
 	sheet string,
 	sheetData map[string]interface{},
-) (*excelize.StreamWriter, map[string]excelize.RowOpts, error) {
+) error {
 	// Add Chart
 	if err := ew.addChart(sheet, sheetData["Chart"].([]interface{})); err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	// Set DataValidations
 	if err := ew.setDataValidation(sheet, sheetData["DataValidation"].([]interface{})); err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	// Add Comment
 	if err := ew.addComment(sheet, sheetData["Comment"].([]interface{})); err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	// Set Panes
 	panes := ew.Content[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
 	if err := ew.setPanes(sheet, panes); err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	// Set AutoFilters
 	autoFilters := ew.Content[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
 	if err := ew.setAutoFilter(sheet, autoFilters); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ew *ExcelWriter) prepareStreamWrite(
+	sheet string,
+	sheetData map[string]interface{},
+) (*excelize.StreamWriter, map[string]excelize.RowOpts, error) {
+	if err := ew.prepareSheetFeatures(sheet, sheetData); err != nil {
 		return nil, nil, err
 	}
 
@@ -464,31 +482,7 @@ func (ew *ExcelWriter) performNormalWrite(sheet string, sheetData map[string]int
 }
 
 func (ew *ExcelWriter) prepareNormalWrite(sheet string, sheetData map[string]interface{}) error {
-
-	// Add Chart
-	if err := ew.addChart(sheet, sheetData["Chart"].([]interface{})); err != nil {
-		return err
-	}
-
-	// Set DataValidations
-	if err := ew.setDataValidation(sheet, sheetData["DataValidation"].([]interface{})); err != nil {
-		return err
-	}
-
-	// Add Comment
-	if err := ew.addComment(sheet, sheetData["Comment"].([]interface{})); err != nil {
-		return err
-	}
-
-	// Set Panes
-	panes := ew.Content[sheet].(map[string]interface{})["Panes"].(map[string]interface{})
-	if err := ew.setPanes(sheet, panes); err != nil {
-		return err
-	}
-
-	// Set AutoFilters
-	autoFilters := ew.Content[sheet].(map[string]interface{})["AutoFilter"].([]interface{})
-	if err := ew.setAutoFilter(sheet, autoFilters); err != nil {
+	if err := ew.prepareSheetFeatures(sheet, sheetData); err != nil {
 		return err
 	}
 

@@ -4,8 +4,6 @@ from typing import Any, List, Literal, Optional, overload
 
 from pydantic import validate_call as pydantic_validate_call
 
-from pyfastexcel import CustomStyle
-
 from ._typing import CommentTextStructure, SetPanesSelection
 from .chart import (
     Chart,
@@ -22,6 +20,7 @@ from .chart import (
 from .manager import StyleManager
 from .pivot import PivotTable, PivotTableField
 from .serializers import CommentSerializer, DataValidationSerializer, PanesSerializer
+from .style import CustomStyle
 from .utils import (
     CommentText,
     Selection,

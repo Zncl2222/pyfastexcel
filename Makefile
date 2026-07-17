@@ -21,13 +21,24 @@ CGO_FLAGS := -buildmode=c-shared
 SHARED_LIBRARY := $(TARGET_FOLDER)/$(SHARED_LIBRARY_NAME)
 CLEAN_CMD := rm -f $(SHARED_LIBRARY)
 
+# FASTZIP=1 (default) compiles the optional klauspost/compress DEFLATE path
+# (activated at runtime by PYFASTEXCEL_ZIP_LEVEL). It needs -checklinkname=0
+# because core/fastzip_enabled.go substitutes the archive/zip compressor via
+# go:linkname. Build with FASTZIP=0 to produce a pure-stdlib library.
+FASTZIP ?= 1
+ifeq ($(FASTZIP),1)
+    GO_BUILD_EXTRA := -tags pfx_fastzip -ldflags=-checklinkname=0
+else
+    GO_BUILD_EXTRA :=
+endif
+
 all: build
 
 build: $(SHARED_LIBRARY)
 
 $(SHARED_LIBRARY): $(GO_SOURCES) go.mod go.sum
 	@echo "Building shared library..."
-	go build $(CGO_FLAGS) -o $(SHARED_LIBRARY)
+	go build $(CGO_FLAGS) $(GO_BUILD_EXTRA) -o $(SHARED_LIBRARY)
 
 clean:
 	@echo "Cleaning up..."

@@ -19,6 +19,21 @@ from .worksheet import WorkSheet
 
 BASE_DIR = Path(__file__).resolve().parent
 
+# Set once the first native export begins; PYFASTEXCEL_ZIP_LEVEL is read by
+# the native library exactly once per process, so later changes are inert.
+_NATIVE_EXPORT_STARTED = False
+
+
+def native_export_started() -> bool:
+    """Report whether this process has already run a native export."""
+    return _NATIVE_EXPORT_STARTED
+
+
+def _mark_native_export_started() -> None:
+    global _NATIVE_EXPORT_STARTED
+    _NATIVE_EXPORT_STARTED = True
+
+
 logger = logging.getLogger(__name__)
 style_formatter = logging.StreamHandler()
 style_formatter.setFormatter(formatter)
@@ -76,6 +91,7 @@ class NativeExcelClient:
         return error_pointer.value.decode('utf-8', errors='replace')
 
     def export_bytes(self, payload: bytes, ignore_go_panic: int) -> bytes:
+        _mark_native_export_started()
         if self.export_v2 is None:
             return self._export_legacy(payload, ignore_go_panic)
 
@@ -134,6 +150,7 @@ class NativeExcelClient:
     def export_to_file(self, payload: bytes, path: str, ignore_go_panic: int) -> None:
         if self.export_to_file_v2 is None:
             raise RuntimeError('Direct file export is not supported by this native library.')
+        _mark_native_export_started()
 
         self._set_signature(
             self.export_to_file_v2,

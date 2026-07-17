@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/vmihailenco/msgpack/v5"
 	"github.com/vmihailenco/msgpack/v5/msgpcode"
@@ -31,6 +32,11 @@ type wireConfiguration struct {
 	Version    int      `json:"version"`
 	StyleNames []string `json:"style_names"`
 	RowCounts  []int    `json:"row_counts"`
+	// SheetOffsets holds each sheet's starting byte offset into the row
+	// stream. Optional: encoders that omit it (or older payloads) still
+	// decode through the sequential path; when present it enables one
+	// decoder per sheet so multi-sheet workbooks are written concurrently.
+	SheetOffsets []int64 `json:"sheet_offsets"`
 }
 
 type wireMetadata struct {
@@ -195,19 +201,44 @@ func prepareWorkbookPayload(payload []byte) (*ExcelWriter, func() error, error) 
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := validateWireMetadata(writer, metadata.Wire); err != nil {
+	rowStream := payload[metadataEnd:]
+	if err := validateWireMetadata(writer, metadata.Wire, int64(len(rowStream))); err != nil {
 		_ = writer.File.Close()
 		return nil, nil, err
 	}
 
-	decoder := msgpack.NewDecoder(bytes.NewReader(payload[metadataEnd:]))
+	writer.WireRowStream = rowStream
+	decoder := msgpack.NewDecoder(bytes.NewReader(rowStream))
 	build := func() error {
 		return writer.buildWireWorkbook(decoder, metadata.Wire)
 	}
 	return writer, build, nil
 }
 
-func validateWireMetadata(writer *ExcelWriter, wire wireConfiguration) error {
+func validateWireMetadata(writer *ExcelWriter, wire wireConfiguration, rowStreamLength int64) error {
+	if len(wire.SheetOffsets) != 0 {
+		if len(wire.SheetOffsets) != len(wire.RowCounts) {
+			return fmt.Errorf(
+				"PFX2 sheet_offsets has %d entries for %d row counts",
+				len(wire.SheetOffsets),
+				len(wire.RowCounts),
+			)
+		}
+		previous := int64(0)
+		for index, offset := range wire.SheetOffsets {
+			if index == 0 && offset != 0 {
+				return fmt.Errorf("PFX2 sheet_offsets must start at 0, got %d", offset)
+			}
+			if offset < previous || offset > rowStreamLength {
+				return fmt.Errorf(
+					"PFX2 sheet_offsets entry %d (%d) is out of order or out of bounds",
+					index,
+					offset,
+				)
+			}
+			previous = offset
+		}
+	}
 	if len(wire.RowCounts) != len(writer.SheetOrder) {
 		return fmt.Errorf(
 			"PFX2 row_counts has %d entries for %d sheets",
@@ -282,6 +313,59 @@ func validateWireMetadata(writer *ExcelWriter, wire wireConfiguration) error {
 	return nil
 }
 
+// wireRowResult carries one decoded row (or its decode error) from the
+// decoder goroutine to the sheet-writing loop.
+type wireRowResult struct {
+	row []interface{}
+	err error
+}
+
+// startWireRowDecoder decodes every row of every sheet, in payload order, on
+// its own goroutine so MessagePack decoding overlaps excelize's row
+// serialization. The decoder goroutine owns `decoder` exclusively: it stops at
+// the first error, checks for trailing data after the final row, and always
+// closes the channel. Closing `cancel` releases the goroutine early when the
+// consumer bails out first.
+func startWireRowDecoder(
+	ew *ExcelWriter,
+	decoder *msgpack.Decoder,
+	wire wireConfiguration,
+	noStyleBySheet []bool,
+	cancel <-chan struct{},
+) <-chan wireRowResult {
+	results := make(chan wireRowResult, 256)
+	go func() {
+		defer close(results)
+		for sheetIndex := range wire.RowCounts {
+			noStyle := noStyleBySheet[sheetIndex]
+			for rowIndex := 0; rowIndex < wire.RowCounts[sheetIndex]; rowIndex++ {
+				row, err := ew.decodeWireRow(decoder, noStyle, nil)
+				select {
+				case results <- wireRowResult{row: row, err: err}:
+				case <-cancel:
+					return
+				}
+				if err != nil {
+					return
+				}
+			}
+		}
+		var trailingErr error
+		if _, err := decoder.PeekCode(); err == nil {
+			trailingErr = fmt.Errorf("PFX2 payload contains trailing MessagePack data")
+		} else if !errors.Is(err, io.EOF) {
+			trailingErr = fmt.Errorf("check PFX2 payload end: %w", err)
+		}
+		if trailingErr != nil {
+			select {
+			case results <- wireRowResult{err: trailingErr}:
+			case <-cancel:
+			}
+		}
+	}()
+	return results
+}
+
 func (ew *ExcelWriter) buildWireWorkbook(decoder *msgpack.Decoder, wire wireConfiguration) error {
 	if err := ew.initializeStyles(wire.StyleNames); err != nil {
 		return err
@@ -296,6 +380,36 @@ func (ew *ExcelWriter) buildWireWorkbook(decoder *msgpack.Decoder, wire wireConf
 	}
 	ew.markPivotSourceHeaders()
 
+	// NoStyle is validated up front because the decoder goroutine needs the
+	// complete schedule before the first sheet is written.
+	noStyleBySheet := make([]bool, len(ew.SheetOrder))
+	allStreamSheets := true
+	for sheetIndex, item := range ew.SheetOrder {
+		sheet := item.(string)
+		sheetData := ew.Content[sheet].(map[string]interface{})
+		noStyle, ok := sheetData["NoStyle"].(bool)
+		if !ok {
+			return fmt.Errorf("PFX2 sheet %q NoStyle must be a boolean", sheet)
+		}
+		noStyleBySheet[sheetIndex] = noStyle
+		if sheetData["WriterEngine"] == "NormalWriter" {
+			allStreamSheets = false
+		}
+	}
+
+	// Multiple stream sheets can serialize rows concurrently (excelize
+	// StreamWriter.SetRow only touches per-sheet state); sheet_offsets let
+	// each worker decode its own slice of the row stream. Workbooks that
+	// contain a NormalWriter sheet keep the sequential path because normal
+	// writes go through shared *excelize.File methods.
+	// PYFASTEXCEL_SEQUENTIAL=1 is a debugging escape hatch.
+	if allStreamSheets &&
+		len(ew.SheetOrder) > 1 &&
+		len(wire.SheetOffsets) == len(ew.SheetOrder) &&
+		os.Getenv("PYFASTEXCEL_SEQUENTIAL") == "" {
+		return ew.buildWireSheetsParallel(wire, noStyleBySheet)
+	}
+
 	sheetCount := 1
 	hasSheet1 := false
 	for sheet := range ew.Content {
@@ -303,6 +417,20 @@ func (ew *ExcelWriter) buildWireWorkbook(decoder *msgpack.Decoder, wire wireConf
 			hasSheet1 = true
 			break
 		}
+	}
+
+	cancel := make(chan struct{})
+	defer close(cancel)
+	decodedRows := startWireRowDecoder(ew, decoder, wire, noStyleBySheet, cancel)
+	nextRow := func(sheet string, rowIndex int) ([]interface{}, error) {
+		result, ok := <-decodedRows
+		if !ok {
+			return nil, fmt.Errorf("decode sheet %q row %d: row stream ended early", sheet, rowIndex+1)
+		}
+		if result.err != nil {
+			return nil, fmt.Errorf("decode sheet %q row %d: %w", sheet, rowIndex+1, result.err)
+		}
+		return result.row, nil
 	}
 
 	var pivotTableList [][]interface{}
@@ -321,22 +449,16 @@ func (ew *ExcelWriter) buildWireWorkbook(decoder *msgpack.Decoder, wire wireConf
 			sheetCount++
 		}
 
-		noStyle, ok := sheetData["NoStyle"].(bool)
-		if !ok {
-			return fmt.Errorf("PFX2 sheet %q NoStyle must be a boolean", sheet)
-		}
 		rowCount := wire.RowCounts[sheetIndex]
-		var rowBuffer []interface{}
 		if sheetData["WriterEngine"] == "NormalWriter" {
 			if err := ew.prepareNormalWrite(sheet, sheetData); err != nil {
 				return err
 			}
 			for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
-				row, err := ew.decodeWireRow(decoder, noStyle, rowBuffer)
+				row, err := nextRow(sheet, rowIndex)
 				if err != nil {
-					return fmt.Errorf("decode sheet %q row %d: %w", sheet, rowIndex+1, err)
+					return err
 				}
-				rowBuffer = row
 				ew.capturePivotSourceHeader(sheet, rowIndex+1, row)
 				if err := ew.writeDecodedNormalRow(sheet, rowIndex+1, row); err != nil {
 					return err
@@ -351,11 +473,10 @@ func (ew *ExcelWriter) buildWireWorkbook(decoder *msgpack.Decoder, wire wireConf
 				return err
 			}
 			for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
-				row, err := ew.decodeWireRow(decoder, noStyle, rowBuffer)
+				row, err := nextRow(sheet, rowIndex)
 				if err != nil {
-					return fmt.Errorf("decode sheet %q row %d: %w", sheet, rowIndex+1, err)
+					return err
 				}
-				rowBuffer = row
 				ew.capturePivotSourceHeader(sheet, rowIndex+1, row)
 				cell := "A" + strconv.Itoa(rowIndex+1)
 				if rowHeight, ok := rowHeightMap[strconv.Itoa(rowIndex+1)]; ok {
@@ -381,10 +502,10 @@ func (ew *ExcelWriter) buildWireWorkbook(decoder *msgpack.Decoder, wire wireConf
 		}
 	}
 
-	if _, err := decoder.PeekCode(); err == nil {
-		return fmt.Errorf("PFX2 payload contains trailing MessagePack data")
-	} else if !errors.Is(err, io.EOF) {
-		return fmt.Errorf("check PFX2 payload end: %w", err)
+	// A trailing-data error is queued after the final row; anything else on
+	// the channel at this point is that verdict.
+	if result, ok := <-decodedRows; ok && result.err != nil {
+		return result.err
 	}
 
 	for _, pivots := range pivotTableList {
@@ -396,6 +517,185 @@ func (ew *ExcelWriter) buildWireWorkbook(decoder *msgpack.Decoder, wire wireConf
 		}
 	}
 	return nil
+}
+
+// wireParallelControl propagates the first failure across the decoder and
+// sheet-writer goroutines and releases everything blocked on a channel.
+type wireParallelControl struct {
+	cancel chan struct{}
+	once   sync.Once
+	mu     sync.Mutex
+	err    error
+}
+
+func newWireParallelControl() *wireParallelControl {
+	return &wireParallelControl{cancel: make(chan struct{})}
+}
+
+func (control *wireParallelControl) fail(err error) {
+	control.mu.Lock()
+	if control.err == nil && err != nil {
+		control.err = err
+	}
+	control.mu.Unlock()
+	control.once.Do(func() { close(control.cancel) })
+}
+
+func (control *wireParallelControl) firstError() error {
+	control.mu.Lock()
+	defer control.mu.Unlock()
+	return control.err
+}
+
+type preparedStreamSheet struct {
+	name         string
+	data         map[string]interface{}
+	streamWriter *excelize.StreamWriter
+	rowHeights   map[string]excelize.RowOpts
+}
+
+// buildWireSheetsParallel writes multi-sheet, all-StreamWriter workbooks with
+// one worker goroutine per sheet, each decoding its own sheet_offsets slice
+// of the row stream and serializing rows as it goes. Everything that touches
+// shared *excelize.File state stays on this goroutine: sheet creation and
+// preparation happen before the workers start, tables/Flush/visibility and
+// pivot tables after they finish.
+func (ew *ExcelWriter) buildWireSheetsParallel(
+	wire wireConfiguration,
+	noStyleBySheet []bool,
+) error {
+	hasSheet1 := false
+	for sheet := range ew.Content {
+		if sheet == "Sheet1" {
+			hasSheet1 = true
+			break
+		}
+	}
+
+	prepared := make([]preparedStreamSheet, len(ew.SheetOrder))
+	sheetCount := 1
+	for sheetIndex, item := range ew.SheetOrder {
+		sheet := item.(string)
+		sheetData := ew.Content[sheet].(map[string]interface{})
+		if !hasSheet1 && sheetCount == 1 {
+			if err := ew.File.SetSheetName("Sheet1", sheet); err != nil {
+				return fmt.Errorf("rename first sheet to %q: %w", sheet, err)
+			}
+			hasSheet1 = true
+		} else {
+			if _, err := ew.File.NewSheet(sheet); err != nil {
+				return fmt.Errorf("create sheet %q: %w", sheet, err)
+			}
+			sheetCount++
+		}
+		streamWriter, rowHeightMap, err := ew.prepareStreamWrite(sheet, sheetData)
+		if err != nil {
+			return err
+		}
+		prepared[sheetIndex] = preparedStreamSheet{
+			name:         sheet,
+			data:         sheetData,
+			streamWriter: streamWriter,
+			rowHeights:   rowHeightMap,
+		}
+	}
+
+	control := newWireParallelControl()
+	stream := ew.WireRowStream
+	var workers sync.WaitGroup
+	for sheetIndex := range prepared {
+		segmentStart := wire.SheetOffsets[sheetIndex]
+		segmentEnd := int64(len(stream))
+		if sheetIndex+1 < len(wire.SheetOffsets) {
+			segmentEnd = wire.SheetOffsets[sheetIndex+1]
+		}
+		workers.Add(1)
+		go func(sheet *preparedStreamSheet, segment []byte, rowCount int, noStyle bool) {
+			defer workers.Done()
+			ew.writeStreamSheetSegment(sheet, segment, rowCount, noStyle, control)
+		}(
+			&prepared[sheetIndex],
+			stream[segmentStart:segmentEnd],
+			wire.RowCounts[sheetIndex],
+			noStyleBySheet[sheetIndex],
+		)
+	}
+	workers.Wait()
+	if err := control.firstError(); err != nil {
+		return err
+	}
+
+	var pivotTableList [][]interface{}
+	for index := range prepared {
+		sheet := &prepared[index]
+		if err := streamCreateTable(sheet.streamWriter, sheet.data["Table"].([]interface{})); err != nil {
+			return fmt.Errorf("create tables on stream sheet %q: %w", sheet.name, err)
+		}
+		if err := sheet.streamWriter.Flush(); err != nil {
+			return fmt.Errorf("flush stream sheet %q: %w", sheet.name, err)
+		}
+		pivotTableList = append(pivotTableList, sheet.data["PivotTable"].([]interface{}))
+		if err := ew.File.SetSheetVisible(sheet.name, sheet.data["SheetVisible"].(bool)); err != nil {
+			return fmt.Errorf("set visibility for sheet %q: %w", sheet.name, err)
+		}
+	}
+
+	for _, pivots := range pivotTableList {
+		if err := ew.seedPivotSourceHeaders(pivots); err != nil {
+			return err
+		}
+		if err := ew.createPivotTable(pivots); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// writeStreamSheetSegment decodes one sheet's slice of the row stream and
+// serializes its rows. Workers share no mutable state: the decoder and row
+// buffer are worker-local, SetRow only touches per-sheet excelize state, and
+// capturePivotSourceHeader only mutates this sheet's own header map.
+func (ew *ExcelWriter) writeStreamSheetSegment(
+	sheet *preparedStreamSheet,
+	segment []byte,
+	rowCount int,
+	noStyle bool,
+	control *wireParallelControl,
+) {
+	decoder := msgpack.NewDecoder(bytes.NewReader(segment))
+	var rowBuffer []interface{}
+	for rowIndex := 0; rowIndex < rowCount; rowIndex++ {
+		select {
+		case <-control.cancel:
+			return
+		default:
+		}
+		row, err := ew.decodeWireRow(decoder, noStyle, rowBuffer)
+		if err != nil {
+			control.fail(fmt.Errorf("decode sheet %q row %d: %w", sheet.name, rowIndex+1, err))
+			return
+		}
+		rowBuffer = row
+		ew.capturePivotSourceHeader(sheet.name, rowIndex+1, row)
+		cell := "A" + strconv.Itoa(rowIndex+1)
+		if rowHeight, ok := sheet.rowHeights[strconv.Itoa(rowIndex+1)]; ok {
+			err = sheet.streamWriter.SetRow(cell, row, rowHeight)
+		} else {
+			err = sheet.streamWriter.SetRow(cell, row)
+		}
+		if err != nil {
+			control.fail(fmt.Errorf("write stream sheet %q row %d: %w", sheet.name, rowIndex+1, err))
+			return
+		}
+	}
+	if _, err := decoder.PeekCode(); err == nil {
+		control.fail(fmt.Errorf(
+			"PFX2 sheet %q segment contains trailing MessagePack data",
+			sheet.name,
+		))
+	} else if !errors.Is(err, io.EOF) {
+		control.fail(fmt.Errorf("check PFX2 sheet %q segment end: %w", sheet.name, err))
+	}
 }
 
 func (ew *ExcelWriter) decodeWireRow(

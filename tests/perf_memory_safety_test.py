@@ -275,6 +275,7 @@ def test_v2_wire_framing_style_ids_and_public_data_compatibility():
         'version': 2,
         'style_names': ['DEFAULT_STYLE', 'bold'],
         'row_counts': [1],
+        'sheet_offsets': [0],
     }
     assert metadata['content']['Sheet1']['Data'] == []
     assert row_payload == msgspec.msgpack.encode([('styled', 1), (2, 0)])

@@ -5,9 +5,8 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from pyfastexcel import CustomStyle
-
 from .logformatter import formatter, log_warning
+from .style import CustomStyle
 
 BASE_DIR = Path(__file__).resolve().parent
 
