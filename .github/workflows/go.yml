@@ -36,7 +36,12 @@ jobs:
              --force-coverage-parser go -r coverage.out
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: Zncl2222/pyfastexcel
+        files: ./coverage.out
+        flags: go
+        name: go-ubuntu
+        disable_search: true
+        fail_ci_if_error: true

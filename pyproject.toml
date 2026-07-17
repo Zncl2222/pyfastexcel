@@ -70,7 +70,7 @@ pyfastexcel = ["*.so", "*.dll", "*.dylib", "THIRD_PARTY_NOTICES.md"]
 testpaths = ["."]
 python_files = ["test_*.py", "*_test.py"]
 python_functions = ["test_*"]
-addopts = "-s -v --cov --cov-report=term --cov-report=html"
+addopts = "-s -v --cov=pyfastexcel --cov-branch --cov-report=term-missing --cov-report=xml:py_coverage.xml"
 
 [tool.coverage.report]
 exclude_also = [

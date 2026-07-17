@@ -81,6 +81,12 @@ def _decode_v2_metadata(payload: bytes):
     return msgspec.json.decode(payload[12:metadata_end]), payload[metadata_end:]
 
 
+def _zip_entry_map(source) -> dict[str, bytes]:
+    with zipfile.ZipFile(source) as archive:
+        assert archive.testzip() is None
+        return {name: archive.read(name) for name in archive.namelist()}
+
+
 def test_late_process_registration_reaches_existing_workbook_and_stream_writer():
     workbook = Workbook()
     writer = StreamWriter()
@@ -329,7 +335,10 @@ def test_v2_wire_matches_json_non_finite_float_semantics_without_mutating_data()
     assert plain.data[0][2] == float('-inf')
 
 
-@pytest.mark.parametrize('value', [b'abc', bytearray(b'abc'), memoryview(b'abc'), 2**100])
+@pytest.mark.parametrize(
+    'value',
+    [b'abc', bytearray(b'abc'), memoryview(b'abc'), 2**100, -(1 << 63) - 1],
+)
 def test_v2_negotiation_falls_back_for_legacy_only_cell_values(value):
     workbook = Workbook()
     workbook['Sheet1']['A1'] = (value, 'DEFAULT_STYLE')
@@ -343,6 +352,23 @@ def test_v2_negotiation_falls_back_for_legacy_only_cell_values(value):
     else:
         assert decoded_value == 'YWJj'
     assert workbook['Sheet1']['A1'][0] is value
+
+
+@pytest.mark.parametrize('value', [-(1 << 63), (1 << 64) - 1])
+@pytest.mark.parametrize('no_style', [False, True])
+def test_v2_wire_accepts_msgpack_integer_boundaries(value, no_style):
+    workbook = Workbook()
+    if no_style:
+        workbook.create_sheet('Plain', plain_data=[[value]])
+    else:
+        workbook['Sheet1']['A1'] = (value, 'DEFAULT_STYLE')
+
+    payload = encode_payload(workbook._build_export_data())
+    assert payload.startswith(WIRE_MAGIC)
+    metadata, row_payload = _decode_v2_metadata(payload)
+    assert sum(metadata['_pyfastexcel_wire']['row_counts']) == 1
+    expected = [value] if no_style else [[value, 0]]
+    assert msgspec.msgpack.decode(row_payload) == expected
 
 
 def test_v2_negotiation_falls_back_when_metadata_exceeds_decoder_limit(monkeypatch):
@@ -380,6 +406,22 @@ def test_legacy_abi_forces_json_before_export(monkeypatch):
     assert library.payloads[0].startswith(b'{')
     assert not library.payloads[0].startswith(WIRE_MAGIC)
     assert len(library.freed) == 1
+
+
+def test_public_save_falls_back_to_legacy_json_and_releases_output(monkeypatch, tmp_path):
+    library = FakeNativeLibrary(version=1, raw_output=b'legacy-xlsx')
+    workbook = Workbook()
+    workbook['Sheet1']['A1'] = '舊版相容'
+    output = tmp_path / 'legacy.xlsx'
+    monkeypatch.setattr(workbook, '_read_lib', lambda _path: library)
+
+    workbook.save(str(output))
+
+    payload = msgspec.json.decode(library.payloads[0])
+    assert payload['content']['Sheet1']['Data'] == [[['舊版相容', 'DEFAULT_STYLE']]]
+    assert output.read_bytes() == b'legacy-xlsx'
+    assert library.paths == []
+    assert library.freed == [ctypes.addressof(library.buffers[0])]
 
 
 def test_legacy_pointer_is_freed_when_python_postprocessing_raises(monkeypatch):
@@ -430,6 +472,58 @@ def test_v2_error_pointer_is_reported_and_freed():
     assert library.freed == [ctypes.addressof(library.buffers[-1])]
 
 
+def test_v2_null_output_without_error_reports_contract_failure():
+    library = FakeNativeLibrary(version=2)
+    library.ExportV2 = FakeCFunction(lambda *_args: None)
+    client = NativeExcelClient(library)
+
+    with pytest.raises(RuntimeError, match='returned a null pointer'):
+        client.export_bytes(b'PFX2payload', 1)
+
+    assert library.freed == []
+
+
+def test_v2_output_and_error_are_both_released_and_error_wins():
+    library = FakeNativeLibrary(version=2)
+
+    def export_with_output_and_error(
+        _payload,
+        _length,
+        _catch_panic,
+        output_length,
+        error_pointer,
+    ):
+        output_address = library._keep_buffer(b'invalid workbook')
+        error_address = library._keep_buffer(b'native rejected payload')
+        output_length._obj.value = len(b'invalid workbook')
+        ctypes.cast(error_pointer, ctypes.POINTER(ctypes.c_char_p))[0] = ctypes.c_char_p(
+            error_address
+        )
+        return output_address
+
+    library.ExportV2 = FakeCFunction(export_with_output_and_error)
+    client = NativeExcelClient(library)
+
+    with pytest.raises(RuntimeError, match='native rejected payload'):
+        client.export_bytes(b'PFX2payload', 1)
+
+    assert library.freed == [
+        ctypes.addressof(library.buffers[0]),
+        ctypes.addressof(library.buffers[1]),
+    ]
+
+
+def test_legacy_null_output_reports_contract_failure_without_freeing():
+    library = FakeNativeLibrary(version=1)
+    library.Export = FakeCFunction(lambda *_args: None)
+    client = NativeExcelClient(library)
+
+    with pytest.raises(RuntimeError, match='returned a null pointer'):
+        client.export_bytes(b'{}', 1)
+
+    assert library.freed == []
+
+
 def test_v2_rejects_non_null_zero_length_output_and_frees_it():
     library = FakeNativeLibrary(version=2, raw_output=b'')
     client = NativeExcelClient(library)
@@ -438,6 +532,39 @@ def test_v2_rejects_non_null_zero_length_output_and_frees_it():
         client.export_bytes(b'PFX2payload', 1)
 
     assert len(library.freed) == 1
+
+
+@pytest.mark.parametrize(
+    ('status', 'error_message', 'expected_message'),
+    [
+        (9, None, r'native export failed \(9\)'),
+        (9, b'destination unavailable', 'destination unavailable'),
+        (0, b'native rejected success', 'native rejected success'),
+    ],
+)
+def test_direct_file_failure_reports_status_and_releases_error_pointer(
+    status,
+    error_message,
+    expected_message,
+):
+    library = FakeNativeLibrary(version=2)
+
+    def fail_direct_export(_payload, _length, _path, _catch_panic, error_pointer):
+        if error_message is not None:
+            error_address = library._keep_buffer(error_message)
+            ctypes.cast(error_pointer, ctypes.POINTER(ctypes.c_char_p))[0] = ctypes.c_char_p(
+                error_address
+            )
+        return status
+
+    library.ExportToFileV2 = FakeCFunction(fail_direct_export)
+    client = NativeExcelClient(library)
+
+    with pytest.raises(RuntimeError, match=expected_message):
+        client.export_to_file(b'PFX2payload', '報表.xlsx', 1)
+
+    expected_freed = [] if error_message is None else [ctypes.addressof(library.buffers[0])]
+    assert library.freed == expected_freed
 
 
 def test_save_uses_v2_direct_file_for_unicode_arbitrary_extension(monkeypatch):
@@ -450,6 +577,37 @@ def test_save_uses_v2_direct_file_for_unicode_arbitrary_extension(monkeypatch):
 
     assert library.paths == ['報表.data'.encode()]
     assert library.payloads[0].startswith(WIRE_MAGIC)
+
+
+def test_real_memory_and_unicode_direct_file_exports_have_equivalent_zip_entries(tmp_path):
+    workbook = Workbook()
+    workbook['Sheet1'][0] = ['欄位', '值']
+    workbook['Sheet1'][1] = [('重點', CustomStyle(font_bold=True)), 42]
+    workbook.create_sheet('第二頁', plain_data=[['東京', 3.5]])
+    direct_path = tmp_path / '報表-資料.xlsx'
+
+    workbook.save(str(direct_path))
+    memory_export = workbook.read_lib_and_create_excel()
+
+    assert _zip_entry_map(direct_path) == _zip_entry_map(io.BytesIO(memory_export))
+
+
+def test_real_direct_file_failure_does_not_poison_later_save(tmp_path):
+    workbook = Workbook()
+    workbook['Sheet1']['A1'] = '可恢復內容'
+    failed_path = tmp_path / 'missing-parent' / 'failed.xlsx'
+
+    with pytest.raises(RuntimeError, match='open output file'):
+        workbook.save(str(failed_path))
+
+    recovered_path = tmp_path / '恢復成功.xlsx'
+    workbook.save(str(recovered_path))
+
+    entries = _zip_entry_map(recovered_path)
+    assert (
+        b'<t>\xe5\x8f\xaf\xe6\x81\xa2\xe5\xbe\xa9\xe5\x85\xa7\xe5\xae\xb9</t>'
+        in entries['xl/worksheets/sheet1.xml']
+    )
 
 
 def test_repeated_path_save_includes_mutations_instead_of_stale_cached_bytes(tmp_path):

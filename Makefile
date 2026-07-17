@@ -46,7 +46,7 @@ clean:
 
 test:
 	@echo "Running tests with pytest..."
-	uv run pytest -s -v --cov --cov-report=term --cov-report=html
+	uv run pytest
 
 install-dev:
 	uv sync --dev
