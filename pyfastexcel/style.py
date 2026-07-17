@@ -153,6 +153,60 @@ class Protection(BaseModel):
     hidden: Optional[bool] = Field(False, serialization_alias='Hidden')
 
 
+def _apply_style_components(style: Any) -> None:
+    """Build component models for a style class or instance."""
+    style.font = (
+        Font(**style.font_params)
+        if style.font_params
+        else Font(
+            size=style.font_size,
+            name=style.font_name,
+            bold=style.font_bold,
+            color=style.font_color,
+        )
+    )
+    style.fill = (
+        Fill(**style.fill_params)
+        if style.fill_params
+        else Fill(
+            ftype=style.fill_type,
+            color=style.fill_color,
+            pattern=style.fill_pattern,
+            shading=style.fill_shading,
+        )
+    )
+    style.ali = (
+        Alignment(**style.ali_params)
+        if style.ali_params
+        else Alignment(
+            horizontal=style.ali_horizontal,
+            vertical=style.ali_vertical,
+            wrap_text=style.ali_wrap_text,
+        )
+    )
+    style.border = (
+        Border(**style.border_params)
+        if style.border_params
+        else Border(
+            top=BorderStyle(style=style.border_style_top, color=style.border_color_top),
+            right=BorderStyle(style=style.border_style_right, color=style.border_color_right),
+            left=BorderStyle(style=style.border_style_left, color=style.border_color_left),
+            bottom=BorderStyle(
+                style=style.border_style_bottom,
+                color=style.border_color_bottom,
+            ),
+        )
+    )
+    style.protection = (
+        Protection(**style.protection_params)
+        if style.protection_params
+        else Protection(
+            locked=style.protect,
+            hidden=style.hidden,
+        )
+    )
+
+
 class DefaultStyle:
     """
     Module for defining and customizing default and custom styles for formatting purposes.
@@ -277,50 +331,7 @@ class DefaultStyle:
 
     @classmethod
     def _apply_default_settings(cls):
-        cls.font = (
-            Font(**cls.font_params)
-            if cls.font_params
-            else Font(
-                size=cls.font_size, name=cls.font_name, bold=cls.font_bold, color=cls.font_color
-            )
-        )
-        cls.fill = (
-            Fill(**cls.fill_params)
-            if cls.fill_params
-            else Fill(
-                ftype=cls.fill_type,
-                color=cls.fill_color,
-                pattern=cls.fill_pattern,
-                shading=cls.fill_shading,
-            )
-        )
-        cls.ali = (
-            Alignment(**cls.ali_params)
-            if cls.ali_params
-            else Alignment(
-                horizontal=cls.ali_horizontal,
-                vertical=cls.ali_vertical,
-                wrap_text=cls.ali_wrap_text,
-            )
-        )
-        cls.border = (
-            Border(**cls.border_params)
-            if cls.border_params
-            else Border(
-                top=BorderStyle(style=cls.border_style_top, color=cls.border_color_top),
-                right=BorderStyle(style=cls.border_style_right, color=cls.border_color_right),
-                left=BorderStyle(style=cls.border_style_left, color=cls.border_color_left),
-                bottom=BorderStyle(style=cls.border_style_bottom, color=cls.border_color_bottom),
-            )
-        )
-        cls.protection = (
-            Protection(**cls.protection_params)
-            if cls.protection_params
-            else Protection(
-                locked=cls.protect,
-                hidden=cls.hidden,
-            )
-        )
+        _apply_style_components(cls)
 
     def __repr__(self) -> str:
         return (
@@ -393,50 +404,7 @@ class CustomStyle(DefaultStyle):
         self._apply_settings()
 
     def _apply_settings(self):
-        self.font = (
-            Font(**self.font_params)
-            if self.font_params
-            else Font(
-                size=self.font_size, name=self.font_name, bold=self.font_bold, color=self.font_color
-            )
-        )
-        self.fill = (
-            Fill(**self.fill_params)
-            if self.fill_params
-            else Fill(
-                ftype=self.fill_type,
-                color=self.fill_color,
-                pattern=self.fill_pattern,
-                shading=self.fill_shading,
-            )
-        )
-        self.ali = (
-            Alignment(**self.ali_params)
-            if self.ali_params
-            else Alignment(
-                horizontal=self.ali_horizontal,
-                vertical=self.ali_vertical,
-                wrap_text=self.ali_wrap_text,
-            )
-        )
-        self.border = (
-            Border(**self.border_params)
-            if self.border_params
-            else Border(
-                top=BorderStyle(style=self.border_style_top, color=self.border_color_top),
-                right=BorderStyle(style=self.border_style_right, color=self.border_color_right),
-                left=BorderStyle(style=self.border_style_left, color=self.border_color_left),
-                bottom=BorderStyle(style=self.border_style_bottom, color=self.border_color_bottom),
-            )
-        )
-        self.protection = (
-            Protection(**self.protection_params)
-            if self.protection_params
-            else Protection(
-                locked=self.protect,
-                hidden=self.hidden,
-            )
-        )
+        _apply_style_components(self)
 
     def clone_and_modify(self, **kwargs):
         """
