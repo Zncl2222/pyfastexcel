@@ -33,7 +33,11 @@ sheet_list = wb.sheet_list
 
 ## Create and Save Workbook
 
-After writing all the content, pyfastexcel should encode the Python object to a JSON string and pass it to Golang for decoding. The Excel file is then created using Golang code.
+After writing the content, pyfastexcel sends JSON metadata plus MessagePack
+row frames to the bundled ABI-v2 Go library. Older native libraries are
+detected automatically and retain the complete JSON protocol. The Excel file
+is then created by Go and returned as bytes or written directly by
+`save(path)`.
 
 To do this, you should call the function `read_lib_and_create_excel()` to obtain the bytes returned and save the workbook.
 
@@ -227,6 +231,11 @@ wb.auto_filter("New Sheet", "A1:C1")
 Protect a workbook with a password using various encryption algorithms.
 The available options for the algorithm are XOR, MD4, MD5, SHA-1,
 SHA-256, SHA-384, and SHA-512.
+
+`XOR` remains accepted for source compatibility. Excelize v2.9 cannot emit
+XOR workbook protection, so pyfastexcel writes SHA-512 protection for that
+input instead. Older releases silently produced an unprotected workbook in
+this case.
 
 ### Parameters
 

@@ -24,12 +24,11 @@ generation, eliminating the need for Golang expertise.
 
 ## How it Works
 
-The core functionality revolves around encoding Excel cell data and styles,
-or any other Excel properties, into a JSON string within Python. This JSON
-payload is then passed through ctypes to a Golang shared library. In Golang,
-the JSON is parsed, and using the streaming writer of
-[excelize](https://github.com/qax-os/excelize) to wrtie excel in
-high performance.
+Python keeps the public workbook representation. ABI-v2 libraries receive
+JSON metadata plus MessagePack row frames through a length-aware ctypes
+boundary; Go decodes rows incrementally and writes them with
+[excelize](https://github.com/qax-os/excelize). ABI-v1 libraries and the
+`PYFASTEXCEL_WIRE=v1-json` compatibility mode continue to use complete JSON.
 
 ## Dependency
 
@@ -37,13 +36,14 @@ The dependency for python and golang
 
 python:
 
-    msgspec (for faster json encoding)
+    msgspec (for JSON and MessagePack encoding)
     pydantic v2
 
 golang:
 
     excelize (Core functionality)
     marshmallow (for faster json decoding)
+    vmihailenco/msgpack (for row-stream decoding)
 
 ## Installation
 

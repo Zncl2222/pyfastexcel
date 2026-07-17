@@ -1,0 +1,91 @@
+{
+  "provenance_note": "Captured before native ABI/path/SHA-256 recording was added. Source commit and toolchain are known; the historical shared-library hash is unavailable.",
+  "environment": {
+    "platform": "Linux-6.18.33.1-microsoft-standard-WSL2-x86_64-with-glibc2.41",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700",
+    "python": "3.14.6",
+    "go": "go version go1.25.11 linux/amd64",
+    "git_commit": "ab23864dfc04999a24acfc42b3e84060d51d400d",
+    "native_abi": 1,
+    "native_library_sha256": null
+  },
+  "workload": {
+    "schema_version": 1,
+    "rows": 50000,
+    "cols": 30,
+    "cells": 1500000,
+    "styles": 4,
+    "wire": "json",
+    "destination": "bytes",
+    "repeat": 3,
+    "writer_engine": "StreamWriter",
+    "sheet_count": 1,
+    "no_style": false,
+    "value_pattern": "row-major sequential integers",
+    "formula_cells": 0,
+    "style_pattern": "column modulo four fixed styles"
+  },
+  "samples": [
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "wire": "json",
+      "destination": "bytes",
+      "build_seconds": 1.1119056019961135,
+      "export_seconds": 1.2192556869995315,
+      "total_seconds": 2.331161288995645,
+      "peak_rss_bytes": 603746304,
+      "xlsx_bytes": 5577707
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "wire": "json",
+      "destination": "bytes",
+      "build_seconds": 1.1106428039929597,
+      "export_seconds": 1.1403862959996331,
+      "total_seconds": 2.251029099992593,
+      "peak_rss_bytes": 600768512,
+      "xlsx_bytes": 5577743
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "wire": "json",
+      "destination": "bytes",
+      "build_seconds": 1.1047013729985338,
+      "export_seconds": 1.1462146139965625,
+      "total_seconds": 2.2509159869950963,
+      "peak_rss_bytes": 603086848,
+      "xlsx_bytes": 5577743
+    }
+  ],
+  "summary": {
+    "build_seconds": {
+      "mean": 1.1090832596625357,
+      "min": 1.1047013729985338,
+      "max": 1.1119056019961135,
+      "stdev": 0.0038469939889881006
+    },
+    "export_seconds": {
+      "mean": 1.1686188656652423,
+      "min": 1.1403862959996331,
+      "max": 1.2192556869995315,
+      "stdev": 0.04394949463644454
+    },
+    "total_seconds": {
+      "mean": 2.277702125327778,
+      "min": 2.2509159869950963,
+      "max": 2.331161288995645,
+      "stdev": 0.046297028346195084
+    },
+    "peak_rss_bytes": {
+      "mean": 602533888,
+      "min": 600768512,
+      "max": 603746304
+    }
+  }
+}

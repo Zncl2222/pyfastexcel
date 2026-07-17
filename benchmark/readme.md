@@ -2,6 +2,39 @@
 
 The following results show the performance comparison between `pyfastexcel` and `openpyxl` when writing a data to an Excel file in different scenario.
 
+## Performance and memory regression benchmark
+
+`perf_memory.py` measures pyfastexcel itself, including workbook construction,
+native export, total wall time, and process peak RSS. Every sample runs in a
+fresh subprocess so one sample's high-water RSS does not contaminate the next
+one. Timing runs never enable `tracemalloc`.
+
+```bash
+# Always rebuild first; the harness rejects a stale pre-v2 native library.
+make build
+
+# Default MessagePack wire path, 1.5 million styled cells, three samples.
+uv run python benchmark/perf_memory.py --rows 50000 --cols 30 --repeat 3 \
+  --output optimized.json
+
+# Keep a JSON-wire baseline and compare a later run against it.
+uv run python benchmark/perf_memory.py --wire json --output baseline.json
+uv run python benchmark/perf_memory.py --compare baseline.json
+
+# Exercise the direct-to-file path (the .bin suffix checks path compatibility).
+uv run python benchmark/perf_memory.py --destination file
+```
+
+The JSON report records the workload, CPU, Python/Go/dependency versions, git
+state, native ABI and shared-library SHA-256, all raw samples, and summary
+statistics. Comparisons reject mismatched grid sizes or output destinations.
+Use separate runs for time and any allocation profiler; allocation hooks
+materially change the Python hot loop.
+
+The Stage A acceptance reports are committed in [`benchmark/results`](results/):
+the historical ABI-v1 baseline, ABI-v2 PFX2 result, and ABI-v2 compatibility-JSON
+attribution run each contain three fresh-process samples.
+
 - [Windows11](#benchmark-result-windows-11)
 - [Windows11 WSL2 Ubuntu22.04](#benchmark-results-windows-11-wsl2-ubuntu-2204)
 

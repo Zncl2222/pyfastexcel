@@ -178,10 +178,9 @@ class TestBug5ProtectionUnpacking:
 
 
 class TestBug6StyleManagerExceptionSafety:
-    """Bug 6: StyleManager global state should be reset even if exceptions occur."""
+    """Workbook-local style state survives exports and failures safely."""
 
-    def test_style_manager_reset_after_normal_call(self):
-        """StyleManager state should be reset after normal read_lib_and_create_excel."""
+    def test_style_manager_persists_after_normal_call(self):
         wb = Workbook()
         style = CustomStyle(font_bold=True)
         ws = wb['Sheet1']
@@ -189,12 +188,12 @@ class TestBug6StyleManagerExceptionSafety:
 
         wb.read_lib_and_create_excel()
 
-        assert len(StyleManager.REGISTERED_STYLES) == 1  # Only DEFAULT_STYLE
-        assert StyleManager._STYLE_ID == 0
-        assert len(StyleManager._style_map) == 0
+        assert len(StyleManager.REGISTERED_STYLES) == 1  # Process default only
+        assert wb.style._STYLE_ID == 1
+        assert len(wb.style._style_map) == 2
+        assert 'Custom Style 0' in wb.style.REGISTERED_STYLES
 
-    def test_style_manager_reset_after_exception(self):
-        """StyleManager state should be reset even if an exception occurs during export."""
+    def test_style_manager_is_usable_after_exception(self):
         wb = Workbook()
         ws = wb['Sheet1']
         ws['A1'] = 'test'
@@ -208,11 +207,9 @@ class TestBug6StyleManagerExceptionSafety:
             wb.read_lib_and_create_excel()
 
         assert len(StyleManager.REGISTERED_STYLES) == 1
-        assert StyleManager._STYLE_ID == 0
-        assert len(StyleManager._style_map) == 0
+        assert wb.style.get_registered_style('DEFAULT_STYLE') is not None
 
-    def test_style_manager_reset_after_style_creation_exception(self):
-        """StyleManager state should be reset even if style serialization fails."""
+    def test_style_manager_keeps_local_style_after_style_creation_exception(self):
         wb = Workbook()
         style = CustomStyle(border_style_top='bad')
         wb['Sheet1']['A1'] = ('test', style)
@@ -221,8 +218,8 @@ class TestBug6StyleManagerExceptionSafety:
             wb.read_lib_and_create_excel()
 
         assert len(StyleManager.REGISTERED_STYLES) == 1
-        assert StyleManager._STYLE_ID == 0
-        assert len(StyleManager._style_map) == 0
+        assert wb.style._STYLE_ID == 1
+        assert 'Custom Style 0' in wb.style.REGISTERED_STYLES
 
     def test_multiple_workbooks_do_not_interfere(self):
         """Successive Workbook instances should not share corrupted style state."""
@@ -232,6 +229,7 @@ class TestBug6StyleManagerExceptionSafety:
         wb1.read_lib_and_create_excel()
 
         assert len(StyleManager.REGISTERED_STYLES) == 1
+        assert 'Custom Style 0' in wb1.style.REGISTERED_STYLES
 
         wb2 = Workbook()
         style2 = CustomStyle(font_color='FF0000')
@@ -239,3 +237,5 @@ class TestBug6StyleManagerExceptionSafety:
         wb2.read_lib_and_create_excel()
 
         assert len(StyleManager.REGISTERED_STYLES) == 1
+        assert wb1.style.REGISTERED_STYLES['Custom Style 0'] is style1
+        assert wb2.style.REGISTERED_STYLES['Custom Style 0'] is style2

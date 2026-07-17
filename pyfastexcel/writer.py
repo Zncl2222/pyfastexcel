@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from typing import Any, Optional
 
 from pyfastexcel import CustomStyle
 
-from .utils import validate_and_format_value, validate_and_register_style
+from .utils import validate_and_register_style
 from .workbook import Workbook
 from .worksheet import WorkSheet
 
@@ -19,8 +20,7 @@ class StreamWriter(Workbook):
         self._row_list = []
         self.data = data
         self._collections = self._get_style_collections()
-        self._collections_list = list(self._collections)
-        self._cache = {}
+        self._cache: dict[tuple[Any, ...], str] = {}
 
     @property
     def wb(self) -> StreamWriter:
@@ -30,48 +30,79 @@ class StreamWriter(Workbook):
     def ws(self) -> WorkSheet:
         return self.workbook[self.sheet]
 
-    def _handle_custom_style(self, style_instance: CustomStyle, kwargs: dict[str, Any]) -> None:
-        """
-        Handle the case when style is a CustomStyle instance.
-        """
-        if self.style._STYLE_NAME_MAP.get(style_instance) is None:
-            validate_and_register_style(style_instance)
-        style_name = self.style._STYLE_NAME_MAP[style_instance]
+    @staticmethod
+    def _canonicalize_cache_value(value: Any) -> Any:
+        """Create a stable, hashable representation for nested style kwargs."""
+        if isinstance(value, Mapping):
+            return tuple(
+                sorted(
+                    (str(key), StreamWriter._canonicalize_cache_value(item))
+                    for key, item in value.items()
+                )
+            )
+        if isinstance(value, (list, tuple)):
+            return tuple(StreamWriter._canonicalize_cache_value(item) for item in value)
+        if isinstance(value, (set, frozenset)):
+            return frozenset(StreamWriter._canonicalize_cache_value(item) for item in value)
+        if hasattr(value, 'model_dump'):
+            return StreamWriter._canonicalize_cache_value(value.model_dump())
+        try:
+            hash(value)
+        except TypeError:
+            return (type(value).__qualname__, repr(value))
+        return value
+
+    @classmethod
+    def _style_fingerprint(cls, style: CustomStyle) -> tuple[Any, ...]:
+        """Snapshot fields that affect a cloned style's serialized output."""
+        return (
+            cls._canonicalize_cache_value(style.font),
+            cls._canonicalize_cache_value(style.fill),
+            cls._canonicalize_cache_value(style.ali),
+            cls._canonicalize_cache_value(style.border),
+            cls._canonicalize_cache_value(style.protection),
+            style.number_format,
+        )
+
+    def _resolve_style(self, style: str | CustomStyle, kwargs: dict[str, Any]) -> Any:
+        """Resolve a public style input to a workbook-local style name."""
+        if isinstance(style, str) and style == 'DEFAULT_STYLE' and not kwargs:
+            return style
+
+        if isinstance(style, CustomStyle):
+            style_instance = style
+            style_name = self.style.get_style_name(style_instance)
+            if style_name is None:
+                style_name = validate_and_register_style(style_instance, self.style)
+        elif isinstance(style, str):
+            style_name = style
+            style_instance = self._collections.get(style_name)
+            if style_instance is None:
+                style_instance = self.style.get_registered_style(style_name)
+            if style_instance is None:
+                raise ValueError(f'Style {style_name} not found !')
+            if not kwargs:
+                return style_name
+        else:
+            # Preserve the historical behavior for callers that bypass the type
+            # hint. The encoder will report unsupported style values as before.
+            return style
 
         if not kwargs:
             return style_name
 
-        if self.style_key in self._cache:
-            return self._cache[self.style_key]
+        cache_key = (
+            style_name,
+            self._style_fingerprint(style_instance),
+            self._canonicalize_cache_value(kwargs),
+        )
+        if cache_key in self._cache:
+            return self._cache[cache_key]
 
         new_style = style_instance.clone_and_modify(**kwargs)
-        validate_and_register_style(new_style)
-        style_name = self.style._STYLE_NAME_MAP[new_style]
-        self._cache[self.style_key] = style_name
-        return style_name
-
-    def _handle_string_style(self, style: str, kwargs: dict[str, Any]) -> None:
-        """
-        Handle the case when style is a string.
-        """
-        if style == 'DEFAULT_STYLE':
-            return style
-
-        if style not in (self._collections_list + list(self.style.REGISTERED_STYLES)):
-            raise ValueError(f'Style {style} not found !')
-
-        if not kwargs:
-            return style
-
-        if self.style_key in self._cache:
-            return self._cache[self.style_key]
-
-        self._collections.update(self.style.REGISTERED_STYLES)
-        new_style = self._collections[style].clone_and_modify(**kwargs)
-        validate_and_register_style(new_style)
-        style_name = self.style._STYLE_NAME_MAP[new_style]
-        self._cache[self.style_key] = style_name
-        return style_name
+        new_style_name = validate_and_register_style(new_style, self.style)
+        self._cache[cache_key] = new_style_name
+        return new_style_name
 
     def row_append(
         self,
@@ -88,14 +119,9 @@ class StreamWriter(Workbook):
                 a style name or a CustomStyle object.
             **kwargs: Additional keyword arguments to modify the style.
         """
-        self.style_key = f'{style}{kwargs}'
-
-        if isinstance(style, CustomStyle):
-            style = self._handle_custom_style(style, kwargs)
-        elif isinstance(style, str):
-            style = self._handle_string_style(style, kwargs)
-
-        value = validate_and_format_value(value, set_default_style=False)
+        style = self._resolve_style(style, kwargs)
+        value = f'{value}' if not isinstance(value, (int, float, str)) else value
+        value = float(value) if isinstance(value, float) else value
         self._row_list.append((value, style))
 
     def row_append_list(
@@ -115,19 +141,38 @@ class StreamWriter(Workbook):
             create_row (bool): Whether to create row.
             **kwargs: Additional keyword arguments to modify the style.
         """
-        self.style_key = f'{style}{kwargs}'
-
-        if isinstance(style, CustomStyle):
-            style = self._handle_custom_style(style, kwargs)
-        elif isinstance(style, str):
-            style = self._handle_string_style(style, kwargs)
-
-        value = tuple((validate_and_format_value(x, set_default_style=False), style) for x in value)
+        style = self._resolve_style(style, kwargs)
+        value = tuple(
+            (
+                float(x) if isinstance(x, float) else x if isinstance(x, (int, str)) else f'{x}',
+                style,
+            )
+            for x in value
+        )
 
         if create_row:
             self.workbook[self.sheet].data.append(value)
         else:
             self._row_list.extend(value)
+
+    def append_row(
+        self,
+        values: Iterable[Any],
+        style: str | CustomStyle = 'DEFAULT_STYLE',
+        **kwargs,
+    ) -> None:
+        """Append one complete row without changing the existing row APIs."""
+        self.row_append_list(values, style=style, create_row=True, **kwargs)
+
+    def append_rows(
+        self,
+        rows: Iterable[Iterable[Any]],
+        style: str | CustomStyle = 'DEFAULT_STYLE',
+        **kwargs,
+    ) -> None:
+        """Append multiple complete rows using a shared style."""
+        for row in rows:
+            self.append_row(row, style=style, **kwargs)
 
     def create_row(self):
         """

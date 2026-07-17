@@ -2,7 +2,9 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"sort"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -237,9 +239,39 @@ func getProtectionStyle(protectionMap map[string]interface{}) *excelize.Protecti
 //
 //	map[string]int: A map linking style names to their corresponding style index in the Excel file.
 func CreateStyle(file *excelize.File, styleSettings map[string]interface{}) map[string]int {
-	styleMap := make(map[string]int)
+	styleNames := make([]string, 0, len(styleSettings))
+	for name := range styleSettings {
+		styleNames = append(styleNames, name)
+	}
+	sort.Strings(styleNames)
+	styleMap, _, err := createStylesOrdered(file, styleSettings, styleNames)
+	if err != nil {
+		panic(err)
+	}
+	return styleMap
+}
 
-	for key, style := range styleSettings {
+// createStylesOrdered creates workbook styles in the supplied wire order. The
+// returned slice maps a compact wire style ID to excelize's workbook-local
+// style ID.
+func createStylesOrdered(
+	file *excelize.File,
+	styleSettings map[string]interface{},
+	styleNames []string,
+) (map[string]int, []int, error) {
+	styleMap := make(map[string]int, len(styleNames))
+	styleIDs := make([]int, len(styleNames))
+	seen := make(map[string]struct{}, len(styleNames))
+
+	for wireID, key := range styleNames {
+		if _, duplicate := seen[key]; duplicate {
+			return nil, nil, fmt.Errorf("duplicate style name %q", key)
+		}
+		seen[key] = struct{}{}
+		style, ok := styleSettings[key]
+		if !ok {
+			return nil, nil, fmt.Errorf("style %q is missing from metadata", key)
+		}
 		customNumFmt := style.(map[string]interface{})["CustomNumFmt"].(string)
 		customStyle, err := file.NewStyle(&excelize.Style{
 			Font:         getFontStyle(style.(map[string]interface{})["Font"].(map[string]interface{})),
@@ -250,11 +282,20 @@ func CreateStyle(file *excelize.File, styleSettings map[string]interface{}) map[
 			CustomNumFmt: &customNumFmt,
 		})
 		if err != nil {
-			panic(err)
+			return nil, nil, fmt.Errorf("create style %q: %w", key, err)
 		}
 
 		styleMap[key] = customStyle
+		styleIDs[wireID] = customStyle
 	}
 
-	return styleMap
+	if len(seen) != len(styleSettings) {
+		return nil, nil, fmt.Errorf(
+			"style order contains %d names, metadata contains %d styles",
+			len(seen),
+			len(styleSettings),
+		)
+	}
+
+	return styleMap, styleIDs, nil
 }

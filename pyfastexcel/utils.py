@@ -70,15 +70,19 @@ def set_custom_style(style_name: str, style: CustomStyle) -> None:
     StyleManager.set_custom_style(style_name, style)
 
 
-def validate_and_register_style(style: CustomStyle) -> None:
+def validate_and_register_style(style: CustomStyle, style_manager=None) -> str:
     from .manager import StyleManager
 
     if not isinstance(style, CustomStyle):
         raise TypeError(
             f'Invalid type ({type(style)}). Style should be a CustomStyle object.',
         )
-    StyleManager.set_custom_style(f'Custom Style {StyleManager._STYLE_ID}', style)
-    StyleManager._STYLE_ID += 1
+    if style_manager is not None:
+        return style_manager.register_generated_style(style)
+
+    # Preserve the historical standalone helper behavior: without a workbook
+    # manager the generated style is a process default.
+    return StyleManager.register_generated_default_style(style)
 
 
 def validate_and_format_value(

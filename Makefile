@@ -1,31 +1,33 @@
 PACKAGE_NAME := pyfastexcel
+TARGET_FOLDER := ./pyfastexcel
 
 ifeq ($(OS),Windows_NT)
     # Windows
-    SHARED_LIBRARY := pyfastexcel.dll
+    SHARED_LIBRARY_NAME := pyfastexcel.dll
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
         # Linux
-        SHARED_LIBRARY := pyfastexcel.so
+        SHARED_LIBRARY_NAME := pyfastexcel.so
     else ifeq ($(UNAME_S),Darwin)
         # macOS
-        SHARED_LIBRARY := pyfastexcel.dylib
+        SHARED_LIBRARY_NAME := pyfastexcel.dylib
     endif
 endif
 
 GO_SOURCE := pyfastexcel.go
+GO_SOURCES := $(GO_SOURCE) $(filter-out %_test.go,$(wildcard pyfastexcel/core/*.go))
 CGO_FLAGS := -buildmode=c-shared
-TARGET_FOLDER := ./pyfastexcel
+SHARED_LIBRARY := $(TARGET_FOLDER)/$(SHARED_LIBRARY_NAME)
 CLEAN_CMD := rm -f $(SHARED_LIBRARY)
 
 all: build
 
 build: $(SHARED_LIBRARY)
 
-$(SHARED_LIBRARY): $(GO_SOURCE)
+$(SHARED_LIBRARY): $(GO_SOURCES) go.mod go.sum
 	@echo "Building shared library..."
-	go build $(CGO_FLAGS) -o $(TARGET_FOLDER)/$(SHARED_LIBRARY)
+	go build $(CGO_FLAGS) -o $(SHARED_LIBRARY)
 
 clean:
 	@echo "Cleaning up..."

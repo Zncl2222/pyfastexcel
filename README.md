@@ -161,9 +161,10 @@ see the [benchmark](https://pyfastexcel.readthedocs.io/en/stable/benchmark/).
 
 ## How it Works
 
-The core functionality revolves around encoding Excel cell data and styles,
-or any other Excel properties, into a JSON string within Python. This JSON
-payload is then passed through ctypes to a Golang shared library. In Golang,
-the JSON is parsed, and using the streaming writer of
-[excelize](https://github.com/qax-os/excelize) to wrtie excel in
-high performance.
+Python keeps the existing workbook and `(value, style_name)` API. With the
+bundled ABI-v2 library it sends JSON metadata plus MessagePack row frames over
+a length-aware ctypes boundary; Go decodes one row at a time and writes it with
+[excelize](https://github.com/qax-os/excelize). Older native libraries are
+detected automatically and continue to use the complete JSON/base64 protocol.
+The generated XLSX is returned as raw bytes, or written through the compatible
+direct-file path when `save(path)` is used.

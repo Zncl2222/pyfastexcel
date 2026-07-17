@@ -1,5 +1,9 @@
-"""
-Measure pyfastexcel performance before and after optimization.
+"""Legacy broad-case throughput benchmark.
+
+This script is retained for its Workbook/StreamWriter size matrix, but its
+``perf_baseline.json`` files are not release evidence because they lack native
+binary provenance and fresh-process peak RSS. Use ``perf_memory.py`` for
+before/after acceptance measurements.
 
 benchmark/perf_compare.py
 
@@ -15,8 +19,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import base64
-import ctypes
 import json
 import os
 import statistics
@@ -26,12 +28,10 @@ import timeit
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import msgspec  # noqa: E402
-
 from example import prepare_example_data  # noqa: E402
 from pyfastexcel import StreamWriter, Workbook  # noqa: E402
-from pyfastexcel.manager import StyleManager  # noqa: E402
-from pyfastexcel.validators import TableFinalValidation  # noqa: E402
+from pyfastexcel.driver import NativeExcelClient  # noqa: E402
+from pyfastexcel.wire import encode_payload  # noqa: E402
 
 REPEAT = 5
 CASES = [
@@ -68,24 +68,25 @@ def bench_stream(data: list[dict]) -> None:
     _W(data).run()
 
 
-def measure_components(data: list[dict], repeat: int = 3) -> dict[str, float]:
+def measure_components(
+    data: list[dict], repeat: int = 3
+) -> tuple[dict[str, dict[str, float]], str, int]:
     """
     Break down the time inside read_lib_and_create_excel into components.
 
     Components:
-      prepare   – Python-side data assembly (_create_style, _transfer_to_dict)
-      json_enc  – msgspec.json.encode
-      ffi       – actual Go shared-library call
-      post      – bytes retrieval + freeing the C pointer
+      prepare        – Python-side data and style metadata assembly
+      wire_enc       – the production JSON or PFX2 encoder
+      native_export  – the production ABI call, result copy and pointer cleanup
 
-    Works with BOTH the old API (Export returns base64 *C.char)
-    and the new API (Export returns raw bytes with a length out-param).
+    ABI detection deliberately goes through ``NativeExcelClient``. Calling an
+    unknown C function with a guessed signature can corrupt the process before
+    Python has an opportunity to catch an exception.
     """
     timings: dict[str, list[float]] = {
         'prepare': [],
-        'json_enc': [],
-        'ffi': [],
-        'post': [],
+        'wire_enc': [],
+        'native_export': [],
     }
 
     for _ in range(repeat):
@@ -93,80 +94,31 @@ def measure_components(data: list[dict], repeat: int = 3) -> dict[str, float]:
         ws = wb['Sheet1']
         for i, record in enumerate(data):
             ws[i] = list(record.values())
+        native = NativeExcelClient(wb._read_lib(None))
 
         # ── prepare ──────────────────────────────────────────────────────────
         t0 = time.perf_counter()
-        wb._create_style()
-        for sheet in wb._sheet_list:
-            wb._dict_wb[sheet] = wb.workbook[sheet]._transfer_to_dict()
-            if wb.workbook[sheet]._table_list:
-                TableFinalValidation(
-                    data=wb.workbook[sheet]._data,
-                    table_list=wb.workbook[sheet]._table_list,
-                )
-        payload = {
-            'content': wb._dict_wb,
-            'file_props': wb.file_props,
-            'style': wb.style._style_map,
-            'protection': wb.protection,
-            'sheet_order': wb._sheet_list,
-        }
+        export_data = wb._build_export_data()
         t1 = time.perf_counter()
 
-        # ── JSON encode ───────────────────────────────────────────────────────
-        json_data = msgspec.json.encode(payload)
+        # ── Production wire encode ────────────────────────────────────────────
+        wire_data = encode_payload(export_data, force_json=not native.supports_v2_export)
         t2 = time.perf_counter()
 
-        # ── FFI call ──────────────────────────────────────────────────────────
-        lib = wb._read_lib(None)
-        ignore_go_panic = ctypes.c_int64(1)
-
-        # Detect API version: new API has 3 args (data, *outLen, catchPanic)
-        try:
-            out_len = ctypes.c_int64(0)
-            lib.Export.argtypes = [
-                ctypes.c_char_p,
-                ctypes.POINTER(ctypes.c_int64),
-                ctypes.c_int64,
-            ]
-            lib.Export.restype = ctypes.c_void_p
-            lib.FreeCPointer.argtypes = [ctypes.c_void_p, ctypes.c_int64]
-
-            t3 = time.perf_counter()
-            ptr = lib.Export(json_data, ctypes.byref(out_len), ignore_go_panic)
-            t4 = time.perf_counter()
-
-            bytes(ctypes.string_at(ptr, out_len.value))
-            lib.FreeCPointer(ptr, ctypes.c_int64(0))
-            t5 = time.perf_counter()
-            api_label = 'new (raw bytes)'
-
-        except Exception:
-            # Fall back to old API
-            lib.Export.argtypes = [ctypes.c_char_p, ctypes.c_int64]
-            lib.Export.restype = ctypes.c_void_p
-
-            t3 = time.perf_counter()
-            ptr = lib.Export(json_data, ignore_go_panic)
-            t4 = time.perf_counter()
-
-            base64.b64decode(ctypes.cast(ptr, ctypes.c_char_p).value)
-            lib.FreeCPointer.argtypes = [ctypes.c_void_p, ctypes.c_int64]
-            lib.FreeCPointer(ptr, ctypes.c_int64(0))
-            t5 = time.perf_counter()
-            api_label = 'old (base64)'
-
-        StyleManager.reset_style_configs()
+        # ── Production native export, copy and free ───────────────────────────
+        native.export_bytes(wire_data, 1)
+        t3 = time.perf_counter()
+        transport = 'raw bytes' if native.supports_v2_export else 'base64'
+        api_label = f'v{native.abi_version} ({transport})'
 
         timings['prepare'].append(t1 - t0)
-        timings['json_enc'].append(t2 - t1)
-        timings['ffi'].append(t4 - t3)
-        timings['post'].append(t5 - t4)
+        timings['wire_enc'].append(t2 - t1)
+        timings['native_export'].append(t3 - t2)
 
     return (
         {k: {'mean': statistics.mean(v), 'min': min(v)} for k, v in timings.items()},
         api_label,
-        len(json_data),
+        len(wire_data),
     )
 
 
@@ -260,14 +212,10 @@ def main() -> None:
     print('Component breakdown  (10 000 rows × 30 cols, 3 repeats)')
     print(separator)
     data_med = prepare_example_data(rows=10_000, cols=30)
-    comp, api_ver, json_bytes = measure_components(data_med, repeat=3)
+    comp, api_ver, wire_bytes = measure_components(data_med, repeat=3)
     total = sum(v['mean'] for v in comp.values())
     print(f'  API version detected : {api_ver}')
-    print(f'  JSON payload size    : {json_bytes / 1024:.1f} KB')
-    print(
-        f'  base64-encoded size  : {json_bytes * 4 // 3 / 1024:.1f} KB  '
-        f'(savings if removed: {json_bytes // 3 / 1024:.1f} KB)'
-    )
+    print(f'  Wire payload size    : {wire_bytes / 1024:.1f} KB')
     for label, v in comp.items():
         print_component_row(label, v['mean'], total)
     total_label = 'total'

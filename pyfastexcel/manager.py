@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -36,33 +37,129 @@ class StyleManager:
         _get_protection_style(style: CustomStyle): Gets the protection style.
     """
 
-    # The style retrieved from set_custom_style will be stored in
-    # REGISTERED_STYLES temporarily. It will be created after any
-    # Writer is initialized and calls the self._create_style() method.
+    # ``set_custom_style`` is a process-level convenience API.  Workbooks never
+    # mutate these dictionaries directly; every StyleManager instance maintains
+    # a local overlay and lazily synchronizes process defaults by version.
     DEFAULT_STYLE = CustomStyle()
     REGISTERED_STYLES = {'DEFAULT_STYLE': DEFAULT_STYLE}
-    _STYLE_NAME_MAP = {}
+    _STYLE_NAME_MAP = {DEFAULT_STYLE: 'DEFAULT_STYLE'}
     _STYLE_ID = 0
-    # The shared memory in the parent class that stores every CustomStyle
-    # from different Writer classes.
     _style_map = {}
+    _REGISTRY_LOCK = threading.RLock()
+    _REGISTRY_VERSION = 0
+
+    def __init__(self) -> None:
+        self._process_styles: dict[str, CustomStyle] = {}
+        self._local_styles: dict[str, CustomStyle] = {}
+        self._process_version = -1
+        self._STYLE_ID = 0
+        self._style_map: dict[str, dict[str, Any]] = {}
+        self.REGISTERED_STYLES: dict[str, CustomStyle] = {}
+        self._STYLE_NAME_MAP: dict[CustomStyle, str] = {}
+        self.sync_defaults()
 
     @classmethod
     def set_custom_style(cls, name: str, custom_style: CustomStyle):
-        if cls.REGISTERED_STYLES.get(name):
-            log_warning(
-                logger,
-                f'{name} has already existed. Overiding the style settings.',
-            )
-        cls.REGISTERED_STYLES[name] = custom_style
-        cls._STYLE_NAME_MAP[custom_style] = name
+        """Register a process default used by existing and future workbooks."""
+        with cls._REGISTRY_LOCK:
+            registered_styles = dict(cls.REGISTERED_STYLES)
+            if registered_styles.get(name):
+                log_warning(
+                    logger,
+                    f'{name} has already existed. Overiding the style settings.',
+                )
+            registered_styles[name] = custom_style
+            cls.REGISTERED_STYLES = registered_styles
+            cls._STYLE_NAME_MAP = {
+                style: style_name for style_name, style in registered_styles.items()
+            }
+            cls._REGISTRY_VERSION += 1
+
+    @classmethod
+    def register_generated_default_style(cls, custom_style: CustomStyle) -> str:
+        """Atomically register an auto-named process default for compatibility."""
+        with cls._REGISTRY_LOCK:
+            style_name = f'Custom Style {cls._STYLE_ID}'
+            cls._STYLE_ID += 1
+            cls.set_custom_style(style_name, custom_style)
+            return style_name
 
     @classmethod
     def reset_style_configs(cls):
-        cls.REGISTERED_STYLES = {'DEFAULT_STYLE': cls.DEFAULT_STYLE}
-        cls._STYLE_NAME_MAP = {}
-        cls._STYLE_ID = 0
-        cls._style_map = {}
+        """Explicitly reset process defaults.
+
+        This entry point is retained for compatibility and test isolation.  A
+        workbook save intentionally never calls it.
+        """
+        with cls._REGISTRY_LOCK:
+            cls.REGISTERED_STYLES = {'DEFAULT_STYLE': cls.DEFAULT_STYLE}
+            cls._STYLE_NAME_MAP = {cls.DEFAULT_STYLE: 'DEFAULT_STYLE'}
+            cls._STYLE_ID = 0
+            cls._style_map = {}
+            cls._REGISTRY_VERSION += 1
+
+    def sync_defaults(self) -> None:
+        """Lazily merge process defaults into this workbook's local overlay."""
+        cls = type(self)
+        if self._process_version == cls._REGISTRY_VERSION:
+            return
+        with cls._REGISTRY_LOCK:
+            if self._process_version == cls._REGISTRY_VERSION:
+                return
+            process_styles = dict(cls.REGISTERED_STYLES)
+            process_version = cls._REGISTRY_VERSION
+
+        self._process_styles = process_styles
+        self._process_version = process_version
+        self._rebuild_registered_styles()
+
+    def _rebuild_registered_styles(self) -> None:
+        registered_styles = dict(self._process_styles)
+        registered_styles.update(self._local_styles)
+        self.REGISTERED_STYLES = registered_styles
+        self._STYLE_NAME_MAP = {style: name for name, style in registered_styles.items()}
+
+    def register_style(self, name: str, custom_style: CustomStyle) -> str:
+        """Register a style only for this workbook."""
+        self.sync_defaults()
+        if self._local_styles.get(name) is custom_style:
+            return name
+        if name in self.REGISTERED_STYLES:
+            log_warning(
+                logger,
+                f'{name} has already existed. Overriding the style settings.',
+            )
+            self._local_styles[name] = custom_style
+            self._rebuild_registered_styles()
+            return name
+
+        # A unique local name is appended after both the process snapshot and
+        # prior local styles, so the merged dictionaries can be updated in O(1).
+        # Full rebuilds are reserved for name overrides and process syncs,
+        # where stale reverse-map entries may need to be removed.
+        self._local_styles[name] = custom_style
+        self.REGISTERED_STYLES[name] = custom_style
+        self._STYLE_NAME_MAP[custom_style] = name
+        return name
+
+    def register_generated_style(self, custom_style: CustomStyle) -> str:
+        """Register an automatically named style in this workbook."""
+        style_name = f'Custom Style {self._STYLE_ID}'
+        self._STYLE_ID += 1
+        return self.register_style(style_name, custom_style)
+
+    def get_style_name(self, custom_style: CustomStyle) -> str | None:
+        self.sync_defaults()
+        return self._STYLE_NAME_MAP.get(custom_style)
+
+    def get_registered_style(self, name: str) -> CustomStyle | None:
+        self.sync_defaults()
+        return self.REGISTERED_STYLES.get(name)
+
+    def begin_style_build(self) -> None:
+        """Start an atomic, repeatable serialization build for this workbook."""
+        self.sync_defaults()
+        self._style_map = {}
 
     def _get_default_style(self) -> dict[str, dict[str, Any] | str]:
         """

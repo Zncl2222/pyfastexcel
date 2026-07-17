@@ -64,7 +64,7 @@ include-package-data = true
 zip-safe = false
 
 [tool.setuptools.package-data]
-pyfastexcel = ["*.so", "*.dll", "*.dylib"]
+pyfastexcel = ["*.so", "*.dll", "*.dylib", "THIRD_PARTY_NOTICES.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["."]

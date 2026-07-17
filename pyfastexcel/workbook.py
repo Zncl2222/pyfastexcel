@@ -107,7 +107,11 @@ class Workbook(ExcelDriver):
         """
         if self.workbook.get(sheet_name) is not None:
             raise ValueError(f'Sheet {sheet_name} already exists.')
-        self.workbook[sheet_name] = WorkSheet(pre_allocate=pre_allocate, plain_data=plain_data)
+        self.workbook[sheet_name] = WorkSheet(
+            pre_allocate=pre_allocate,
+            plain_data=plain_data,
+            style_manager=self.style,
+        )
         self.sheet = sheet_name
         self._sheet_list = tuple([x for x in self._sheet_list] + [sheet_name])
         return self.workbook[sheet_name]
