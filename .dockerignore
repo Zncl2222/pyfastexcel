@@ -1,0 +1,38 @@
+# Virtual environments (recreated inside the image by `uv sync`)
+.venv/
+venv/
+
+# Version control
+.git/
+.gitignore
+
+# Go toolchain archive (Go is installed via the Dockerfile)
+*.tar.gz
+
+# Prebuilt shared libraries (rebuilt inside the image by `make`)
+*.so
+*.dll
+*.dylib
+
+# Build / packaging artifacts
+build/
+dist/
+*.egg-info/
+
+# Docs site output
+site/
+
+# Test / coverage artifacts
+htmlcov/
+.coverage
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+
+# Generated example / test spreadsheets
+*.xlsx
+
+# Docker files themselves
+Dockerfile
+.dockerignore
