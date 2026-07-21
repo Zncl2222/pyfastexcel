@@ -27,10 +27,10 @@ func getPivotTableField(field interface{}) []excelize.PivotTableField {
 	return pivotTableFields
 }
 
-func (ew *ExcelWriter) createPivotTable(pivot_data []interface{}) {
-	for _, pivot := range pivot_data {
+func (ew *ExcelWriter) createPivotTable(pivotData []interface{}) error {
+	for index, pivot := range pivotData {
 		pivotMap := pivot.(map[string]interface{})
-		err := ew.File.AddPivotTable(&excelize.PivotTableOptions{
+		if err := ew.File.AddPivotTable(&excelize.PivotTableOptions{
 			DataRange:       pivotMap["DataRange"].(string),
 			PivotTableRange: pivotMap["PivotTableRange"].(string),
 			Rows:            getPivotTableField(pivotMap["Rows"]),
@@ -44,9 +44,15 @@ func (ew *ExcelWriter) createPivotTable(pivot_data []interface{}) {
 			ShowColHeaders:  getBoolValue(pivotMap, "ShowColHeaders", false),
 			ShowLastColumn:  getBoolValue(pivotMap, "ShowLastColumn", false),
 			ClassicLayout:   getBoolValue(pivotMap, "ClassicLayout", false),
-		})
-		if err != nil {
-			fmt.Println(err)
+		}); err != nil {
+			return fmt.Errorf(
+				"add pivot table %d from %q to %q: %w",
+				index+1,
+				pivotMap["DataRange"],
+				pivotMap["PivotTableRange"],
+				err,
+			)
 		}
 	}
+	return nil
 }

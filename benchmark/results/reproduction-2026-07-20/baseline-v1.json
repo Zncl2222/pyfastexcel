@@ -1,0 +1,80 @@
+{
+  "environment": {
+    "platform": "Linux-6.18.33.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.14.0",
+    "note": "OLD baseline (pre-perf-rework, ab23864), ABI-v1 JSON/base64 export, measured via old read_lib_and_create_excel API; freshly built old .so"
+  },
+  "workload": {
+    "schema_version": 1,
+    "rows": 50000,
+    "cols": 30,
+    "cells": 1500000,
+    "styles": 4,
+    "wire": "json-v1",
+    "destination": "bytes",
+    "repeat": 3,
+    "writer_engine": "StreamWriter",
+    "sheet_count": 1,
+    "no_style": false,
+    "value_pattern": "row-major sequential integers",
+    "formula_cells": 0,
+    "style_pattern": "column modulo four fixed styles"
+  },
+  "samples": [
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "build_seconds": 1.2794045769842342,
+      "export_seconds": 1.2553313950193115,
+      "total_seconds": 2.5347359720035456,
+      "peak_rss_bytes": 596885504,
+      "xlsx_bytes": 5577744
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "build_seconds": 1.2360351440147497,
+      "export_seconds": 1.1860944539948832,
+      "total_seconds": 2.422129598009633,
+      "peak_rss_bytes": 608124928,
+      "xlsx_bytes": 5577741
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "build_seconds": 1.2428025779954623,
+      "export_seconds": 1.267382200981956,
+      "total_seconds": 2.5101847789774183,
+      "peak_rss_bytes": 607735808,
+      "xlsx_bytes": 5577743
+    }
+  ],
+  "summary": {
+    "build_seconds": {
+      "mean": 1.2527474329981487,
+      "min": 1.2360351440147497,
+      "max": 1.2794045769842342,
+      "stdev": 0.023332424537368467
+    },
+    "export_seconds": {
+      "mean": 1.236269349998717,
+      "min": 1.1860944539948832,
+      "max": 1.267382200981956,
+      "stdev": 0.04386850376789673
+    },
+    "total_seconds": {
+      "mean": 2.4890167829968655,
+      "min": 2.422129598009633,
+      "max": 2.5347359720035456,
+      "stdev": 0.059212430336786186
+    },
+    "peak_rss_bytes": {
+      "mean": 604248746.6666666,
+      "min": 596885504,
+      "max": 608124928
+    }
+  }
+}

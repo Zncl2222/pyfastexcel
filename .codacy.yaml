@@ -1,0 +1,15 @@
+---
+# benchmark/ is local measurement tooling. It is not part of the distributed
+# package (pyproject.toml ships only the `pyfastexcel` package), it is never
+# imported by library code, and it only runs when a maintainer invokes it by
+# hand. Analysing it as product code produces noise rather than signal:
+#
+#   - The docstring rules Codacy applies there (D213, D203) are mutually
+#     exclusive with the ones the rest of the codebase follows (D212, D211),
+#     so every new benchmark script starts out failing no matter how it is
+#     written.
+#   - The bandit subprocess findings in baseline_probe.py flag a fixed
+#     argv list built in-process to shell out to git/pip. There is no
+#     untrusted input reaching it.
+exclude_paths:
+  - 'benchmark/**'

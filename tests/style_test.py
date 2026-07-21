@@ -209,6 +209,37 @@ class TestStyles:
         assert custom_style.protect == expected_protection
         assert custom_style.hidden == expected_hidden
 
+    def test_default_and_custom_styles_build_identical_components(self):
+        class IsolatedDefaultStyle(DefaultStyle):
+            pass
+
+        settings = {
+            'font_params': {'name': 'Arial', 'size': 14, 'bold': True, 'color': '112233'},
+            'fill_params': {
+                'color': 'DDEEFF',
+                'pattern': 2,
+                'ftype': 'pattern',
+                'shading': 1,
+            },
+            'ali_params': {'horizontal': 'center', 'vertical': 'top', 'wrap_text': True},
+            'border_params': {
+                side: BorderStyle(style='dashed', color='445566')
+                for side in ('left', 'right', 'top', 'bottom')
+            },
+            'protect': True,
+            'hidden': True,
+            'number_format': '0.00',
+        }
+
+        IsolatedDefaultStyle.set_default(**settings)
+        custom_style = CustomStyle(**settings)
+
+        for component in ('font', 'fill', 'ali', 'border', 'protection'):
+            default_dump = getattr(IsolatedDefaultStyle, component).model_dump(by_alias=True)
+            custom_dump = getattr(custom_style, component).model_dump(by_alias=True)
+            assert default_dump == custom_dump
+        assert IsolatedDefaultStyle.number_format == custom_style.number_format
+
 
 @pytest.mark.style
 class TestStylesArgs:

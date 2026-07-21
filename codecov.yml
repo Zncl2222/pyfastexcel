@@ -1,0 +1,35 @@
+codecov:
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true
+    after_n_builds: 2
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        informational: true
+    patch:
+      default:
+        target: 80%
+        informational: true
+
+flags:
+  python:
+    paths:
+      - pyfastexcel/
+    carryforward: false
+  go:
+    paths:
+      - pyfastexcel.go
+      - pyfastexcel/core/
+    carryforward: false
+
+ignore:
+  - "tests/**"
+  - "**/test_*.py"
+  - "**/*_test.py"
+  - "**/*_test.go"
+  - "benchmark/**"

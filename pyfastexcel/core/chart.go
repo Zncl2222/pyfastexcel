@@ -236,11 +236,14 @@ func getBorderStruct(border interface{}) excelize.ChartLine {
 	return chartBorder
 }
 
-func (ew *ExcelWriter) addChart(sheet string, charts []interface{}) {
-	for _, chart := range charts {
+func (ew *ExcelWriter) addChart(sheet string, charts []interface{}) error {
+	for index, chart := range charts {
 		chart := chart.(map[string]interface{})
 		chartData := chart["chart"].([]interface{})
 		cell := chart["cell"].(string)
+		if len(chartData) == 0 {
+			return fmt.Errorf("add chart %d to sheet %q at cell %q: chart definition is empty", index+1, sheet, cell)
+		}
 		comboCharts := []*excelize.Chart{}
 		for _, c := range chartData {
 			c := c.(map[string]interface{})
@@ -272,7 +275,8 @@ func (ew *ExcelWriter) addChart(sheet string, charts []interface{}) {
 			})
 		}
 		if err := ew.File.AddChart(sheet, cell, comboCharts[0], comboCharts[1:]...); err != nil {
-			fmt.Println(err)
+			return fmt.Errorf("add chart %d to sheet %q at cell %q: %w", index+1, sheet, cell, err)
 		}
 	}
+	return nil
 }

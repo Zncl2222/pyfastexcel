@@ -1,22 +1,87 @@
+"""pyfastexcel vs openpyxl throughput benchmark.
+
+Runs a size matrix of Workbook / StreamWriter / openpyxl writers and produces a
+horizontal-bar chart per case.  Each run also writes a structured JSON result to
+``benchmark/results/openpyxl/<date>-<os>-openpyxl.json`` so re-running never
+overwrites earlier numbers; historical PNGs are likewise left untouched.
+
+Usage:
+    uv run python benchmark/benchmark.py                       # auto-detect OS
+    uv run python benchmark/benchmark.py --os-name Windows11   # override label
+    uv run python benchmark/benchmark.py --repeat 3
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import importlib.metadata
+import json
 import os
+import platform
+import re
 import statistics
 import sys
 import timeit
+from pathlib import Path
 
-import matplotlib.pyplot as plt
-import numpy as np
-from openpyxl import Workbook as OpenpyxlWorkbook
+import matplotlib
+
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+from openpyxl import Workbook as OpenpyxlWorkbook  # noqa: E402
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # noqa
 
-from example import prepare_example_data  # noqa
-from pyfastexcel import StreamWriter  # noqa
-from pyfastexcel import Workbook as PyFastExcelWorkbook  # noqa
+from example import prepare_example_data  # noqa: E402
+from pyfastexcel import StreamWriter  # noqa: E402
+from pyfastexcel import Workbook as PyFastExcelWorkbook  # noqa: E402
 
-os_name = 'Windows11'
+RESULTS_DIR = Path(__file__).resolve().parent / 'results' / 'openpyxl'
+DEFAULT_CASES = [(50, 30), (500, 30), (5000, 30), (50000, 30)]
+
+# Assigned in main(); the plotting helpers read them as module globals.
+os_name = platform.system() or 'unknown'
 os_title = f'OS: {os_name}'
 data = None
 result_dict = {}
+
+
+def _detect_os_name() -> str:
+    """A filesystem-friendly OS label, e.g. ``Windows11`` or ``Linux-6.18``."""
+    system = platform.system()
+    if system == 'Windows':
+        return f'Windows{platform.release()}'
+    if system == 'Linux':
+        release = platform.release()
+        wsl = 'WSL2-' if 'microsoft' in release.lower() else ''
+        # Kept out of the f-string: nesting the same quote needs Python 3.12,
+        # and the package supports 3.10.
+        version = release.split('-')[0]
+        return f'{wsl}Linux-{version}'
+    if system == 'Darwin':
+        return f'macOS-{platform.mac_ver()[0]}'
+    return system or 'unknown'
+
+
+def _package_version(distribution: str) -> str | None:
+    try:
+        return importlib.metadata.version(distribution)
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
+def _cpu_name() -> str | None:
+    if processor := platform.processor():
+        return processor
+    try:
+        for line in Path('/proc/cpuinfo').read_text(encoding='utf-8').splitlines():
+            if line.lower().startswith('model name'):
+                return line.partition(':')[2].strip()
+    except OSError:
+        pass
+    return None
 
 
 setup = """
@@ -109,7 +174,7 @@ def run_test_case(test_case_name, test_case_func, repeat=5, number=1):
     benchmark += f'Mean: {mean} s\nMax: {max_val} s\nMin: {min_val} s\nStd: {std_dev} s\n'
     result_dict[test_case_name]['mean'] = mean
     result_dict[test_case_name]['max_val'] = max_val
-    result_dict[test_case_name]['min_vl'] = min_val
+    result_dict[test_case_name]['min_val'] = min_val
     result_dict[test_case_name]['std_dev'] = std_dev
     return benchmark
 
@@ -118,7 +183,7 @@ def extract_plot_data(result_dict):
     labels = list(result_dict.keys())
     means = [entry['mean'] for entry in result_dict.values()]
     max_vals = [entry['max_val'] for entry in result_dict.values()]
-    min_vals = [entry['min_vl'] for entry in result_dict.values()]
+    min_vals = [entry['min_val'] for entry in result_dict.values()]
     std_devs = [entry['std_dev'] for entry in result_dict.values()]
     return labels, means, max_vals, min_vals, std_devs
 
@@ -245,26 +310,85 @@ def plot_horizontal_bar(title='Method', fig_name='hbars.png'):
     plot_bars(orientation='h', title=title, fig_name=fig_name)
 
 
-if __name__ == '__main__':
-    cases = [(50, 30), (500, 30), (5000, 30), (50000, 30)]
+def _parse_cases(spec: str | None) -> list[tuple[int, int]]:
+    if not spec:
+        return DEFAULT_CASES
+    cases = []
+    for pair in spec.split(','):
+        match = re.fullmatch(r'\s*(\d+)x(\d+)\s*', pair)
+        if not match:
+            raise SystemExit(f'invalid --cases entry {pair!r}; expected e.g. "500x30,5000x30"')
+        cases.append((int(match.group(1)), int(match.group(2))))
+    return cases
+
+
+def _save_results_json(all_cases: list[dict], repeat: int, output_dir: Path) -> Path:
+    today = dt.date.today().isoformat()
+    report = {
+        'date': today,
+        'os_name': os_name,
+        'repeat': repeat,
+        'environment': {
+            'platform': platform.platform(),
+            'cpu': _cpu_name(),
+            'python': platform.python_version(),
+            'openpyxl': _package_version('openpyxl'),
+            'pyfastexcel': _package_version('pyfastexcel'),
+        },
+        'cases': all_cases,
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / f'{today}-{os_name}-openpyxl.json'
+    path.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+    return path
+
+
+def main() -> None:
+    global data, os_name, os_title, result_dict
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--os-name', default=_detect_os_name(), help='OS label for titles/filenames'
+    )
+    parser.add_argument('--repeat', type=int, default=5, help='timeit repeats per case')
+    parser.add_argument('--cases', help='comma-separated ROWSxCOLS list, e.g. "500x30,5000x30"')
+    parser.add_argument(
+        '--output-dir',
+        type=Path,
+        default=Path(__file__).resolve().parent,
+        help='directory for the per-case PNGs (default: benchmark/)',
+    )
+    args = parser.parse_args()
+
+    os_name = args.os_name
+    os_title = f'OS: {os_name}'
+    cases = _parse_cases(args.cases)
+
+    methods = [
+        ('WorkBook double loop', 'write_excel_with_pyfastexcel_with_double_for_loop'),
+        ('WorkBook by row', 'write_excel_with_pyfastexcel_with_row'),
+        ('StreamWriter', 'write_excel_with_stream_writer'),
+        ('Openpyxl\nWorkbook', 'write_excel_with_openpyxl_normal_wb'),
+        ('Openpyxl Write\nOnly Workbook', 'write_excel_with_openpyxl_write_only_wb'),
+    ]
+
+    all_cases = []
     for row, col in cases:
         data = prepare_example_data(rows=row, cols=col)
-        benchmark = run_test_case(
-            'WorkBook double loop',
-            'write_excel_with_pyfastexcel_with_double_for_loop',
-        )
-        benchmark += run_test_case('WorkBook by row', 'write_excel_with_pyfastexcel_with_row')
-        benchmark += run_test_case('StreamWriter', 'write_excel_with_stream_writer')
-        benchmark += run_test_case('Openpyxl\nWorkbook', 'write_excel_with_openpyxl_normal_wb')
-        benchmark += run_test_case(
-            'Openpyxl Write\nOnly Workbook',
-            'write_excel_with_openpyxl_write_only_wb',
-        )
+        result_dict = {}
+        benchmark = ''
+        for label, func in methods:
+            benchmark += run_test_case(label, func, repeat=args.repeat)
         print(benchmark)
-        # plot_vertical_bar(
-        #   f'Method (rows={row}, columns={col})', f'{row}_{col}_vertical_{os_name}.png'
-        # )
         plot_horizontal_bar(
             f'Method (rows={row}, columns={col})',
-            f'{row}_{col}_horizontal_{os_name}.png',
+            str(args.output_dir / f'{row}_{col}_horizontal_{os_name}.png'),
         )
+        all_cases.append({'rows': row, 'cols': col, 'results': result_dict})
+
+    saved = _save_results_json(all_cases, args.repeat, RESULTS_DIR)
+    print(f'\nSaved results JSON to {saved}')
+
+
+if __name__ == '__main__':
+    main()

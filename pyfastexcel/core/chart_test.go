@@ -458,6 +458,10 @@ func TestAddChart(t *testing.T) {
 	}
 	ew := ExcelWriter{File: file}
 
-	ew.addChart(sheet, charts)
-	file.Close()
+	if err := ew.addChart(sheet, charts); err != nil {
+		t.Fatalf("add chart: %v", err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatalf("close workbook: %v", err)
+	}
 }

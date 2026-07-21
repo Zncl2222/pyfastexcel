@@ -4,8 +4,6 @@ from typing import Any, List, Literal, Optional, overload
 
 from pydantic import validate_call as pydantic_validate_call
 
-from pyfastexcel import CustomStyle
-
 from ._typing import CommentTextStructure, SetPanesSelection
 from .chart import (
     Chart,
@@ -22,6 +20,7 @@ from .chart import (
 from .manager import StyleManager
 from .pivot import PivotTable, PivotTableField
 from .serializers import CommentSerializer, DataValidationSerializer, PanesSerializer
+from .style import CustomStyle
 from .utils import (
     CommentText,
     Selection,
@@ -50,6 +49,7 @@ class WorkSheetBase:
         self,
         pre_allocate: Optional[dict[str, int]] = None,
         plain_data: Optional[list[list[str]]] = None,
+        style_manager: Optional[StyleManager] = None,
     ):
         """
         Initializes a WorkSheet instance with optional pre-allocation of data or initialization
@@ -81,6 +81,7 @@ class WorkSheetBase:
             TypeError: If `plain_data` is provided but is not a valid 2D list of strings.
 
         """
+        self._style_manager = style_manager if style_manager is not None else StyleManager()
         self._sheet = self._get_default_sheet()
         self._data = []
         self._merged_cells_list = []
@@ -269,12 +270,10 @@ class WorkSheetBase:
                 )
             # The case that user do not register the Custom Style by 'Class attributes'
             # or set_custom_style function.
-            if (
-                isinstance(value[1], CustomStyle)
-                and StyleManager._STYLE_NAME_MAP.get(value[1]) is None
-            ):
-                validate_and_register_style(value[1])
-                style = StyleManager._STYLE_NAME_MAP[value[1]]
+            if isinstance(value[1], CustomStyle):
+                style = self._style_manager.get_style_name(value[1])
+                if style is None:
+                    style = validate_and_register_style(value[1], self._style_manager)
                 value = (value[0], style)
         return value
 
@@ -388,9 +387,14 @@ class WorkSheet(WorkSheetBase):
                 Defaults to 'DEFAULT_STYLE'.
         """
         if not isinstance(value, tuple):
+            if isinstance(style, CustomStyle):
+                style_name = self._style_manager.get_style_name(style)
+                if style_name is None:
+                    style_name = validate_and_register_style(style, self._style_manager)
+                style = style_name
             value = (f'{value}', style)
-        elif not isinstance(value[1], (str, CustomStyle)):
-            raise TypeError('Style should be a string or CustomStyle object.')
+        else:
+            value = self._validate_value_and_set_default(value)
         if row < 1 or row > self.MAX_ROW:
             raise ValueError(f'Invalid row index: {row}')
         if column < 1 or column > self.MAX_COL:
@@ -418,16 +422,16 @@ class WorkSheet(WorkSheetBase):
             ValueError: If style is not registered.
         """
         if isinstance(style, str):
-            if StyleManager.REGISTERED_STYLES.get(style) is None:
+            if self._style_manager.get_registered_style(style) is None:
                 raise ValueError(
                     f'Style not found: {style}. Style should be register by '
                     'set_custom_style function when you set a style with '
                     'string.',
                 )
         elif isinstance(style, CustomStyle):
-            if StyleManager._STYLE_NAME_MAP.get(style) is None:
-                validate_and_register_style(style)
-            style = StyleManager._STYLE_NAME_MAP[style]
+            if self._style_manager.get_style_name(style) is None:
+                validate_and_register_style(style, self._style_manager)
+            style = self._style_manager.get_style_name(style)
 
         if isinstance(target, str):
             if ':' in target:

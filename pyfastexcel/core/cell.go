@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/xuri/excelize/v2"
@@ -24,18 +25,30 @@ import (
 //     the formula and the style ID from the second element (`v[1]`).
 //   - Otherwise, the cell is created with the string value and the style ID.
 //   - For any other type, the cell is created with the value and the style ID.
-func createCell(v []interface{}) excelize.Cell {
+func createCell(v []interface{}, styles map[string]int) (excelize.Cell, error) {
 	if len(v) == 0 {
-		return excelize.Cell{StyleID: styleMap["DEFAULT_STYLE"], Value: ""}
+		styleID := styles["DEFAULT_STYLE"]
+		return excelize.Cell{StyleID: styleID, Value: ""}, nil
+	}
+	if len(v) != 2 {
+		return excelize.Cell{}, fmt.Errorf("styled cell must have 0 or 2 elements, got %d", len(v))
+	}
+	styleName, ok := v[1].(string)
+	if !ok {
+		return excelize.Cell{}, fmt.Errorf("cell style must be a string, got %T", v[1])
+	}
+	styleID, ok := styles[styleName]
+	if !ok {
+		return excelize.Cell{}, fmt.Errorf("style %q is not defined", styleName)
 	}
 	switch value := v[0].(type) {
 	case string:
 		if strings.HasPrefix(value, "=") {
-			return excelize.Cell{StyleID: styleMap[v[1].(string)], Formula: normalizeFormula(value)}
+			return excelize.Cell{StyleID: styleID, Formula: normalizeFormula(value)}, nil
 		}
-		return excelize.Cell{StyleID: styleMap[v[1].(string)], Value: value}
+		return excelize.Cell{StyleID: styleID, Value: value}, nil
 	default:
-		return excelize.Cell{StyleID: styleMap[v[1].(string)], Value: value}
+		return excelize.Cell{StyleID: styleID, Value: value}, nil
 	}
 }
 

@@ -9,7 +9,7 @@ from typing import Any, Literal
 # from dataclasses import dataclass
 from pydantic.dataclasses import dataclass
 
-from pyfastexcel import CustomStyle
+from .style import CustomStyle
 
 warnings.simplefilter('always', DeprecationWarning)
 
@@ -56,6 +56,50 @@ def set_debug_level(level: int):
     logging.basicConfig(level=level)
 
 
+def set_zip_compression_level(level: int | None) -> None:  # noqa: D213
+    """Choose the DEFLATE speed/size trade-off for native workbook exports.
+
+    Levels 1-9 switch the native library to klauspost/compress: 1 is fastest,
+    9 is smallest. Level 6 writes the reference 1.5M-cell workload about 3x
+    faster than the default for roughly 20% larger files. ``None`` keeps the
+    Go standard library compressor, which produces the same archives as
+    previous releases.
+
+    The native library reads this setting once, at the first export of the
+    process, so call this before the first ``save()``.
+
+    Parameters
+    ----------
+    level : int | None
+        Compression level from 1 to 9, or None for the backward-compatible
+        default.
+
+    Raises
+    ------
+    ValueError
+        If level is not None and not an integer from 1 to 9.
+    RuntimeError
+        If a workbook was already exported in this process, because the
+        setting can no longer take effect.
+
+    """
+    import os
+
+    from . import driver
+
+    if level is not None and (not isinstance(level, int) or not 1 <= level <= 9):
+        raise ValueError(f'Invalid zip compression level ({level!r}). Expected 1-9 or None.')
+    if driver.native_export_started():
+        raise RuntimeError(
+            'set_zip_compression_level must be called before the first workbook '
+            'export; the native library has already locked in its compression setting.',
+        )
+    if level is None:
+        os.environ.pop('PYFASTEXCEL_ZIP_LEVEL', None)
+    else:
+        os.environ['PYFASTEXCEL_ZIP_LEVEL'] = str(level)
+
+
 def deprecated_warning(msg: str):
     warnings.warn(
         msg,
@@ -70,15 +114,19 @@ def set_custom_style(style_name: str, style: CustomStyle) -> None:
     StyleManager.set_custom_style(style_name, style)
 
 
-def validate_and_register_style(style: CustomStyle) -> None:
+def validate_and_register_style(style: CustomStyle, style_manager=None) -> str:
     from .manager import StyleManager
 
     if not isinstance(style, CustomStyle):
         raise TypeError(
             f'Invalid type ({type(style)}). Style should be a CustomStyle object.',
         )
-    StyleManager.set_custom_style(f'Custom Style {StyleManager._STYLE_ID}', style)
-    StyleManager._STYLE_ID += 1
+    if style_manager is not None:
+        return style_manager.register_generated_style(style)
+
+    # Preserve the historical standalone helper behavior: without a workbook
+    # manager the generated style is a process default.
+    return StyleManager.register_generated_default_style(style)
 
 
 def validate_and_format_value(

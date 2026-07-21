@@ -33,7 +33,11 @@ sheet_list = wb.sheet_list
 
 ## Create and Save Workbook
 
-After writing all the content, pyfastexcel should encode the Python object to a JSON string and pass it to Golang for decoding. The Excel file is then created using Golang code.
+After writing the content, pyfastexcel sends JSON metadata plus MessagePack
+row frames to the bundled ABI-v2 Go library. Older native libraries are
+detected automatically and retain the complete JSON protocol. The Excel file
+is then created by Go and returned as bytes or written directly by
+`save(path)`.
 
 To do this, you should call the function `read_lib_and_create_excel()` to obtain the bytes returned and save the workbook.
 
@@ -45,6 +49,44 @@ wb.save(file_name)
 
 !!! note="Note"
     `wb.save()` now will call `read_lib_and_create_excel()` automatically.
+
+### Faster compression for large workbooks
+
+By default the generated `.xlsx` archives are byte-for-byte identical to
+previous releases. For large workbooks most of the native export time is spent
+in DEFLATE, so an optional faster compressor is available:
+
+```python
+from pyfastexcel import set_zip_compression_level
+
+set_zip_compression_level(6)  # call once, before the first save()
+```
+
+Levels run from 1 (fastest, largest file) to 9 (slowest, smallest file);
+level 6 writes a 1.5M-cell workbook about 3x faster than the default for
+roughly 20% larger files. The produced files remain standard ZIP/DEFLATE
+archives that any reader can open. The setting is read once per process at the
+first export; the `PYFASTEXCEL_ZIP_LEVEL` environment variable is an
+equivalent alternative.
+
+### Parallel writing
+
+Workbooks whose sheets all use the default `StreamWriter` engine are written
+with one native worker per sheet, so multi-sheet workbooks use multiple CPU
+cores automatically — no code change and no output difference. Setting
+`PYFASTEXCEL_SEQUENTIAL=1` disables this for debugging.
+
+Saving several *independent* workbooks also parallelizes well from Python:
+the native export releases the GIL, so a thread pool speeds it up nearly
+linearly (workbook isolation is covered by the concurrency test suite):
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+with ThreadPoolExecutor() as pool:
+    for workbook, path in zip(workbooks, paths):
+        pool.submit(workbook.save, path)
+```
 
 If you know the dimension of the data you want to write. You can use `pre_allocate`
 to pre_allocate the memory space of the pyfastexcel to improve the performance.
@@ -227,6 +269,11 @@ wb.auto_filter("New Sheet", "A1:C1")
 Protect a workbook with a password using various encryption algorithms.
 The available options for the algorithm are XOR, MD4, MD5, SHA-1,
 SHA-256, SHA-384, and SHA-512.
+
+`XOR` remains accepted for source compatibility. Excelize v2.9 cannot emit
+XOR workbook protection, so pyfastexcel writes SHA-512 protection for that
+input instead. Older releases silently produced an unprotected workbook in
+this case.
 
 ### Parameters
 
