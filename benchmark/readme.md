@@ -50,6 +50,73 @@ uv run python benchmark/perf_memory.py --rows 50000 --cols 30 --repeat 3
 PYFASTEXCEL_ZIP_LEVEL=6 uv run python benchmark/perf_memory.py --rows 50000 --cols 30 --repeat 3
 ```
 
+### End-to-end attribution (2026-07-21)
+
+The `2026-07-21-*` reports re-measure every stage of the rework back to back on
+one machine in one sitting, five fresh-process samples each, so the deltas are
+free of cross-day drift. The v1 baseline comes from `baseline_probe.py` run in a
+worktree at `ab23864` (the commit before the rework); `wire-only` is the
+versioned-export pipeline alone, before the fast-path work.
+
+| report | build | export | total | peak RSS |
+| --- | --- | --- | --- | --- |
+| `2026-07-21-baseline-v1` | 1.363s | 1.321s | 2.684s | 598 MB |
+| `2026-07-21-wire-only` | 1.026s | 1.064s | 2.090s (-22%) | 309 MB (-48%) |
+| `2026-07-21-fastpath` | 0.893s | 0.850s | 1.743s (-35%) | 311 MB (-48%) |
+| `2026-07-21-fastpath-zip6` | 0.827s | 0.592s | 1.420s (-47%) | 315 MB (-47%) |
+
+Two things the split shows: the whole memory win comes from the MessagePack wire
+(10.5 MB payload against 29.0 MB of JSON) and nothing after it regresses RSS,
+while the fast-path work is what turns a 22% time win into 35%. The default path
+still emits a byte-identical 5.58 MB archive; only `PYFASTEXCEL_ZIP_LEVEL=6`
+trades size (6.85 MB) for speed. Rendered as
+[`2026-07-21-branch-compare.png`](results/2026-07-21-branch-compare.png).
+
+Absolute times here run ~10% above the `2026-07-17-*` reports because the host
+was busier; the ratios are what carry across runs.
+
+### Reproducing the pre-rework baseline
+
+`perf_memory.py` cannot run against code from before the perf rework (its wire
+module, `NativeExcelClient` and ABI-v2 did not exist yet). `baseline_probe.py`
+reproduces the same workload with the *old* public API and emits the same JSON
+schema, so a baseline report can be plotted next to current ones. It is meant to
+run inside a git worktree checked out at a pre-rework commit; see the module
+docstring for the full worktree + `env -u GOROOT make build` recipe. An
+independent 2026-07-20 reproduction (baseline v1 vs new v2 json/pfx2/file) is
+committed under [`results/reproduction-2026-07-20`](results/reproduction-2026-07-20/).
+
+### Plotting old vs new
+
+`plot_perf.py` reads the committed `perf_memory.py` reports (it never mutates
+them, so historical numbers are preserved) and renders a two-panel comparison:
+wall time (build / export / total) on the left and peak RSS on the right, with
+every non-baseline report annotated by its percentage change against the first.
+
+```bash
+# Auto-discover and plot every report in benchmark/results (oldest first).
+uv run python benchmark/plot_perf.py
+
+# Pick specific reports and label them; writes to the given PNG.
+uv run python benchmark/plot_perf.py \
+  results/2026-07-16-stage-a-baseline.json \
+  results/2026-07-16-stage-a-pfx2.json \
+  --label "v1 baseline" "v2 pfx2" --output results/perf-compare.png
+```
+
+### pyfastexcel vs openpyxl throughput
+
+`benchmark.py` runs the Workbook / StreamWriter / openpyxl size matrix and writes
+one horizontal-bar PNG per case. Each run also archives a structured result to
+`benchmark/results/openpyxl/<date>-<os>-openpyxl.json`, so re-running never
+overwrites earlier numbers. The OS label is auto-detected; override it with
+`--os-name`.
+
+```bash
+uv run python benchmark/benchmark.py                       # auto-detect OS
+uv run python benchmark/benchmark.py --os-name Windows11 --repeat 5
+```
+
 - [Windows11](#benchmark-result-windows-11)
 - [Windows11 WSL2 Ubuntu22.04](#benchmark-results-windows-11-wsl2-ubuntu-2204)
 

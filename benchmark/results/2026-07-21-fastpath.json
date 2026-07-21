@@ -1,0 +1,153 @@
+{
+  "environment": {
+    "platform": "Linux-6.18.33.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "cpu": "x86_64",
+    "python": "3.14.0",
+    "python_dependencies": {
+      "msgspec": "0.21.1",
+      "pydantic": "2.13.4"
+    },
+    "go": "go version go1.25.11 linux/amd64",
+    "go_dependencies": {
+      "excelize": "v2.9.0",
+      "msgpack": "v5.4.1"
+    },
+    "git_commit": "8d835f4eb83534fb20f2a9ca8d8cb44e9c9bc007",
+    "git_dirty": true,
+    "harness_sha256": "4da4b844a1edc1ca120b1231f7f57f84e67f0e3e4a98102678e30eb0ef10169a",
+    "native_abi": 2,
+    "native_library": "/home/zncl/pyfastexcel/pyfastexcel/pyfastexcel.so",
+    "native_library_sha256": "f13b8b3cfc4d3d12bbdb4401b325176dd8ac6029c1c36ef8bc5d7727d6596ba4",
+    "native_build_info": "/home/zncl/pyfastexcel/pyfastexcel/pyfastexcel.so: go1.25.11\n\tpath\tgithub.com/Zncl2222/pyfastexcel\n\tmod\tgithub.com/Zncl2222/pyfastexcel\tv0.1.10-0.20260717170410-8d835f4eb835\t\n\tdep\tgithub.com/josharian/intern\tv1.0.0\th1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=\n\tdep\tgithub.com/klauspost/compress\tv1.19.0\th1:sXLILfc9jV2QYWkzFOPWStmcUVH2RHEB1JCdY2oVvCQ=\n\tdep\tgithub.com/mailru/easyjson\tv0.7.7\th1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0=\n\tdep\tgithub.com/mohae/deepcopy\tv0.0.0-20170929034955-c48cc78d4826\th1:RWengNIwukTxcDr9M+97sNutRR1RKhG96O6jWumTTnw=\n\tdep\tgithub.com/perimeterx/marshmallow\tv1.1.5\th1:a2LALqQ1BlHM8PZblsDdidgv1mWi1DgC2UmX50IvK2s=\n\tdep\tgithub.com/richardlehane/mscfb\tv1.0.4\th1:WULscsljNPConisD5hR0+OyZjwK46Pfyr6mPu5ZawpM=\n\tdep\tgithub.com/richardlehane/msoleps\tv1.0.4\th1:WuESlvhX3gH2IHcd8UqyCuFY5yiq/GR/yqaSM/9/g00=\n\tdep\tgithub.com/vmihailenco/msgpack/v5\tv5.4.1\th1:cQriyiUvjTwOHg8QZaPihLWeRAAVoCpE00IUPn0Bjt8=\n\tdep\tgithub.com/vmihailenco/tagparser/v2\tv2.0.0\th1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAhO7/IwNM9g=\n\tdep\tgithub.com/xuri/efp\tv0.0.0-20240408161823-9ad904a10d6d\th1:llb0neMWDQe87IzJLS4Ci7psK/lVsjIS2otl+1WyRyY=\n\tdep\tgithub.com/xuri/excelize/v2\tv2.9.0\th1:1tgOaEq92IOEumR1/JfYS/eR0KHOCsRv/rYXXh6YJQE=\n\tdep\tgithub.com/xuri/nfp\tv0.0.0-20240318013403-ab9948c2c4a7\th1:hPVCafDV85blFTabnqKgNhDCkJX25eik94Si9cTER4A=\n\tdep\tgolang.org/x/crypto\tv0.51.0\th1:IBPXwPfKxY7cWQZ38ZCIRPI50YLeevDLlLnyC5wRGTI=\n\tdep\tgolang.org/x/net\tv0.55.0\th1:bcvxaJn3e1U6InsFWt1JUq1aSjnRxLzT2rtD2KfkDF8=\n\tdep\tgolang.org/x/text\tv0.37.0\th1:Cqjiwd9eSg8e0QAkyCaQTNHFIIzWtidPahFWR83rTrc=\n\tbuild\t-buildmode=c-shared\n\tbuild\t-compiler=gc\n\tbuild\t-ldflags=-checklinkname=0\n\tbuild\t-tags=pfx_fastzip\n\tbuild\tCGO_ENABLED=1\n\tbuild\tCGO_CFLAGS=\n\tbuild\tCGO_CPPFLAGS=\n\tbuild\tCGO_CXXFLAGS=\n\tbuild\tCGO_LDFLAGS=\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=8d835f4eb83534fb20f2a9ca8d8cb44e9c9bc007\n\tbuild\tvcs.time=2026-07-17T17:04:10Z\n\tbuild\tvcs.modified=false"
+  },
+  "workload": {
+    "schema_version": 1,
+    "rows": 50000,
+    "cols": 30,
+    "cells": 1500000,
+    "styles": 4,
+    "wire": "msgpack",
+    "wire_requested": "msgpack",
+    "wire_effective": "msgpack",
+    "destination": "bytes",
+    "repeat": 5,
+    "writer_engine": "StreamWriter",
+    "sheet_count": 1,
+    "no_style": false,
+    "value_pattern": "row-major sequential integers",
+    "formula_cells": 0,
+    "style_pattern": "column modulo four fixed styles"
+  },
+  "samples": [
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "wire": "msgpack",
+      "effective_wire": "msgpack",
+      "destination": "bytes",
+      "build_seconds": 0.8697569299838506,
+      "export_seconds": 0.8377684460137971,
+      "total_seconds": 1.7075253759976476,
+      "peak_rss_bytes": 311152640,
+      "xlsx_bytes": 5577533,
+      "wire_bytes": 10522682,
+      "native_abi": 2,
+      "native_library": "/home/zncl/pyfastexcel/pyfastexcel/pyfastexcel.so",
+      "native_library_sha256": "f13b8b3cfc4d3d12bbdb4401b325176dd8ac6029c1c36ef8bc5d7727d6596ba4"
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "wire": "msgpack",
+      "effective_wire": "msgpack",
+      "destination": "bytes",
+      "build_seconds": 0.8302767869899981,
+      "export_seconds": 0.8282776930136606,
+      "total_seconds": 1.6585544800036587,
+      "peak_rss_bytes": 305463296,
+      "xlsx_bytes": 5577533,
+      "wire_bytes": 10522682,
+      "native_abi": 2,
+      "native_library": "/home/zncl/pyfastexcel/pyfastexcel/pyfastexcel.so",
+      "native_library_sha256": "f13b8b3cfc4d3d12bbdb4401b325176dd8ac6029c1c36ef8bc5d7727d6596ba4"
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "wire": "msgpack",
+      "effective_wire": "msgpack",
+      "destination": "bytes",
+      "build_seconds": 0.9094628490274772,
+      "export_seconds": 0.9102168219978921,
+      "total_seconds": 1.8196796710253693,
+      "peak_rss_bytes": 311177216,
+      "xlsx_bytes": 5577533,
+      "wire_bytes": 10522682,
+      "native_abi": 2,
+      "native_library": "/home/zncl/pyfastexcel/pyfastexcel/pyfastexcel.so",
+      "native_library_sha256": "f13b8b3cfc4d3d12bbdb4401b325176dd8ac6029c1c36ef8bc5d7727d6596ba4"
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "wire": "msgpack",
+      "effective_wire": "msgpack",
+      "destination": "bytes",
+      "build_seconds": 0.9090227889828384,
+      "export_seconds": 0.8451435700408183,
+      "total_seconds": 1.7541663590236567,
+      "peak_rss_bytes": 313192448,
+      "xlsx_bytes": 5577533,
+      "wire_bytes": 10522682,
+      "native_abi": 2,
+      "native_library": "/home/zncl/pyfastexcel/pyfastexcel/pyfastexcel.so",
+      "native_library_sha256": "f13b8b3cfc4d3d12bbdb4401b325176dd8ac6029c1c36ef8bc5d7727d6596ba4"
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "wire": "msgpack",
+      "effective_wire": "msgpack",
+      "destination": "bytes",
+      "build_seconds": 0.9486187059665099,
+      "export_seconds": 0.8281628160038963,
+      "total_seconds": 1.7767815219704062,
+      "peak_rss_bytes": 313200640,
+      "xlsx_bytes": 5577533,
+      "wire_bytes": 10522682,
+      "native_abi": 2,
+      "native_library": "/home/zncl/pyfastexcel/pyfastexcel/pyfastexcel.so",
+      "native_library_sha256": "f13b8b3cfc4d3d12bbdb4401b325176dd8ac6029c1c36ef8bc5d7727d6596ba4"
+    }
+  ],
+  "summary": {
+    "build_seconds": {
+      "mean": 0.8934276121901348,
+      "min": 0.8302767869899981,
+      "max": 0.9486187059665099,
+      "stdev": 0.04498533958810108
+    },
+    "export_seconds": {
+      "mean": 0.8499138694140129,
+      "min": 0.8281628160038963,
+      "max": 0.9102168219978921,
+      "stdev": 0.03445266901740307
+    },
+    "total_seconds": {
+      "mean": 1.7433414816041477,
+      "min": 1.6585544800036587,
+      "max": 1.8196796710253693,
+      "stdev": 0.06231886250601016
+    },
+    "peak_rss_bytes": {
+      "mean": 310837248,
+      "min": 305463296,
+      "max": 313200640
+    }
+  }
+}

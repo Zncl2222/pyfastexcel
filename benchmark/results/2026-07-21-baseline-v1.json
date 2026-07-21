@@ -1,0 +1,101 @@
+{
+  "environment": {
+    "platform": "Linux-6.18.33.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.14.0",
+    "git_commit": "ab23864dfc04999a24acfc42b3e84060d51d400d",
+    "note": "Baseline probe (old pre-rework API, ABI-v1 export via read_lib_and_create_excel). Not produced by perf_memory.py."
+  },
+  "workload": {
+    "schema_version": 1,
+    "rows": 50000,
+    "cols": 30,
+    "cells": 1500000,
+    "styles": 4,
+    "wire": "v1",
+    "destination": "bytes",
+    "repeat": 5,
+    "writer_engine": "StreamWriter",
+    "sheet_count": 1,
+    "no_style": false,
+    "value_pattern": "row-major sequential integers",
+    "formula_cells": 0,
+    "style_pattern": "column modulo four fixed styles"
+  },
+  "samples": [
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "build_seconds": 1.315856926026754,
+      "export_seconds": 1.3369105349993333,
+      "total_seconds": 2.6527674610260874,
+      "peak_rss_bytes": 605822976,
+      "xlsx_bytes": 5577744
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "build_seconds": 1.3566145210061222,
+      "export_seconds": 1.279025822004769,
+      "total_seconds": 2.6356403430108912,
+      "peak_rss_bytes": 606740480,
+      "xlsx_bytes": 5577749
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "build_seconds": 1.2646639300510287,
+      "export_seconds": 1.366529389983043,
+      "total_seconds": 2.631193320034072,
+      "peak_rss_bytes": 572219392,
+      "xlsx_bytes": 5577745
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "build_seconds": 1.4294730949914083,
+      "export_seconds": 1.3656100030057132,
+      "total_seconds": 2.7950830979971215,
+      "peak_rss_bytes": 597245952,
+      "xlsx_bytes": 5577750
+    },
+    {
+      "rows": 50000,
+      "cols": 30,
+      "cells": 1500000,
+      "build_seconds": 1.4497513179667294,
+      "export_seconds": 1.2569718799786642,
+      "total_seconds": 2.7067231979453936,
+      "peak_rss_bytes": 607817728,
+      "xlsx_bytes": 5577744
+    }
+  ],
+  "summary": {
+    "build_seconds": {
+      "mean": 1.3632719580084085,
+      "min": 1.2646639300510287,
+      "max": 1.4497513179667294,
+      "stdev": 0.0772614395082483
+    },
+    "export_seconds": {
+      "mean": 1.3210095259943047,
+      "min": 1.2569718799786642,
+      "max": 1.366529389983043,
+      "stdev": 0.05044193236406059
+    },
+    "total_seconds": {
+      "mean": 2.684281484002713,
+      "min": 2.631193320034072,
+      "max": 2.7950830979971215,
+      "stdev": 0.06884416384699925
+    },
+    "peak_rss_bytes": {
+      "mean": 597969305.6,
+      "min": 572219392,
+      "max": 607817728
+    }
+  }
+}
