@@ -8,6 +8,18 @@
 
 name: Upload Python Package
 
+# Release procedure:
+#   1. Bump `version` in pyproject.toml (the published version comes from
+#      there, NOT from the tag name) and merge it.
+#   2. Push the matching tag (e.g. v0.2.0rc0) -> publishes to Test PyPI and
+#      runs the install smoke tests.
+#   3. Once step 2 is green, create the GitHub Release *from the existing tag*
+#      -> publishes to PyPI.
+#
+# Do not create the tag from the Release UI: GitHub then fires `push` (tag) and
+# `release` at the same time, so Test PyPI and PyPI would publish in parallel
+# and step 2 would no longer gate step 3.
+
 on:
   push:
     tags:
@@ -95,11 +107,14 @@ jobs:
         with:
           verbose: true
           repository-url: https://test.pypi.org/legacy/
+          # Re-pushing a tag after a partial failure should not 400 on the
+          # files that already made it to Test PyPI.
+          skip-existing: true
 
   test-download-and-run:
     needs: test-release
     name: Test Package Installation on Multiple OS
-    if: always()
+    if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'release'
     runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
