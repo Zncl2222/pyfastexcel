@@ -31,15 +31,15 @@ func createCell(v []interface{}, styles map[string]int) (excelize.Cell, error) {
 		return excelize.Cell{StyleID: styleID, Value: ""}, nil
 	}
 	if len(v) != 2 {
-		return excelize.Cell{}, fmt.Errorf("styled cell must have 0 or 2 elements, got %d", len(v))
+		return excelize.Cell{}, fmt.Errorf("Styled cell must have 0 or 2 elements, got %d", len(v))
 	}
 	styleName, ok := v[1].(string)
 	if !ok {
-		return excelize.Cell{}, fmt.Errorf("cell style must be a string, got %T", v[1])
+		return excelize.Cell{}, fmt.Errorf("Cell style must be a string, got %T", v[1])
 	}
 	styleID, ok := styles[styleName]
 	if !ok {
-		return excelize.Cell{}, fmt.Errorf("style %q is not defined", styleName)
+		return excelize.Cell{}, fmt.Errorf("Style %s is not defined", styleName)
 	}
 	switch value := v[0].(type) {
 	case string:
